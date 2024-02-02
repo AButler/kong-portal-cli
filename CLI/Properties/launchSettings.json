@@ -1,0 +1,12 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "dump --output c:\\temp\\kong",
+      "environmentVariables": {
+        "KONG__TOKEN": "spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR"
+      }
+    }
+  }
+}
