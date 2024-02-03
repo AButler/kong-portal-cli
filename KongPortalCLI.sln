@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI", "CLI\CLI.csproj", "{E7B26D1C-E25D-489F-B663-A7FA0745F0A6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI", "src\CLI\CLI.csproj", "{E7B26D1C-E25D-489F-B663-A7FA0745F0A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI.UnitTests", "CLI.UnitTests\CLI.UnitTests.csproj", "{EFD1EA28-9B21-4755-88DD-BF9982099890}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI.UnitTests", "test\CLI.UnitTests\CLI.UnitTests.csproj", "{EFD1EA28-9B21-4755-88DD-BF9982099890}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
