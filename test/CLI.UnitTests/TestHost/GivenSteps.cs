@@ -22,11 +22,7 @@ public class GivenSteps
         _pageSize = pageSize;
     }
 
-    public void AnExistingApiProduct(
-        string name,
-        string description,
-        IDictionary<string, string>? labels = null
-    )
+    public void AnExistingApiProduct(string name, string description, IDictionary<string, string>? labels = null)
     {
         var id = Guid.NewGuid().ToString();
 
@@ -53,18 +49,12 @@ public class GivenSteps
 
     private void SetupApiProductDocumentsApis(string apiProductId)
     {
-        SetupPagedApi(
-            $"https://eu.api.konghq.com/v2/api-products/{apiProductId}/documents",
-            _apiProductDocuments[apiProductId]
-        );
+        SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/documents", _apiProductDocuments[apiProductId]);
     }
 
     private void SetupApiProductVersionApis(string apiProductId)
     {
-        SetupPagedApi(
-            $"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions",
-            _apiProductVersions[apiProductId]
-        );
+        SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions", _apiProductVersions[apiProductId]);
     }
 
     private void SetupPagedApi(string url, List<object> results)

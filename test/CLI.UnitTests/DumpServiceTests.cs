@@ -30,9 +30,7 @@ public class DumpServiceTests
         testHost.Then.DirectoryExists(apiProductDirectory);
         testHost.Then.FileExists(apiProductMetadataFile);
 
-        var json = await JsonNode.ParseAsync(
-            testHost.FileSystem.File.OpenRead(apiProductMetadataFile)
-        );
+        var json = await JsonNode.ParseAsync(testHost.FileSystem.File.OpenRead(apiProductMetadataFile));
 
         json.Should().NotBeNull();
         json!["name"].Should().NotBeNull();
@@ -69,11 +67,7 @@ public class DumpServiceTests
 
         for (var i = 1; i < 10; i++)
         {
-            var apiProductDirectory = Path.Combine(
-                outputDirectory,
-                "api-products",
-                $"API Product {i}"
-            );
+            var apiProductDirectory = Path.Combine(outputDirectory, "api-products", $"API Product {i}");
             var apiProductMetadataFile = Path.Combine(apiProductDirectory, "api-product.json");
 
             testHost.Then.DirectoryExists(apiProductDirectory);

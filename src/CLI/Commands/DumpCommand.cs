@@ -16,10 +16,7 @@ public class DumpCommand : Command
 
     private void SetupCommand()
     {
-        var outputDirectoryOption = new Option<string>("--output", "Output directory")
-        {
-            IsRequired = true
-        };
+        var outputDirectoryOption = new Option<string>("--output", "Output directory") { IsRequired = true };
 
         AddOption(outputDirectoryOption);
 
