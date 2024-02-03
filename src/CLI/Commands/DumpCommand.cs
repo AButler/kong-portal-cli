@@ -3,7 +3,7 @@ using Kong.Portal.CLI.Services;
 
 namespace Kong.Portal.CLI.Commands;
 
-public class DumpCommand : Command
+internal class DumpCommand : Command
 {
     private readonly DumpService _dumpService;
 

@@ -1,6 +1,6 @@
 namespace Kong.Portal.CLI.Services;
 
-public class ConsoleOutput : IConsoleOutput
+internal class ConsoleOutput : IConsoleOutput
 {
     public void WriteLine(string value)
     {

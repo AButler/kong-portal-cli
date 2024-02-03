@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Kong.Portal.CLI.Services.Models;
+namespace Kong.Portal.CLI.ApiClient.Models;
 
-internal record ApiProductResponse(
+internal record ApiProduct(
     Dictionary<string, string> Labels,
     string Id,
     string Name,

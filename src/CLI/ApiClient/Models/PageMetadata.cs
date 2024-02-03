@@ -1,4 +1,4 @@
-namespace Kong.Portal.CLI.Services.Models;
+namespace Kong.Portal.CLI.ApiClient.Models;
 
 internal record PageMetadata(int Total, int Size, int Number)
 {

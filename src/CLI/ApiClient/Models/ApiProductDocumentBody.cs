@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace Kong.Portal.CLI.Services.Models;
+namespace Kong.Portal.CLI.ApiClient.Models;
 
-internal record ApiProductDocumentBodyResponse(
+internal record ApiProductDocumentBody(
     string Id,
     [property: JsonPropertyName("parent_document_id")] string ParentDocumentId,
     string Slug,

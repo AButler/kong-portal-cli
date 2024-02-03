@@ -2,7 +2,7 @@
 
 namespace Kong.Portal.CLI.Config;
 
-public class KongOptionsValidator : IValidateOptions<KongOptions>
+internal class KongOptionsValidator : IValidateOptions<KongOptions>
 {
     public ValidateOptionsResult Validate(string? name, KongOptions options)
     {

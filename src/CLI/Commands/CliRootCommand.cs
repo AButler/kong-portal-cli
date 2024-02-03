@@ -2,4 +2,4 @@
 
 namespace Kong.Portal.CLI.Commands;
 
-public class CliRootCommand() : RootCommand("Kong Portal CLI");
+internal class CliRootCommand() : RootCommand("Kong Portal CLI");

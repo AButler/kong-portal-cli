@@ -2,6 +2,7 @@
 using System.IO.Abstractions.TestingHelpers;
 using CLI.UnitTests.Services;
 using Flurl.Http.Testing;
+using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.Commands;
 using Kong.Portal.CLI.Config;
 using Kong.Portal.CLI.Services;
@@ -42,6 +43,7 @@ public class TestHost : IDisposable
             .AddSingleton<IValidateOptions<KongOptions>, KongOptionsValidator>()
             .Configure<KongOptions>(options => options.Token = "Test_Kong_Token")
             .AddSingleton<DumpCommand>()
+            .AddSingleton<KongApiClient>()
             .AddSingleton<IFileSystem>(mockFileSystem)
             .AddSingleton<IConsoleOutput, NullConsoleOutput>()
             .AddSingleton<DumpService>()
