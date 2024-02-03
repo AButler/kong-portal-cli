@@ -1,4 +1,5 @@
 ﻿using System.CommandLine;
+using System.IO.Abstractions;
 using Kong.Portal.CLI.Commands;
 using Kong.Portal.CLI.Config;
 using Kong.Portal.CLI.Services;
@@ -13,6 +14,7 @@ var services = new ServiceCollection()
     .AddSingleton<IValidateOptions<KongOptions>, KongOptionsValidator>()
     .Configure<KongOptions>(configuration.GetSection("Kong"))
     .AddSingleton<DumpCommand>()
+    .AddSingleton<IFileSystem, FileSystem>()
     .AddSingleton<DumpService>()
     .BuildServiceProvider();
 

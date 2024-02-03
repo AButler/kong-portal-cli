@@ -1,33 +1,20 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
+﻿using System.IO.Abstractions;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using Flurl.Http;
 using Kong.Portal.CLI.Config;
-using Kong.Portal.CLI.Helpers;
+using Kong.Portal.CLI.Services.Models;
 using Microsoft.Extensions.Options;
 
 namespace Kong.Portal.CLI.Services;
 
-public class DumpService
+public class DumpService(IFileSystem fileSystem, IOptions<KongOptions> kongOptions)
 {
-    private readonly KongOptions _kongOptions;
-    private readonly JsonSerializerOptions _serializerOptions;
-    private readonly HttpClient _httpClient;
+    private readonly JsonSerializerOptions _serializerOptions =
+        new(JsonSerializerDefaults.Web) { WriteIndented = true };
 
-    public DumpService(IOptions<KongOptions> kongOptions)
-    {
-        _kongOptions = kongOptions.Value;
-        _serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
-        {
-            WriteIndented = true
-        };
-
-        _httpClient = new HttpClient { BaseAddress = _kongOptions.GetKongBaseUri() };
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            _kongOptions.Token
-        );
-    }
+    private readonly FlurlClient _flurlClient = new FlurlClient(kongOptions.Value.GetKongBaseUri())
+        .WithHeader("User-Agent", "Kong Portal CLI")
+        .WithOAuthBearerToken(kongOptions.Value.Token);
 
     public async Task Dump(string outputDirectory)
     {
@@ -54,18 +41,21 @@ public class DumpService
         Console.WriteLine($"  - {apiProduct.Name}");
 
         var apiProductDirectory = Path.Combine(outputDirectory, "api-products", apiProduct.Name);
-        DirectoryHelpers.EnsureDirectory(apiProductDirectory);
+        if (!fileSystem.Directory.Exists(apiProductDirectory))
+        {
+            fileSystem.Directory.CreateDirectory(apiProductDirectory);
+        }
 
         var metadata = new
         {
-            Id = apiProduct.Id,
+            Name = apiProduct.Name,
             Description = apiProduct.Description,
             Labels = apiProduct.Labels
         };
 
         Console.WriteLine($"    - api-product.json");
         var metadataFilename = Path.Combine(apiProductDirectory, "api-product.json");
-        await using var file = File.Create(metadataFilename);
+        await using var file = fileSystem.File.Create(metadataFilename);
         await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
 
         ApiProductDocumentsResponse apiProductDocuments;
@@ -87,27 +77,31 @@ public class DumpService
         string apiProductId
     )
     {
-        var response = await _httpClient.GetAsync(
-            $"api-products/{apiProductId}/documents?page%5Bnumber%5D={pageNumber}"
-        );
-        response.EnsureSuccessStatusCode();
+        var response = await _flurlClient
+            .Request($"api-products/{apiProductId}/documents")
+            .SetQueryParam("page[number]", pageNumber)
+            .GetAsync();
 
-        var documents = await response.Content.ReadFromJsonAsync<ApiProductDocumentsResponse>();
+        var documents = await response.GetJsonAsync<ApiProductDocumentsResponse>();
         return documents!;
     }
 
     private async Task<ApiProductsResponse> GetApiProducts(int pageNumber)
     {
-        var response = await _httpClient.GetAsync($"api-products?page%5Bnumber%5D={pageNumber}");
-        response.EnsureSuccessStatusCode();
+        var response = await _flurlClient
+            .Request($"api-products")
+            .SetQueryParam("page[number]", pageNumber)
+            .GetAsync();
 
-        var apiProducts = await response.Content.ReadFromJsonAsync<ApiProductsResponse>();
+        var apiProducts = await response.GetJsonAsync<ApiProductsResponse>();
         return apiProducts!;
     }
 
-    private static void Cleanup(string outputDirectory)
+    private void Cleanup(string outputDirectory)
     {
-        var apiProductsDirectory = new DirectoryInfo(Path.Combine(outputDirectory, "api-products"));
+        var apiProductsDirectory = fileSystem.DirectoryInfo.New(
+            Path.Combine(outputDirectory, "api-products")
+        );
 
         if (!apiProductsDirectory.Exists)
         {
@@ -117,36 +111,3 @@ public class DumpService
         apiProductsDirectory.Delete(true);
     }
 }
-
-internal record ApiProductDocumentsResponse(
-    List<ApiProductDocumentResponse> Data,
-    ApiMetadata Meta
-);
-
-internal record ApiProductDocumentResponse(
-    string Id,
-    [property: JsonPropertyName("parent_document_id")] string ParentDocumentId,
-    string Slug,
-    string Status,
-    string Title
-);
-
-public record ApiProductsResponse(List<ApiProductResponse> Data, ApiMetadata Meta);
-
-public record ApiMetadata(PageMetadata Page);
-
-public record PageMetadata(int Total, int Size, int Number)
-{
-    public bool HasMore() => Number * Size > Total;
-}
-
-public record ApiProductResponse(
-    Dictionary<string, string> Labels,
-    string Id,
-    string Name,
-    string Description,
-    [property: JsonPropertyName("portal_ids")] List<string> PortalIds,
-    [property: JsonPropertyName("created_at")] DateTimeOffset CreatedAt,
-    [property: JsonPropertyName("updated_at")] DateTimeOffset UpdatedAt,
-    [property: JsonPropertyName("version_count")] int VersionCount
-);

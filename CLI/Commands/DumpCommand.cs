@@ -26,8 +26,10 @@ public class DumpCommand : Command
         this.SetHandler(Handle, outputDirectoryOption);
     }
 
-    private async Task Handle(string outputDirectory)
+    private async Task<int> Handle(string outputDirectory)
     {
         await _dumpService.Dump(outputDirectory);
+
+        return 0;
     }
 }
