@@ -7,7 +7,11 @@ using Microsoft.Extensions.Options;
 
 namespace Kong.Portal.CLI.Services;
 
-public class DumpService(IFileSystem fileSystem, IOptions<KongOptions> kongOptions)
+public class DumpService(
+    IFileSystem fileSystem,
+    IConsoleOutput consoleOutput,
+    IOptions<KongOptions> kongOptions
+)
 {
     private readonly JsonSerializerOptions _serializerOptions =
         new(JsonSerializerDefaults.Web) { WriteIndented = true };
@@ -23,8 +27,8 @@ public class DumpService(IFileSystem fileSystem, IOptions<KongOptions> kongOptio
         ApiProductsResponse apiProducts;
         var pageNumber = 1;
 
-        Console.WriteLine("Dumping...");
-
+        consoleOutput.WriteLine("Dumping...");
+        consoleOutput.WriteLine("- API Products");
         do
         {
             apiProducts = await GetApiProducts(pageNumber++);
@@ -38,13 +42,10 @@ public class DumpService(IFileSystem fileSystem, IOptions<KongOptions> kongOptio
 
     private async Task DumpApiProduct(string outputDirectory, ApiProductResponse apiProduct)
     {
-        Console.WriteLine($"  - {apiProduct.Name}");
+        consoleOutput.WriteLine($"  * {apiProduct.Name}");
 
         var apiProductDirectory = Path.Combine(outputDirectory, "api-products", apiProduct.Name);
-        if (!fileSystem.Directory.Exists(apiProductDirectory))
-        {
-            fileSystem.Directory.CreateDirectory(apiProductDirectory);
-        }
+        fileSystem.Directory.EnsureDirectory(apiProductDirectory);
 
         var metadata = new
         {
@@ -53,23 +54,152 @@ public class DumpService(IFileSystem fileSystem, IOptions<KongOptions> kongOptio
             Labels = apiProduct.Labels
         };
 
-        Console.WriteLine($"    - api-product.json");
+        consoleOutput.WriteLine("    - Metadata");
         var metadataFilename = Path.Combine(apiProductDirectory, "api-product.json");
         await using var file = fileSystem.File.Create(metadataFilename);
         await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
 
+        var versionsDirectory = Path.Combine(apiProductDirectory, "versions");
+        await DumpApiProductVersions(versionsDirectory, apiProduct.Id);
+
+        var documentsDirectory = Path.Combine(apiProductDirectory, "documents");
+        await DumpApiProductDocuments(documentsDirectory, apiProduct.Id);
+    }
+
+    private async Task DumpApiProductVersions(string versionsDirectory, string apiProductId)
+    {
+        fileSystem.Directory.EnsureDirectory(versionsDirectory);
+
+        ApiProductVersionsResponse apiProductVersions;
+        var pageNumber = 1;
+        var anyVersions = false;
+
+        consoleOutput.WriteLine("    - Versions");
+        do
+        {
+            apiProductVersions = await GetApiProductVersions(pageNumber++, apiProductId);
+
+            foreach (var apiProductVersion in apiProductVersions.Data)
+            {
+                anyVersions = true;
+                consoleOutput.WriteLine($"      - {apiProductVersion.Name}");
+
+                await DumpApiProductVersion(versionsDirectory, apiProductId, apiProductVersion);
+            }
+        } while (apiProductVersions.Meta.Page.HasMore());
+
+        if (!anyVersions)
+        {
+            consoleOutput.WriteLine($"      - (none)");
+        }
+    }
+
+    private async Task DumpApiProductVersion(
+        string versionsDirectory,
+        string apiProductId,
+        ApiProductVersion apiProductVersion
+    )
+    {
+        var metadata = new
+        {
+            Name = apiProductVersion.Name,
+            PublishStatus = apiProductVersion.PublishStatus,
+            Deprecated = apiProductVersion.Deprecated
+        };
+
+        var metadataFilename = Path.Combine(versionsDirectory, $"{apiProductVersion.Name}.json");
+        await using var file = fileSystem.File.Create(metadataFilename);
+        await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
+
+        //TODO: Dump swagger
+    }
+
+    private async Task DumpApiProductDocuments(string documentsDirectory, string apiProductId)
+    {
+        fileSystem.Directory.EnsureDirectory(documentsDirectory);
+
         ApiProductDocumentsResponse apiProductDocuments;
         var pageNumber = 1;
 
+        consoleOutput.WriteLine("    - Documents");
+        var anyDocuments = false;
+
         do
         {
-            apiProductDocuments = await GetApiProductDocuments(pageNumber++, apiProduct.Id);
+            apiProductDocuments = await GetApiProductDocuments(pageNumber++, apiProductId);
 
             foreach (var apiProductDocument in apiProductDocuments.Data)
             {
-                Console.WriteLine($"    - {apiProductDocument.Slug}");
+                anyDocuments = true;
+                consoleOutput.WriteLine($"      - {apiProductDocument.Slug}");
+
+                await DumpApiProductDocument(
+                    documentsDirectory,
+                    apiProductId,
+                    apiProductDocument.Id,
+                    apiProductDocument.Slug
+                );
             }
         } while (apiProductDocuments.Meta.Page.HasMore());
+
+        if (!anyDocuments)
+        {
+            consoleOutput.WriteLine($"      - (none)");
+        }
+    }
+
+    private async Task DumpApiProductDocument(
+        string documentsDirectory,
+        string apiProductId,
+        string apiProductDocumentId,
+        string fullSlug
+    )
+    {
+        var apiProductDocument = await GetApiProductDocument(apiProductId, apiProductDocumentId);
+
+        var metadata = new
+        {
+            Title = apiProductDocument.Title,
+            Slug = apiProductDocument.Slug,
+            Status = apiProductDocument.Status
+        };
+        var metadataFilename = Path.Combine(documentsDirectory, $"{fullSlug}.json");
+        fileSystem.Directory.EnsureDirectory(Path.GetDirectoryName(metadataFilename)!);
+        await using var file = fileSystem.File.Create(metadataFilename);
+        await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
+
+        var contentFilename = Path.Combine(documentsDirectory, $"{fullSlug}.md");
+        await fileSystem.File.WriteAllTextAsync(
+            contentFilename,
+            apiProductDocument.MarkdownContent
+        );
+    }
+
+    private async Task<ApiProductVersionsResponse> GetApiProductVersions(
+        int pageNumber,
+        string apiProductId
+    )
+    {
+        var response = await _flurlClient
+            .Request($"api-products/{apiProductId}/product-versions")
+            .SetQueryParam("page[number]", pageNumber)
+            .GetAsync();
+
+        var versions = await response.GetJsonAsync<ApiProductVersionsResponse>();
+        return versions!;
+    }
+
+    private async Task<ApiProductDocumentBodyResponse> GetApiProductDocument(
+        string apiProductId,
+        string apiProductDocumentId
+    )
+    {
+        var response = await _flurlClient
+            .Request($"api-products/{apiProductId}/documents/{apiProductDocumentId}")
+            .GetAsync();
+
+        var document = await response.GetJsonAsync<ApiProductDocumentBodyResponse>();
+        return document!;
     }
 
     private async Task<ApiProductDocumentsResponse> GetApiProductDocuments(

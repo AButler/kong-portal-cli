@@ -15,6 +15,7 @@ var services = new ServiceCollection()
     .Configure<KongOptions>(configuration.GetSection("Kong"))
     .AddSingleton<DumpCommand>()
     .AddSingleton<IFileSystem, FileSystem>()
+    .AddSingleton<IConsoleOutput, ConsoleOutput>()
     .AddSingleton<DumpService>()
     .BuildServiceProvider();
 

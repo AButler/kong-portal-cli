@@ -1,7 +1,7 @@
 using System.IO.Abstractions;
 using FluentAssertions;
 
-namespace CLI.UnitTests;
+namespace CLI.UnitTests.TestHost;
 
 public class ThenSteps(IFileSystem fileSystem)
 {

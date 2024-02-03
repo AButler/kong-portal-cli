@@ -10,7 +10,7 @@ public class DumpServiceTests
     [Fact]
     public async Task ApiProductJsonIsDumped()
     {
-        using var testHost = new TestHost();
+        using var testHost = new TestHost.TestHost();
 
         var dumpService = testHost.GetRequiredService<DumpService>();
 
@@ -52,7 +52,7 @@ public class DumpServiceTests
     [Fact]
     public async Task MultipleApiProductsJsonAreDumped()
     {
-        using var testHost = new TestHost();
+        using var testHost = new TestHost.TestHost();
 
         testHost.Given.TheKongApiPageSizeIs(2);
 
