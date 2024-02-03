@@ -15,9 +15,9 @@ public class DumpServiceTests
         var dumpService = testHost.GetRequiredService<DumpService>();
 
         testHost.Given.AnExistingApiProduct(
-            "API Product 1",
-            "This is API Product 1",
-            new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+            name: "API Product 1",
+            description: "This is API Product 1",
+            labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
         );
 
         var outputDirectory = @"c:\temp\output";
@@ -27,8 +27,8 @@ public class DumpServiceTests
         var apiProductDirectory = Path.Combine(outputDirectory, "api-products", "API Product 1");
         var apiProductMetadataFile = Path.Combine(apiProductDirectory, "api-product.json");
 
-        testHost.Then.DirectoryExists(apiProductDirectory);
-        testHost.Then.FileExists(apiProductMetadataFile);
+        testHost.Then.DirectoryShouldExist(apiProductDirectory);
+        testHost.Then.FileShouldExist(apiProductMetadataFile);
 
         var json = await JsonNode.ParseAsync(testHost.FileSystem.File.OpenRead(apiProductMetadataFile));
 
@@ -58,7 +58,7 @@ public class DumpServiceTests
 
         for (var i = 1; i < 10; i++)
         {
-            testHost.Given.AnExistingApiProduct($"API Product {i}", "This is API Product {i}");
+            testHost.Given.AnExistingApiProduct(name: $"API Product {i}", description: "This is API Product {i}");
         }
 
         var outputDirectory = @"c:\temp\output";
@@ -70,8 +70,47 @@ public class DumpServiceTests
             var apiProductDirectory = Path.Combine(outputDirectory, "api-products", $"API Product {i}");
             var apiProductMetadataFile = Path.Combine(apiProductDirectory, "api-product.json");
 
-            testHost.Then.DirectoryExists(apiProductDirectory);
-            testHost.Then.FileExists(apiProductMetadataFile);
+            testHost.Then.DirectoryShouldExist(apiProductDirectory);
+            testHost.Then.FileShouldExist(apiProductMetadataFile);
         }
+    }
+
+    [Fact]
+    public async Task ApiProductDocumentationIsDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var productId = Guid.NewGuid().ToString();
+
+        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
+
+        testHost.Given.AnExistingApiProductDocument(productId, "authentication", "How to Authenticate", "# How to Authenticate");
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        var documentsDirectory = Path.Combine(outputDirectory, "api-products", "API Product", "documents");
+
+        var authenticationDocument = Path.Combine(documentsDirectory, "authentication.md");
+        testHost.Then.FileShouldExist(authenticationDocument);
+        testHost.Then.FileContentsShouldBe(authenticationDocument, "# How to Authenticate");
+
+        var authenticationDocumentMetadataFile = Path.Combine(documentsDirectory, "authentication.json");
+        testHost.Then.FileShouldExist(authenticationDocumentMetadataFile);
+        var json = await JsonNode.ParseAsync(testHost.FileSystem.File.OpenRead(authenticationDocumentMetadataFile));
+
+        json.Should().NotBeNull();
+        json!["title"].Should().NotBeNull();
+        json["title"]!.GetValueKind().Should().Be(JsonValueKind.String);
+        json["title"]!.GetValue<string>().Should().Be("How to Authenticate");
+        json["slug"].Should().NotBeNull();
+        json["slug"]!.GetValueKind().Should().Be(JsonValueKind.String);
+        json["slug"]!.GetValue<string>().Should().Be("authentication");
+        json["status"].Should().NotBeNull();
+        json["status"]!.GetValueKind().Should().Be(JsonValueKind.String);
+        json["status"]!.GetValue<string>().Should().Be("published");
     }
 }

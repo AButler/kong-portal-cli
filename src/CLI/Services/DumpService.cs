@@ -112,11 +112,11 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
             return;
         }
 
-        foreach (var apiProductDocument in documents)
+        foreach (var document in documents)
         {
-            consoleOutput.WriteLine($"      - {apiProductDocument.Slug}");
+            consoleOutput.WriteLine($"      - {document.Slug}");
 
-            await DumpApiProductDocument(documentsDirectory, apiProductId, apiProductDocument.Id, apiProductDocument.Slug);
+            await DumpApiProductDocument(documentsDirectory, apiProductId, document.Id, document.Slug);
         }
     }
 

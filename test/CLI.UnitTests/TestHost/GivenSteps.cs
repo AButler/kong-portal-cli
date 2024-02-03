@@ -22,17 +22,22 @@ public class GivenSteps
         _pageSize = pageSize;
     }
 
-    public void AnExistingApiProduct(string name, string description, IDictionary<string, string>? labels = null)
+    public void AnExistingApiProduct(
+        Discretionary<string> productId = default,
+        Discretionary<string> name = default,
+        Discretionary<string> description = default,
+        IDictionary<string, string>? labels = null
+    )
     {
-        var id = Guid.NewGuid().ToString();
+        var id = productId.GetValueOrDefault(Guid.NewGuid().ToString());
 
         _apiProducts.Add(
             new
             {
                 id,
                 labels = labels ?? new Dictionary<string, string>(),
-                name,
-                description
+                name = name.GetValueOrDefault($"API Product {id}"),
+                description = description.GetValueOrDefault($"Description for API Product {id}")
             }
         );
 
@@ -40,6 +45,36 @@ public class GivenSteps
         _apiProductVersions[id] = [];
         SetupApiProductDocumentsApis(id);
         SetupApiProductVersionApis(id);
+    }
+
+    public void AnExistingApiProductDocument(string apiProductId, string slug, string title, string content)
+    {
+        var id = Guid.NewGuid().ToString();
+
+        _apiProductDocuments[apiProductId]
+            .Add(
+                new
+                {
+                    id,
+                    title,
+                    slug,
+                    status = "published"
+                }
+            );
+
+        HttpTest
+            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/documents/{id}")
+            .WithVerb("GET")
+            .RespondWithJson(
+                new
+                {
+                    id,
+                    title,
+                    slug,
+                    status = "published",
+                    str_md_content = content
+                }
+            );
     }
 
     private void SetupApiProductsApis()
