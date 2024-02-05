@@ -46,6 +46,8 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         var portalDirectory = Path.Combine(context.OutputDirectory, "portals", portal.Name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
+        var products = await apiClient.GetPortalProducts(portal.Id);
+
         var metadata = new
         {
             portal.Name,
@@ -54,7 +56,8 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
             portal.IsPublic,
             portal.AutoApproveDevelopers,
             portal.AutoApproveApplications,
-            portal.RbacEnabled
+            portal.RbacEnabled,
+            products = products.Select(p => p.Name)
         };
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");

@@ -115,4 +115,23 @@ internal class KongApiClient(IOptions<KongOptions> kongOptions)
 
         return allPortals;
     }
+
+    public async Task<List<ApiProduct>> GetPortalProducts(string portalId)
+    {
+        var allProducts = new List<ApiProduct>();
+
+        PagedResponse<ApiProduct> productsResponse;
+        var pageNumber = 1;
+
+        do
+        {
+            var response = await _flurlClient.Request($"portals/{portalId}/products").SetQueryParam("page[number]", pageNumber++).GetAsync();
+
+            productsResponse = await response.GetJsonAsync<PagedResponse<ApiProduct>>();
+
+            allProducts.AddRange(productsResponse.Data);
+        } while (productsResponse.Meta.Page.HasMore());
+
+        return allProducts;
+    }
 }

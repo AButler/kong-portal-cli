@@ -6,10 +6,10 @@ public class GivenSteps
 {
     private const int MaximumPageSize = 10;
 
-    private readonly List<object> _apiProducts = [];
-    private readonly List<object> _devPortals = [];
-    private readonly Dictionary<string, List<object>> _apiProductDocuments = new();
-    private readonly Dictionary<string, List<object>> _apiProductVersions = new();
+    private readonly List<dynamic> _apiProducts = [];
+    private readonly List<dynamic> _devPortals = [];
+    private readonly Dictionary<string, List<dynamic>> _apiProductDocuments = new();
+    private readonly Dictionary<string, List<dynamic>> _apiProductVersions = new();
 
     private int _pageSize = 100;
 
@@ -82,13 +82,14 @@ public class GivenSteps
     public void AnExistingApiProductVersion(
         string apiProductId,
         string name,
-        string publishStatus = "published",
-        bool deprecated = false,
-        string? specificationFilename = null,
-        string? specificationContents = null
+        Discretionary<string> versionId = default,
+        Discretionary<string> publishStatus = default,
+        Discretionary<bool> deprecated = default,
+        Discretionary<string> specificationFilename = default,
+        Discretionary<string> specificationContents = default
     )
     {
-        var id = Guid.NewGuid().ToString();
+        var id = versionId.GetValueOrDefault(Guid.NewGuid().ToString());
         var specificationId = Guid.NewGuid().ToString();
 
         _apiProductVersions[apiProductId]
@@ -97,8 +98,8 @@ public class GivenSteps
                 {
                     id,
                     name,
-                    publish_status = publishStatus,
-                    deprecated
+                    publish_status = publishStatus.GetValueOrDefault("published"),
+                    deprecated = deprecated.GetValueOrDefault(false)
                 }
             );
 
@@ -116,14 +117,14 @@ public class GivenSteps
             );
 
         var specificationResponse =
-            specificationFilename != null
+            specificationFilename.IsSpecified && specificationContents.IsSpecified
                 ?
                 [
                     new
                     {
                         id = specificationId,
-                        name = $"/{specificationFilename}",
-                        content = specificationContents
+                        name = $"/{specificationFilename.Value}",
+                        content = specificationContents.Value
                     }
                 ]
                 : Array.Empty<object>();
@@ -142,7 +143,8 @@ public class GivenSteps
         Discretionary<bool> autoApproveApplications = default,
         Discretionary<bool> autoApproveDevelopers = default,
         Discretionary<string?> customDomain = default,
-        Discretionary<string?> customClientDomain = default
+        Discretionary<string?> customClientDomain = default,
+        IReadOnlyCollection<string>? apiProducts = default
     )
     {
         var id = portalId.GetValueOrDefault(Guid.NewGuid().ToString());
@@ -160,29 +162,36 @@ public class GivenSteps
                 rbac_enabled = rbacEnabled.GetValueOrDefault(false)
             }
         );
+
+        var apiProductIds = apiProducts ?? [];
+
+        SetupPagedApi(
+            $"https://eu.api.konghq.com/v2/portals/{id}/products",
+            () => _apiProducts.Where(v => apiProductIds.Contains((string)v.id)).ToList()
+        );
     }
 
     private void SetupApiProductsApis()
     {
-        SetupPagedApi("https://eu.api.konghq.com/v2/api-products", _apiProducts);
+        SetupPagedApi("https://eu.api.konghq.com/v2/api-products", () => _apiProducts);
     }
 
     private void SetupDevPortalApis()
     {
-        SetupPagedApi("https://eu.api.konghq.com/v2/portals", _devPortals);
+        SetupPagedApi("https://eu.api.konghq.com/v2/portals", () => _devPortals);
     }
 
     private void SetupApiProductDocumentsApis(string apiProductId)
     {
-        SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/documents", _apiProductDocuments[apiProductId]);
+        SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/documents", () => _apiProductDocuments[apiProductId]);
     }
 
     private void SetupApiProductVersionApis(string apiProductId)
     {
-        SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions", _apiProductVersions[apiProductId]);
+        SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions", () => _apiProductVersions[apiProductId]);
     }
 
-    private void SetupPagedApi(string url, IReadOnlyCollection<object> results)
+    private void SetupPagedApi(string url, Func<IReadOnlyCollection<dynamic>> results)
     {
         HttpTest
             .Current.ForCallsTo(url)
@@ -192,12 +201,12 @@ public class GivenSteps
                 () =>
                     new
                     {
-                        data = results.Take(_pageSize),
+                        data = results().Take(_pageSize),
                         meta = new
                         {
                             page = new
                             {
-                                total = results.Count,
+                                total = results().Count,
                                 size = _pageSize,
                                 number = 1
                             }
@@ -216,12 +225,12 @@ public class GivenSteps
                     () =>
                         new
                         {
-                            data = results.Skip((pageNumber - 1) * _pageSize).Take(_pageSize),
+                            data = results().Skip((pageNumber - 1) * _pageSize).Take(_pageSize),
                             meta = new
                             {
                                 page = new
                                 {
-                                    total = results.Count,
+                                    total = results().Count,
                                     size = _pageSize,
                                     number = pageNumber
                                 }

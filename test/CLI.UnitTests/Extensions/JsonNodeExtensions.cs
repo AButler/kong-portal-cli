@@ -79,4 +79,30 @@ public static class JsonNodeExtensions
 
         propertyObject.Count.Should().Be(values.Count);
     }
+
+    public static void ShouldHaveStringArrayProperty(this JsonNode? json, string propertyName, IReadOnlyCollection<string> expected)
+    {
+        json.Should().NotBeNull();
+        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+
+        var jObject = json.AsObject();
+
+        var propertyNode = jObject[propertyName];
+        propertyNode.Should().NotBeNull($"{propertyName} should be present");
+        propertyNode!.GetValueKind().Should().Be(JsonValueKind.Array);
+
+        var arrayNode = propertyNode.AsArray();
+
+        var actual = new List<string>();
+
+        foreach (var item in arrayNode)
+        {
+            item.Should().NotBeNull();
+            item!.GetValueKind().Should().Be(JsonValueKind.String);
+
+            actual.Add(item.GetValue<string>());
+        }
+
+        actual.Should().BeEquivalentTo(expected);
+    }
 }

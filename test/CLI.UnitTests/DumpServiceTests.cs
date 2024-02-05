@@ -1,4 +1,5 @@
-﻿using Kong.Portal.CLI.Services;
+﻿using CLI.UnitTests.TestHost;
+using Kong.Portal.CLI.Services;
 
 namespace CLI.UnitTests;
 
@@ -192,13 +193,56 @@ public class DumpServiceTests
             autoApproveApplications: false,
             autoApproveDevelopers: false,
             customDomain: null,
-            customClientDomain: null
+            customClientDomain: null,
+            apiProducts: []
         );
 
         var outputDirectory = @"c:\temp\output";
 
         await dumpService.Dump(outputDirectory);
 
-        await testHost.Then.DumpedFile.ShouldHavePortal(outputDirectory, "default", true, false, false, false, null, null);
+        await testHost.Then.DumpedFile.ShouldHavePortal(outputDirectory, "default", true, false, false, false, null, null, []);
+    }
+
+    [Fact]
+    public async Task PortalProductsAreDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var product1Id = Guid.NewGuid().ToString();
+        var product2Id = Guid.NewGuid().ToString();
+        var portalId = Guid.NewGuid().ToString();
+
+        testHost.Given.AnExistingApiProduct(productId: product1Id, name: "API Product 1");
+        testHost.Given.AnExistingApiProduct(productId: product2Id, name: "API Product 2");
+        testHost.Given.AnExistingDevPortal(
+            portalId: portalId,
+            name: "default",
+            isPublic: true,
+            rbacEnabled: false,
+            autoApproveApplications: false,
+            autoApproveDevelopers: false,
+            customDomain: null,
+            customClientDomain: null,
+            apiProducts: [product1Id, product2Id]
+        );
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        await testHost.Then.DumpedFile.ShouldHavePortal(
+            outputDirectory,
+            "default",
+            true,
+            false,
+            false,
+            false,
+            null,
+            null,
+            ["API Product 1", "API Product 2"]
+        );
     }
 }

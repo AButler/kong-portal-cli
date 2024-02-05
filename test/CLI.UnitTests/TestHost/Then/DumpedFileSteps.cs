@@ -89,7 +89,8 @@ public class DumpedFileSteps(IFileSystem fileSystem)
         bool autoApproveApplications,
         bool autoApproveDevelopers,
         string? customDomain,
-        string? customClientDomain
+        string? customClientDomain,
+        IReadOnlyCollection<string> products
     )
     {
         var portalDirectory = Path.Combine(outputDirectory, "portals", name);
@@ -125,6 +126,8 @@ public class DumpedFileSteps(IFileSystem fileSystem)
         {
             json.ShouldHaveStringProperty("custom_client_domain", customClientDomain);
         }
+
+        json.ShouldHaveStringArrayProperty("products", products);
     }
 
     private void DirectoryShouldExist(string path)
