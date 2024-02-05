@@ -23,25 +23,27 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         consoleOutput.WriteLine("Dumping...");
         consoleOutput.WriteLine("- API Products");
 
+        var context = new DumpContext(outputDirectory);
+
         var apiProducts = await apiClient.GetApiProducts();
         foreach (var apiProduct in apiProducts)
         {
-            await DumpApiProduct(outputDirectory, apiProduct);
+            await DumpApiProduct(context, apiProduct);
         }
 
         consoleOutput.WriteLine("- Portals");
         var portals = await apiClient.GetPortals();
         foreach (var portal in portals)
         {
-            await DumpPortal(outputDirectory, portal);
+            await DumpPortal(context, portal);
         }
     }
 
-    private async Task DumpPortal(string outputDirectory, ApiClient.Models.Portal portal)
+    private async Task DumpPortal(DumpContext context, ApiClient.Models.Portal portal)
     {
         consoleOutput.WriteLine($"  * {portal.Name}");
 
-        var portalDirectory = Path.Combine(outputDirectory, "portals", portal.Name);
+        var portalDirectory = Path.Combine(context.OutputDirectory, "portals", portal.Name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
         var metadata = new
@@ -60,11 +62,11 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
     }
 
-    private async Task DumpApiProduct(string outputDirectory, ApiProduct apiProduct)
+    private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct)
     {
         consoleOutput.WriteLine($"  * {apiProduct.Name}");
 
-        var apiProductDirectory = Path.Combine(outputDirectory, "api-products", apiProduct.Name);
+        var apiProductDirectory = context.GetApiProductDirectory(apiProduct);
         fileSystem.Directory.EnsureDirectory(apiProductDirectory);
 
         var metadata = new
@@ -79,20 +81,16 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         await using var file = fileSystem.File.Create(metadataFilename);
         await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
 
-        var versionsDirectory = Path.Combine(apiProductDirectory, "versions");
-        await DumpApiProductVersions(versionsDirectory, apiProduct.Id);
+        await DumpApiProductVersions(context, apiProduct);
 
-        var documentsDirectory = Path.Combine(apiProductDirectory, "documents");
-        await DumpApiProductDocuments(documentsDirectory, apiProduct.Id);
+        await DumpApiProductDocuments(context, apiProduct);
     }
 
-    private async Task DumpApiProductVersions(string versionsDirectory, string apiProductId)
+    private async Task DumpApiProductVersions(DumpContext context, ApiProduct apiProduct)
     {
-        fileSystem.Directory.EnsureDirectory(versionsDirectory);
-
         consoleOutput.WriteLine("    - Versions");
 
-        var versions = await apiClient.GetApiProductVersions(apiProductId);
+        var versions = await apiClient.GetApiProductVersions(apiProduct.Id);
 
         if (!versions.Any())
         {
@@ -104,13 +102,16 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         {
             consoleOutput.WriteLine($"      - {apiProductVersion.Name}");
 
-            await DumpApiProductVersion(versionsDirectory, apiProductId, apiProductVersion);
+            await DumpApiProductVersion(context, apiProduct, apiProductVersion);
         }
     }
 
-    private async Task DumpApiProductVersion(string versionsDirectory, string apiProductId, ApiProductVersion apiProductVersion)
+    private async Task DumpApiProductVersion(DumpContext context, ApiProduct apiProduct, ApiProductVersion apiProductVersion)
     {
-        var specification = await apiClient.GetApiProductSpecification(apiProductId, apiProductVersion.Id);
+        var versionsDirectory = context.GetVersionDirectory(apiProduct);
+        var specification = await apiClient.GetApiProductSpecification(apiProduct.Id, apiProductVersion.Id);
+
+        context.StoreProductVersionId(apiProduct.Name, apiProductVersion.Name, apiProductVersion.Id);
 
         var metadata = new
         {
@@ -136,12 +137,10 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         await fileSystem.File.WriteAllTextAsync(specificationFilename, specification.Content);
     }
 
-    private async Task DumpApiProductDocuments(string documentsDirectory, string apiProductId)
+    private async Task DumpApiProductDocuments(DumpContext context, ApiProduct apiProduct)
     {
-        fileSystem.Directory.EnsureDirectory(documentsDirectory);
-
         consoleOutput.WriteLine("    - Documents");
-        var documents = await apiClient.GetApiProductDocuments(apiProductId);
+        var documents = await apiClient.GetApiProductDocuments(apiProduct.Id);
 
         if (!documents.Any())
         {
@@ -153,13 +152,14 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         {
             consoleOutput.WriteLine($"      - {document.Slug}");
 
-            await DumpApiProductDocument(documentsDirectory, apiProductId, document.Id, document.Slug);
+            await DumpApiProductDocument(context, apiProduct, document.Id, document.Slug);
         }
     }
 
-    private async Task DumpApiProductDocument(string documentsDirectory, string apiProductId, string documentId, string fullSlug)
+    private async Task DumpApiProductDocument(DumpContext context, ApiProduct apiProduct, string documentId, string fullSlug)
     {
-        var apiProductDocument = await apiClient.GetApiProductDocumentBody(apiProductId, documentId);
+        var documentsDirectory = context.GetDocumentsDirectory(apiProduct);
+        var apiProductDocument = await apiClient.GetApiProductDocumentBody(apiProduct.Id, documentId);
 
         var metadata = new
         {
@@ -186,5 +186,37 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         }
 
         apiProductsDirectory.Delete(true);
+    }
+
+    private class DumpContext(string outputDirectory)
+    {
+        private readonly Dictionary<string, (string ApiProductName, string Version)> _productVersions = new();
+
+        public string OutputDirectory { get; } = outputDirectory;
+
+        public void StoreProductVersionId(string apiProductName, string version, string versionId)
+        {
+            _productVersions.Add(versionId, (apiProductName, version));
+        }
+
+        public (string ApiProductName, string Version) GetProductVersionById(string versionId)
+        {
+            return _productVersions[versionId];
+        }
+
+        public string GetApiProductDirectory(ApiProduct apiProduct)
+        {
+            return Path.Combine(OutputDirectory, "api-products", apiProduct.Name);
+        }
+
+        public string GetVersionDirectory(ApiProduct apiProduct)
+        {
+            return Path.Combine(GetApiProductDirectory(apiProduct), "versions");
+        }
+
+        public string GetDocumentsDirectory(ApiProduct apiProduct)
+        {
+            return Path.Combine(GetApiProductDirectory(apiProduct), "documents");
+        }
     }
 }
