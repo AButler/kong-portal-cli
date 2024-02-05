@@ -1,5 +1,6 @@
 ﻿using System.IO.Abstractions;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
 
@@ -7,7 +8,13 @@ namespace Kong.Portal.CLI.Services;
 
 internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, IConsoleOutput consoleOutput)
 {
-    private readonly JsonSerializerOptions _serializerOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+    private readonly JsonSerializerOptions _serializerOptions =
+        new(JsonSerializerDefaults.Web)
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            DefaultIgnoreCondition = JsonIgnoreCondition.Never
+        };
 
     public async Task Dump(string outputDirectory)
     {
@@ -21,6 +28,36 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         {
             await DumpApiProduct(outputDirectory, apiProduct);
         }
+
+        consoleOutput.WriteLine("- Portals");
+        var portals = await apiClient.GetPortals();
+        foreach (var portal in portals)
+        {
+            await DumpPortal(outputDirectory, portal);
+        }
+    }
+
+    private async Task DumpPortal(string outputDirectory, ApiClient.Models.Portal portal)
+    {
+        consoleOutput.WriteLine($"  * {portal.Name}");
+
+        var portalDirectory = Path.Combine(outputDirectory, "portals", portal.Name);
+        fileSystem.Directory.EnsureDirectory(portalDirectory);
+
+        var metadata = new
+        {
+            portal.Name,
+            portal.CustomDomain,
+            portal.CustomClientDomain,
+            portal.IsPublic,
+            portal.AutoApproveDevelopers,
+            portal.AutoApproveApplications,
+            portal.RbacEnabled
+        };
+
+        var metadataFilename = Path.Combine(portalDirectory, "portal.json");
+        await using var file = fileSystem.File.Create(metadataFilename);
+        await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
     }
 
     private async Task DumpApiProduct(string outputDirectory, ApiProduct apiProduct)

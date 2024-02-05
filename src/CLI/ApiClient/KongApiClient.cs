@@ -1,4 +1,6 @@
-﻿using Flurl.Http;
+﻿using System.Text.Json;
+using Flurl.Http;
+using Flurl.Http.Configuration;
 using Kong.Portal.CLI.ApiClient.Models;
 using Kong.Portal.CLI.Config;
 using Microsoft.Extensions.Options;
@@ -8,6 +10,11 @@ namespace Kong.Portal.CLI.ApiClient;
 internal class KongApiClient(IOptions<KongOptions> kongOptions)
 {
     private readonly FlurlClient _flurlClient = new FlurlClient(kongOptions.Value.GetKongBaseUri())
+        .WithSettings(c =>
+        {
+            var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+            c.JsonSerializer = new DefaultJsonSerializer(options);
+        })
         .WithHeader("User-Agent", "Kong Portal CLI")
         .WithOAuthBearerToken(kongOptions.Value.Token);
 
@@ -15,14 +22,14 @@ internal class KongApiClient(IOptions<KongOptions> kongOptions)
     {
         var allProducts = new List<ApiProduct>();
 
-        ApiProductsResponse productsResponse;
+        PagedResponse<ApiProduct> productsResponse;
         var pageNumber = 1;
 
         do
         {
             var response = await _flurlClient.Request("api-products").SetQueryParam("page[number]", pageNumber++).GetAsync();
 
-            productsResponse = await response.GetJsonAsync<ApiProductsResponse>();
+            productsResponse = await response.GetJsonAsync<PagedResponse<ApiProduct>>();
 
             allProducts.AddRange(productsResponse.Data);
         } while (productsResponse.Meta.Page.HasMore());
@@ -34,7 +41,7 @@ internal class KongApiClient(IOptions<KongOptions> kongOptions)
     {
         var allVersions = new List<ApiProductVersion>();
 
-        ApiProductVersionsResponse versionsResponse;
+        PagedResponse<ApiProductVersion> versionsResponse;
         var pageNumber = 1;
 
         do
@@ -44,7 +51,7 @@ internal class KongApiClient(IOptions<KongOptions> kongOptions)
                 .SetQueryParam("page[number]", pageNumber++)
                 .GetAsync();
 
-            versionsResponse = await response.GetJsonAsync<ApiProductVersionsResponse>();
+            versionsResponse = await response.GetJsonAsync<PagedResponse<ApiProductVersion>>();
 
             allVersions.AddRange(versionsResponse.Data);
         } while (versionsResponse.Meta.Page.HasMore());
@@ -56,7 +63,7 @@ internal class KongApiClient(IOptions<KongOptions> kongOptions)
     {
         var allDocuments = new List<ApiProductDocument>();
 
-        ApiProductDocumentsResponse documentsResponse;
+        PagedResponse<ApiProductDocument> documentsResponse;
         var pageNumber = 1;
 
         do
@@ -66,7 +73,7 @@ internal class KongApiClient(IOptions<KongOptions> kongOptions)
                 .SetQueryParam("page[number]", pageNumber++)
                 .GetAsync();
 
-            documentsResponse = await response.GetJsonAsync<ApiProductDocumentsResponse>();
+            documentsResponse = await response.GetJsonAsync<PagedResponse<ApiProductDocument>>();
 
             allDocuments.AddRange(documentsResponse.Data);
         } while (documentsResponse.Meta.Page.HasMore());
@@ -85,8 +92,27 @@ internal class KongApiClient(IOptions<KongOptions> kongOptions)
     {
         var response = await _flurlClient.Request($"api-products/{apiProductId}/product-versions/{productVersionId}/specifications").GetAsync();
 
-        var specificationsResponse = await response.GetJsonAsync<ApiProductSpecificationsResponse>();
+        var specificationsResponse = await response.GetJsonAsync<PagedResponse<ApiProductSpecification>>();
 
         return specificationsResponse.Data.FirstOrDefault();
+    }
+
+    public async Task<List<Models.Portal>> GetPortals()
+    {
+        var allPortals = new List<Models.Portal>();
+
+        PortalsResponse portalsResponse;
+        var pageNumber = 1;
+
+        do
+        {
+            var response = await _flurlClient.Request("portals").SetQueryParam("page[number]", pageNumber++).GetAsync();
+
+            portalsResponse = await response.GetJsonAsync<PortalsResponse>();
+
+            allPortals.AddRange(portalsResponse.Data);
+        } while (portalsResponse.Meta.Page.HasMore());
+
+        return allPortals;
     }
 }

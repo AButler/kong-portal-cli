@@ -7,6 +7,7 @@ public class GivenSteps
     private const int MaximumPageSize = 10;
 
     private readonly List<object> _apiProducts = [];
+    private readonly List<object> _devPortals = [];
     private readonly Dictionary<string, List<object>> _apiProductDocuments = new();
     private readonly Dictionary<string, List<object>> _apiProductVersions = new();
 
@@ -15,6 +16,7 @@ public class GivenSteps
     public GivenSteps()
     {
         SetupApiProductsApis();
+        SetupDevPortalApis();
     }
 
     public void TheKongApiPageSizeIs(int pageSize)
@@ -132,9 +134,42 @@ public class GivenSteps
             .RespondWithJson(new { data = specificationResponse });
     }
 
+    public void AnExistingDevPortal(
+        Discretionary<string> portalId = default,
+        Discretionary<string> name = default,
+        Discretionary<bool> isPublic = default,
+        Discretionary<bool> rbacEnabled = default,
+        Discretionary<bool> autoApproveApplications = default,
+        Discretionary<bool> autoApproveDevelopers = default,
+        Discretionary<string?> customDomain = default,
+        Discretionary<string?> customClientDomain = default
+    )
+    {
+        var id = portalId.GetValueOrDefault(Guid.NewGuid().ToString());
+
+        _devPortals.Add(
+            new
+            {
+                id,
+                name = name.GetValueOrDefault("default"),
+                custom_domain = customDomain.GetValueOrDefault(null),
+                custom_client_domain = customClientDomain.GetValueOrDefault(null),
+                is_public = isPublic.GetValueOrDefault(false),
+                auto_approve_developers = autoApproveDevelopers.GetValueOrDefault(false),
+                auto_approve_applications = autoApproveApplications.GetValueOrDefault(false),
+                rbac_enabled = rbacEnabled.GetValueOrDefault(false)
+            }
+        );
+    }
+
     private void SetupApiProductsApis()
     {
         SetupPagedApi("https://eu.api.konghq.com/v2/api-products", _apiProducts);
+    }
+
+    private void SetupDevPortalApis()
+    {
+        SetupPagedApi("https://eu.api.konghq.com/v2/portals", _devPortals);
     }
 
     private void SetupApiProductDocumentsApis(string apiProductId)

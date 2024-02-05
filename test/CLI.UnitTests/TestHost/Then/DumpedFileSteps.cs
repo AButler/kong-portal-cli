@@ -1,20 +1,14 @@
 ﻿using System.IO.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using FluentAssertions;
 
 namespace CLI.UnitTests.TestHost;
 
 public class DumpedFileSteps(IFileSystem fileSystem)
 {
-    public async Task ShouldHaveApiProduct(
-        string outputDirectory,
-        string apiProductName,
-        string apiProductDescription,
-        Dictionary<string, string> labels
-    )
+    public async Task ShouldHaveApiProduct(string outputDirectory, string name, string description, Dictionary<string, string> labels)
     {
-        var apiProductDirectory = Path.Combine(outputDirectory, "api-products", apiProductName);
+        var apiProductDirectory = Path.Combine(outputDirectory, "api-products", name);
         var apiProductMetadataFile = Path.Combine(apiProductDirectory, "api-product.json");
 
         DirectoryShouldExist(apiProductDirectory);
@@ -22,24 +16,9 @@ public class DumpedFileSteps(IFileSystem fileSystem)
 
         var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(apiProductMetadataFile));
 
-        json.Should().NotBeNull();
-        json!["name"].Should().NotBeNull();
-        json["name"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["name"]!.GetValue<string>().Should().Be(apiProductName);
-        json["description"].Should().NotBeNull();
-        json["description"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["description"]!.GetValue<string>().Should().Be(apiProductDescription);
-        json["labels"].Should().NotBeNull();
-        json["labels"]!.GetValueKind().Should().Be(JsonValueKind.Object);
-
-        foreach (var label in labels)
-        {
-            var labelNode = json["labels"]![label.Key];
-
-            labelNode.Should().NotBeNull();
-            labelNode!.GetValueKind().Should().Be(JsonValueKind.String);
-            labelNode.GetValue<string>().Should().Be(label.Value);
-        }
+        json.ShouldHaveStringProperty("name", name);
+        json.ShouldHaveStringProperty("description", description);
+        json.ShouldHaveMapProperty("labels", labels);
     }
 
     public async Task ShouldHaveApiProductDocument(
@@ -59,16 +38,9 @@ public class DumpedFileSteps(IFileSystem fileSystem)
         FileShouldExist(metadataFilename);
         var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
 
-        json.Should().NotBeNull();
-        json!["title"].Should().NotBeNull();
-        json["title"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["title"]!.GetValue<string>().Should().Be(documentTitle);
-        json["slug"].Should().NotBeNull();
-        json["slug"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["slug"]!.GetValue<string>().Should().Be(documentSlug);
-        json["status"].Should().NotBeNull();
-        json["status"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["status"]!.GetValue<string>().Should().Be("published");
+        json.ShouldHaveStringProperty("title", documentTitle);
+        json.ShouldHaveStringProperty("slug", documentSlug);
+        json.ShouldHaveStringProperty("status", "published");
     }
 
     public async Task ShouldHaveApiProductVersion(
@@ -95,25 +67,63 @@ public class DumpedFileSteps(IFileSystem fileSystem)
         FileShouldExist(metadataFilename);
         var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
 
-        json.Should().NotBeNull();
-        json!["name"].Should().NotBeNull();
-        json["name"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["name"]!.GetValue<string>().Should().Be(name);
-        json["publishStatus"].Should().NotBeNull();
-        json["publishStatus"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["publishStatus"]!.GetValue<string>().Should().Be(publishStatus);
-        json["deprecated"].Should().NotBeNull();
-        json["deprecated"]!.GetValueKind().Should().BeOneOf(JsonValueKind.False, JsonValueKind.True);
-        json["deprecated"]!.GetValue<bool>().Should().Be(deprecated);
+        json.ShouldHaveStringProperty("name", name);
+        json.ShouldHaveStringProperty("publish_status", publishStatus);
+        json.ShouldHaveBooleanProperty("deprecated", deprecated);
+
         if (specificationFilename != null)
         {
-            json["specificationFilename"].Should().NotBeNull();
-            json["specificationFilename"]!.GetValueKind().Should().Be(JsonValueKind.String);
-            json["specificationFilename"]!.GetValue<string>().Should().Be($"/{specificationFilename}");
+            json.ShouldHaveStringProperty("specification_filename", $"/{specificationFilename}");
         }
         else
         {
-            json["specificationFilename"].Should().BeNull();
+            json.ShouldHaveNullProperty("specification_filename");
+        }
+    }
+
+    public async Task ShouldHavePortal(
+        string outputDirectory,
+        string name,
+        bool isPublic,
+        bool rbacEnabled,
+        bool autoApproveApplications,
+        bool autoApproveDevelopers,
+        string? customDomain,
+        string? customClientDomain
+    )
+    {
+        var portalDirectory = Path.Combine(outputDirectory, "portals", name);
+
+        DirectoryShouldExist(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "portal.json");
+        FileShouldExist(metadataFilename);
+        var jsonAsString = fileSystem.File.ReadAllText(metadataFilename);
+
+        var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
+
+        json.ShouldHaveStringProperty("name", name);
+        json.ShouldHaveBooleanProperty("is_public", isPublic);
+        json.ShouldHaveBooleanProperty("rbac_enabled", rbacEnabled);
+        json.ShouldHaveBooleanProperty("auto_approve_developers", autoApproveDevelopers);
+        json.ShouldHaveBooleanProperty("auto_approve_applications", autoApproveApplications);
+
+        if (customDomain == null)
+        {
+            json.ShouldHaveNullProperty("custom_domain");
+        }
+        else
+        {
+            json.ShouldHaveStringProperty("custom_domain", customDomain);
+        }
+
+        if (customClientDomain == null)
+        {
+            json.ShouldHaveNullProperty("custom_client_domain");
+        }
+        else
+        {
+            json.ShouldHaveStringProperty("custom_client_domain", customClientDomain);
         }
     }
 

@@ -4,7 +4,6 @@ namespace Kong.Portal.CLI.ApiClient.Models;
 
 internal record ApiProductDocumentBody(
     string Id,
-    [property: JsonPropertyName("parent_document_id")] string ParentDocumentId,
     string Slug,
     string Status,
     string Title,

@@ -175,4 +175,30 @@ public class DumpServiceTests
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(outputDirectory, "API Product", "v1.0", "published", false);
     }
+
+    [Fact]
+    public async Task PortalSettingsAreDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var portalId = Guid.NewGuid().ToString();
+        testHost.Given.AnExistingDevPortal(
+            portalId: portalId,
+            name: "default",
+            isPublic: true,
+            rbacEnabled: false,
+            autoApproveApplications: false,
+            autoApproveDevelopers: false,
+            customDomain: null,
+            customClientDomain: null
+        );
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        await testHost.Then.DumpedFile.ShouldHavePortal(outputDirectory, "default", true, false, false, false, null, null);
+    }
 }
