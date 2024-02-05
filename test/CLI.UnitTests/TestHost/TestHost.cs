@@ -42,7 +42,6 @@ public class TestHost : IDisposable
         var services = new ServiceCollection()
             .AddSingleton<IValidateOptions<KongOptions>, KongOptionsValidator>()
             .Configure<KongOptions>(options => options.Token = "Test_Kong_Token")
-            .AddSingleton<DumpCommand>()
             .AddSingleton<KongApiClient>()
             .AddSingleton<IFileSystem>(mockFileSystem)
             .AddSingleton<IConsoleOutput, NullConsoleOutput>()
@@ -50,6 +49,7 @@ public class TestHost : IDisposable
             .AddSingleton<GivenSteps>()
             .AddSingleton<ThenSteps>()
             .AddSingleton<DumpedFileSteps>()
+            //.AddSingleton<SyncService>()
             .BuildServiceProvider();
 
         return services;

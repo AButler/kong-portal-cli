@@ -1,5 +1,4 @@
-﻿using CLI.UnitTests.TestHost;
-using Kong.Portal.CLI.Services;
+﻿using Kong.Portal.CLI.Services;
 
 namespace CLI.UnitTests;
 
@@ -24,9 +23,50 @@ public class DumpServiceTests
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
             outputDirectory,
+            "api-product-1",
             "API Product 1",
             "This is API Product 1",
             new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+        );
+    }
+
+    [Fact]
+    public async Task TwoApiProductsWithSameNameAreDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        testHost.Given.AnExistingApiProduct(
+            name: "API Product",
+            description: "This is API Product 1",
+            labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+        );
+
+        testHost.Given.AnExistingApiProduct(
+            name: "API Product",
+            description: "This is API Product 2",
+            labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "Frontend" }
+        );
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        await testHost.Then.DumpedFile.ShouldHaveApiProduct(
+            outputDirectory,
+            "api-product",
+            "API Product",
+            "This is API Product 1",
+            new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+        );
+
+        await testHost.Then.DumpedFile.ShouldHaveApiProduct(
+            outputDirectory,
+            "api-product-1",
+            "API Product",
+            "This is API Product 2",
+            new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "Frontend" }
         );
     }
 
@@ -52,6 +92,7 @@ public class DumpServiceTests
         {
             await testHost.Then.DumpedFile.ShouldHaveApiProduct(
                 outputDirectory,
+                $"api-product-{i}",
                 $"API Product {i}",
                 $"This is API Product {i}",
                 new Dictionary<string, string>()
@@ -81,7 +122,7 @@ public class DumpServiceTests
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
             outputDirectory,
-            "API Product",
+            "api-product",
             "authentication",
             "How to Authenticate",
             "# How to Authenticate"
@@ -118,7 +159,7 @@ public class DumpServiceTests
         {
             await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
                 outputDirectory,
-                "API Product",
+                "api-product",
                 $"doc-{i}",
                 $"Article {i}",
                 $"# Article {i}\n\n##Contents\n* Item 1"
@@ -150,7 +191,8 @@ public class DumpServiceTests
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(
             outputDirectory,
-            "API Product",
+            "api-product",
+            "v1.0",
             "v1.0",
             "published",
             false,
@@ -174,7 +216,7 @@ public class DumpServiceTests
 
         await dumpService.Dump(outputDirectory);
 
-        await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(outputDirectory, "API Product", "v1.0", "published", false);
+        await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(outputDirectory, "api-product", "v1.0", "v1.0", "published", false);
     }
 
     [Fact]
@@ -242,7 +284,51 @@ public class DumpServiceTests
             false,
             null,
             null,
-            ["API Product 1", "API Product 2"]
+            ["api-product-1", "api-product-2"]
+        );
+    }
+
+    [Fact]
+    public async Task PortalProductsWithSameNameAreDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var product1Id = Guid.NewGuid().ToString();
+        var product2Id = Guid.NewGuid().ToString();
+        var portalId = Guid.NewGuid().ToString();
+
+        testHost.Given.AnExistingApiProduct(productId: product1Id, name: "API Product");
+        testHost.Given.AnExistingApiProduct(name: "API Product");
+        testHost.Given.AnExistingApiProduct(productId: product2Id, name: "API Product");
+        testHost.Given.AnExistingApiProduct(name: "API Product");
+        testHost.Given.AnExistingDevPortal(
+            portalId: portalId,
+            name: "default",
+            isPublic: true,
+            rbacEnabled: false,
+            autoApproveApplications: false,
+            autoApproveDevelopers: false,
+            customDomain: null,
+            customClientDomain: null,
+            apiProducts: [product1Id, product2Id]
+        );
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        await testHost.Then.DumpedFile.ShouldHavePortal(
+            outputDirectory,
+            "default",
+            true,
+            false,
+            false,
+            false,
+            null,
+            null,
+            ["api-product", "api-product-2"]
         );
     }
 }

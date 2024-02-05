@@ -15,16 +15,20 @@ var services = new ServiceCollection()
     .AddSingleton<IValidateOptions<KongOptions>, KongOptionsValidator>()
     .Configure<KongOptions>(configuration.GetSection("Kong"))
     .AddSingleton<DumpCommand>()
+    .AddSingleton<SyncCommand>()
     .AddSingleton<KongApiClient>()
     .AddSingleton<IFileSystem, FileSystem>()
     .AddSingleton<IConsoleOutput, ConsoleOutput>()
     .AddSingleton<DumpService>()
+    .AddSingleton<SyncService>()
+    .AddSingleton<SourceDirectoryReader>()
     .BuildServiceProvider();
 
 try
 {
     var rootCommand = new CliRootCommand();
     rootCommand.AddCommand(services.GetRequiredService<DumpCommand>());
+    rootCommand.AddCommand(services.GetRequiredService<SyncCommand>());
     return await rootCommand.InvokeAsync(args);
 }
 catch (OptionsValidationException ex)

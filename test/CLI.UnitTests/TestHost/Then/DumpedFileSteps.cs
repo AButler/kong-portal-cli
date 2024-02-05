@@ -1,14 +1,13 @@
 ﻿using System.IO.Abstractions;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace CLI.UnitTests.TestHost;
 
 public class DumpedFileSteps(IFileSystem fileSystem)
 {
-    public async Task ShouldHaveApiProduct(string outputDirectory, string name, string description, Dictionary<string, string> labels)
+    public async Task ShouldHaveApiProduct(string outputDirectory, string syncId, string name, string description, Dictionary<string, string> labels)
     {
-        var apiProductDirectory = Path.Combine(outputDirectory, "api-products", name);
+        var apiProductDirectory = Path.Combine(outputDirectory, "api-products", syncId);
         var apiProductMetadataFile = Path.Combine(apiProductDirectory, "api-product.json");
 
         DirectoryShouldExist(apiProductDirectory);
@@ -16,6 +15,7 @@ public class DumpedFileSteps(IFileSystem fileSystem)
 
         var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(apiProductMetadataFile));
 
+        json.ShouldHaveStringProperty("sync_id", syncId);
         json.ShouldHaveStringProperty("name", name);
         json.ShouldHaveStringProperty("description", description);
         json.ShouldHaveMapProperty("labels", labels);
@@ -23,13 +23,13 @@ public class DumpedFileSteps(IFileSystem fileSystem)
 
     public async Task ShouldHaveApiProductDocument(
         string outputDirectory,
-        string apiProductName,
+        string apiProductSyncId,
         string documentSlug,
         string documentTitle,
         string documentContents
     )
     {
-        var documentsDirectory = Path.Combine(outputDirectory, "api-products", apiProductName, "documents");
+        var documentsDirectory = Path.Combine(outputDirectory, "api-products", apiProductSyncId, "documents");
 
         var contentDocumentFilename = Path.Combine(documentsDirectory, $"{documentSlug}.md");
         FileShouldHaveContents(contentDocumentFilename, documentContents);
@@ -45,7 +45,8 @@ public class DumpedFileSteps(IFileSystem fileSystem)
 
     public async Task ShouldHaveApiProductVersion(
         string outputDirectory,
-        string apiProductName,
+        string apiProductSyncId,
+        string apiProductVersionSyncId,
         string name,
         string publishStatus,
         bool deprecated,
@@ -53,7 +54,7 @@ public class DumpedFileSteps(IFileSystem fileSystem)
         string? specificationContents = null
     )
     {
-        var versionDirectory = Path.Combine(outputDirectory, "api-products", apiProductName, "versions", name);
+        var versionDirectory = Path.Combine(outputDirectory, "api-products", apiProductSyncId, "versions", apiProductVersionSyncId);
 
         DirectoryShouldExist(versionDirectory);
 
@@ -67,6 +68,7 @@ public class DumpedFileSteps(IFileSystem fileSystem)
         FileShouldExist(metadataFilename);
         var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
 
+        json.ShouldHaveStringProperty("sync_id", apiProductVersionSyncId);
         json.ShouldHaveStringProperty("name", name);
         json.ShouldHaveStringProperty("publish_status", publishStatus);
         json.ShouldHaveBooleanProperty("deprecated", deprecated);
@@ -99,7 +101,6 @@ public class DumpedFileSteps(IFileSystem fileSystem)
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
         FileShouldExist(metadataFilename);
-        var jsonAsString = fileSystem.File.ReadAllText(metadataFilename);
 
         var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
 

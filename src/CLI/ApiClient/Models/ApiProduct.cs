@@ -1,3 +1,3 @@
 ﻿namespace Kong.Portal.CLI.ApiClient.Models;
 
-internal record ApiProduct(Dictionary<string, string> Labels, string Id, string Name, string Description);
+internal record ApiProduct(string Id, string Name, string Description, Dictionary<string, string> Labels);

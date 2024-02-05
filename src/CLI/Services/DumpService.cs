@@ -1,25 +1,18 @@
 ﻿using System.IO.Abstractions;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
+using Kong.Portal.CLI.Services.Metadata;
 
 namespace Kong.Portal.CLI.Services;
 
 internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, IConsoleOutput consoleOutput)
 {
-    private readonly JsonSerializerOptions _serializerOptions =
-        new(JsonSerializerDefaults.Web)
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            DefaultIgnoreCondition = JsonIgnoreCondition.Never
-        };
-
     public async Task Dump(string outputDirectory)
     {
         Cleanup(outputDirectory);
 
+        consoleOutput.WriteLine($"Output Directory: {outputDirectory}");
         consoleOutput.WriteLine("Dumping...");
         consoleOutput.WriteLine("- API Products");
 
@@ -48,8 +41,7 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
 
         var products = await apiClient.GetPortalProducts(portal.Id);
 
-        var metadata = new
-        {
+        var metadata = new ApiPortalMetadata(
             portal.Name,
             portal.CustomDomain,
             portal.CustomClientDomain,
@@ -57,39 +49,36 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
             portal.AutoApproveDevelopers,
             portal.AutoApproveApplications,
             portal.RbacEnabled,
-            products = products.Select(p => p.Name)
-        };
+            products.Select(p => context.ApiProductSyncIdGenerator.GetSyncId(p.Id))
+        );
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
         await using var file = fileSystem.File.Create(metadataFilename);
-        await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
+        await JsonSerializer.SerializeAsync(file, metadata, MetadataSerializerSettings.SerializerOptions);
     }
 
     private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct)
     {
-        consoleOutput.WriteLine($"  * {apiProduct.Name}");
+        var apiProductSyncId = context.ApiProductSyncIdGenerator.Generate(apiProduct.Id, apiProduct.Name);
 
-        var apiProductDirectory = context.GetApiProductDirectory(apiProduct);
+        consoleOutput.WriteLine($"  * {apiProductSyncId}");
+
+        var apiProductDirectory = context.GetApiProductDirectory(apiProductSyncId);
         fileSystem.Directory.EnsureDirectory(apiProductDirectory);
 
-        var metadata = new
-        {
-            Name = apiProduct.Name,
-            Description = apiProduct.Description,
-            Labels = apiProduct.Labels
-        };
+        var metadata = new ApiProductMetadata(apiProductSyncId, apiProduct.Name, apiProduct.Description, apiProduct.Labels);
 
         consoleOutput.WriteLine("    - Metadata");
         var metadataFilename = Path.Combine(apiProductDirectory, "api-product.json");
         await using var file = fileSystem.File.Create(metadataFilename);
-        await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
+        await JsonSerializer.SerializeAsync(file, metadata, MetadataSerializerSettings.SerializerOptions);
 
-        await DumpApiProductVersions(context, apiProduct);
+        await DumpApiProductVersions(context, apiProductSyncId, apiProduct);
 
-        await DumpApiProductDocuments(context, apiProduct);
+        await DumpApiProductDocuments(context, apiProductSyncId, apiProduct);
     }
 
-    private async Task DumpApiProductVersions(DumpContext context, ApiProduct apiProduct)
+    private async Task DumpApiProductVersions(DumpContext context, string apiProductSyncId, ApiProduct apiProduct)
     {
         consoleOutput.WriteLine("    - Versions");
 
@@ -105,31 +94,31 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         {
             consoleOutput.WriteLine($"      - {apiProductVersion.Name}");
 
-            await DumpApiProductVersion(context, apiProduct, apiProductVersion);
+            await DumpApiProductVersion(context, apiProductSyncId, apiProduct, apiProductVersion);
         }
     }
 
-    private async Task DumpApiProductVersion(DumpContext context, ApiProduct apiProduct, ApiProductVersion apiProductVersion)
+    private async Task DumpApiProductVersion(DumpContext context, string apiProductSyncId, ApiProduct apiProduct, ApiProductVersion apiProductVersion)
     {
-        var versionsDirectory = context.GetVersionDirectory(apiProduct);
+        var versionsDirectory = context.GetVersionDirectory(apiProductSyncId);
         var specification = await apiClient.GetApiProductSpecification(apiProduct.Id, apiProductVersion.Id);
 
-        context.StoreProductVersionId(apiProduct.Name, apiProductVersion.Name, apiProductVersion.Id);
+        var apiProductVersionSyncId = context.ApiProductVersionSyncIdGenerator.Generate(apiProductVersion.Id, apiProductVersion.Name);
 
-        var metadata = new
-        {
-            Name = apiProductVersion.Name,
-            PublishStatus = apiProductVersion.PublishStatus,
-            Deprecated = apiProductVersion.Deprecated,
-            SpecificationFilename = specification?.Name
-        };
+        var metadata = new ApiProductVersionMetadata(
+            apiProductVersionSyncId,
+            apiProductVersion.Name,
+            apiProductVersion.PublishStatus,
+            apiProductVersion.Deprecated,
+            specification?.Name
+        );
 
         var versionDirectory = Path.Combine(versionsDirectory, $"{apiProductVersion.Name}");
         fileSystem.Directory.EnsureDirectory(versionDirectory);
 
         var metadataFilename = Path.Combine(versionDirectory, "version.json");
         await using var file = fileSystem.File.Create(metadataFilename);
-        await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
+        await JsonSerializer.SerializeAsync(file, metadata, MetadataSerializerSettings.SerializerOptions);
 
         if (specification == null)
         {
@@ -140,7 +129,7 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         await fileSystem.File.WriteAllTextAsync(specificationFilename, specification.Content);
     }
 
-    private async Task DumpApiProductDocuments(DumpContext context, ApiProduct apiProduct)
+    private async Task DumpApiProductDocuments(DumpContext context, string apiProductSyncId, ApiProduct apiProduct)
     {
         consoleOutput.WriteLine("    - Documents");
         var documents = await apiClient.GetApiProductDocuments(apiProduct.Id);
@@ -155,25 +144,20 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         {
             consoleOutput.WriteLine($"      - {document.Slug}");
 
-            await DumpApiProductDocument(context, apiProduct, document.Id, document.Slug);
+            await DumpApiProductDocument(context, apiProductSyncId, apiProduct, document.Id, document.Slug);
         }
     }
 
-    private async Task DumpApiProductDocument(DumpContext context, ApiProduct apiProduct, string documentId, string fullSlug)
+    private async Task DumpApiProductDocument(DumpContext context, string apiProductSyncId, ApiProduct apiProduct, string documentId, string fullSlug)
     {
-        var documentsDirectory = context.GetDocumentsDirectory(apiProduct);
+        var documentsDirectory = context.GetDocumentsDirectory(apiProductSyncId);
         var apiProductDocument = await apiClient.GetApiProductDocumentBody(apiProduct.Id, documentId);
 
-        var metadata = new
-        {
-            Title = apiProductDocument.Title,
-            Slug = apiProductDocument.Slug,
-            Status = apiProductDocument.Status
-        };
+        var metadata = new ApiProductDocumentMetadata(apiProductDocument.Title, apiProductDocument.Slug, apiProductDocument.Status);
         var metadataFilename = Path.Combine(documentsDirectory, $"{fullSlug}.json");
         fileSystem.Directory.EnsureDirectory(Path.GetDirectoryName(metadataFilename)!);
         await using var file = fileSystem.File.Create(metadataFilename);
-        await JsonSerializer.SerializeAsync(file, metadata, _serializerOptions);
+        await JsonSerializer.SerializeAsync(file, metadata, MetadataSerializerSettings.SerializerOptions);
 
         var contentFilename = Path.Combine(documentsDirectory, $"{fullSlug}.md");
         await fileSystem.File.WriteAllTextAsync(contentFilename, apiProductDocument.MarkdownContent);
@@ -193,33 +177,23 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
 
     private class DumpContext(string outputDirectory)
     {
-        private readonly Dictionary<string, (string ApiProductName, string Version)> _productVersions = new();
-
         public string OutputDirectory { get; } = outputDirectory;
+        public SyncIdGenerator ApiProductSyncIdGenerator { get; } = new();
+        public SyncIdGenerator ApiProductVersionSyncIdGenerator { get; } = new();
 
-        public void StoreProductVersionId(string apiProductName, string version, string versionId)
+        public string GetApiProductDirectory(string syncId)
         {
-            _productVersions.Add(versionId, (apiProductName, version));
+            return Path.Combine(OutputDirectory, "api-products", syncId);
         }
 
-        public (string ApiProductName, string Version) GetProductVersionById(string versionId)
+        public string GetVersionDirectory(string syncId)
         {
-            return _productVersions[versionId];
+            return Path.Combine(GetApiProductDirectory(syncId), "versions");
         }
 
-        public string GetApiProductDirectory(ApiProduct apiProduct)
+        public string GetDocumentsDirectory(string syncId)
         {
-            return Path.Combine(OutputDirectory, "api-products", apiProduct.Name);
-        }
-
-        public string GetVersionDirectory(ApiProduct apiProduct)
-        {
-            return Path.Combine(GetApiProductDirectory(apiProduct), "versions");
-        }
-
-        public string GetDocumentsDirectory(ApiProduct apiProduct)
-        {
-            return Path.Combine(GetApiProductDirectory(apiProduct), "documents");
+            return Path.Combine(GetApiProductDirectory(syncId), "documents");
         }
     }
 }

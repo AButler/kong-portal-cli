@@ -25,7 +25,7 @@ internal class DumpCommand : Command
 
     private async Task<int> Handle(string outputDirectory)
     {
-        await _dumpService.Dump(outputDirectory);
+        await _dumpService.Dump(Path.GetFullPath(outputDirectory));
 
         return 0;
     }
