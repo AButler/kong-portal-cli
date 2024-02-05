@@ -77,6 +77,61 @@ public class GivenSteps
             );
     }
 
+    public void AnExistingApiProductVersion(
+        string apiProductId,
+        string name,
+        string publishStatus = "published",
+        bool deprecated = false,
+        string? specificationFilename = null,
+        string? specificationContents = null
+    )
+    {
+        var id = Guid.NewGuid().ToString();
+        var specificationId = Guid.NewGuid().ToString();
+
+        _apiProductVersions[apiProductId]
+            .Add(
+                new
+                {
+                    id,
+                    name,
+                    publish_status = publishStatus,
+                    deprecated
+                }
+            );
+
+        HttpTest
+            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions/{id}")
+            .WithVerb("GET")
+            .RespondWithJson(
+                new
+                {
+                    id,
+                    name,
+                    publish_status = publishStatus,
+                    deprecated
+                }
+            );
+
+        var specificationResponse =
+            specificationFilename != null
+                ?
+                [
+                    new
+                    {
+                        id = specificationId,
+                        name = $"/{specificationFilename}",
+                        content = specificationContents
+                    }
+                ]
+                : Array.Empty<object>();
+
+        HttpTest
+            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions/{id}/specifications")
+            .WithVerb("GET")
+            .RespondWithJson(new { data = specificationResponse });
+    }
+
     private void SetupApiProductsApis()
     {
         SetupPagedApi("https://eu.api.konghq.com/v2/api-products", _apiProducts);
@@ -92,7 +147,7 @@ public class GivenSteps
         SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions", _apiProductVersions[apiProductId]);
     }
 
-    private void SetupPagedApi(string url, List<object> results)
+    private void SetupPagedApi(string url, IReadOnlyCollection<object> results)
     {
         HttpTest
             .Current.ForCallsTo(url)

@@ -49,6 +49,7 @@ public class TestHost : IDisposable
             .AddSingleton<DumpService>()
             .AddSingleton<GivenSteps>()
             .AddSingleton<ThenSteps>()
+            .AddSingleton<DumpedFileSteps>()
             .BuildServiceProvider();
 
         return services;

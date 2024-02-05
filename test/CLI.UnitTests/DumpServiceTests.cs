@@ -1,14 +1,11 @@
-﻿using System.Text.Json;
-using System.Text.Json.Nodes;
-using FluentAssertions;
-using Kong.Portal.CLI.Services;
+﻿using Kong.Portal.CLI.Services;
 
 namespace CLI.UnitTests;
 
 public class DumpServiceTests
 {
     [Fact]
-    public async Task ApiProductJsonIsDumped()
+    public async Task ApiProductIsDumped()
     {
         using var testHost = new TestHost.TestHost();
 
@@ -24,31 +21,16 @@ public class DumpServiceTests
 
         await dumpService.Dump(outputDirectory);
 
-        var apiProductDirectory = Path.Combine(outputDirectory, "api-products", "API Product 1");
-        var apiProductMetadataFile = Path.Combine(apiProductDirectory, "api-product.json");
-
-        testHost.Then.DirectoryShouldExist(apiProductDirectory);
-        testHost.Then.FileShouldExist(apiProductMetadataFile);
-
-        var json = await JsonNode.ParseAsync(testHost.FileSystem.File.OpenRead(apiProductMetadataFile));
-
-        json.Should().NotBeNull();
-        json!["name"].Should().NotBeNull();
-        json["name"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["name"]!.GetValue<string>().Should().Be("API Product 1");
-        json["description"].Should().NotBeNull();
-        json["description"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["description"]!.GetValue<string>().Should().Be("This is API Product 1");
-        json["labels"].Should().NotBeNull();
-        json["labels"]!.GetValueKind().Should().Be(JsonValueKind.Object);
-        json["labels"]!["Author"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["labels"]!["Author"]!.GetValue<string>().Should().Be("Bob Bobertson");
-        json["labels"]!["Tag"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["labels"]!["Tag"]!.GetValue<string>().Should().Be("eCommerce");
+        await testHost.Then.DumpedFile.ShouldHaveApiProduct(
+            outputDirectory,
+            "API Product 1",
+            "This is API Product 1",
+            new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+        );
     }
 
     [Fact]
-    public async Task MultipleApiProductsJsonAreDumped()
+    public async Task MultipleApiProductsAreDumped()
     {
         using var testHost = new TestHost.TestHost();
 
@@ -58,7 +40,7 @@ public class DumpServiceTests
 
         for (var i = 1; i < 10; i++)
         {
-            testHost.Given.AnExistingApiProduct(name: $"API Product {i}", description: "This is API Product {i}");
+            testHost.Given.AnExistingApiProduct(name: $"API Product {i}", description: $"This is API Product {i}");
         }
 
         var outputDirectory = @"c:\temp\output";
@@ -67,50 +49,130 @@ public class DumpServiceTests
 
         for (var i = 1; i < 10; i++)
         {
-            var apiProductDirectory = Path.Combine(outputDirectory, "api-products", $"API Product {i}");
-            var apiProductMetadataFile = Path.Combine(apiProductDirectory, "api-product.json");
-
-            testHost.Then.DirectoryShouldExist(apiProductDirectory);
-            testHost.Then.FileShouldExist(apiProductMetadataFile);
+            await testHost.Then.DumpedFile.ShouldHaveApiProduct(
+                outputDirectory,
+                $"API Product {i}",
+                $"This is API Product {i}",
+                new Dictionary<string, string>()
+            );
         }
     }
 
     [Fact]
-    public async Task ApiProductDocumentationIsDumped()
+    public async Task DocumentIsDumped()
     {
         using var testHost = new TestHost.TestHost();
 
         var dumpService = testHost.GetRequiredService<DumpService>();
 
         var productId = Guid.NewGuid().ToString();
-
         testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
-
-        testHost.Given.AnExistingApiProductDocument(productId, "authentication", "How to Authenticate", "# How to Authenticate");
+        testHost.Given.AnExistingApiProductDocument(
+            apiProductId: productId,
+            slug: "authentication",
+            title: "How to Authenticate",
+            content: "# How to Authenticate"
+        );
 
         var outputDirectory = @"c:\temp\output";
 
         await dumpService.Dump(outputDirectory);
 
-        var documentsDirectory = Path.Combine(outputDirectory, "api-products", "API Product", "documents");
+        await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
+            outputDirectory,
+            "API Product",
+            "authentication",
+            "How to Authenticate",
+            "# How to Authenticate"
+        );
+    }
 
-        var authenticationDocument = Path.Combine(documentsDirectory, "authentication.md");
-        testHost.Then.FileShouldExist(authenticationDocument);
-        testHost.Then.FileContentsShouldBe(authenticationDocument, "# How to Authenticate");
+    [Fact]
+    public async Task MultipleDocumentsAreDumped()
+    {
+        using var testHost = new TestHost.TestHost();
 
-        var authenticationDocumentMetadataFile = Path.Combine(documentsDirectory, "authentication.json");
-        testHost.Then.FileShouldExist(authenticationDocumentMetadataFile);
-        var json = await JsonNode.ParseAsync(testHost.FileSystem.File.OpenRead(authenticationDocumentMetadataFile));
+        testHost.Given.TheKongApiPageSizeIs(2);
 
-        json.Should().NotBeNull();
-        json!["title"].Should().NotBeNull();
-        json["title"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["title"]!.GetValue<string>().Should().Be("How to Authenticate");
-        json["slug"].Should().NotBeNull();
-        json["slug"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["slug"]!.GetValue<string>().Should().Be("authentication");
-        json["status"].Should().NotBeNull();
-        json["status"]!.GetValueKind().Should().Be(JsonValueKind.String);
-        json["status"]!.GetValue<string>().Should().Be("published");
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var productId = Guid.NewGuid().ToString();
+        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
+
+        for (var i = 0; i < 10; i++)
+        {
+            testHost.Given.AnExistingApiProductDocument(
+                apiProductId: productId,
+                slug: $"doc-{i}",
+                title: $"Article {i}",
+                content: $"# Article {i}\n\n##Contents\n* Item 1"
+            );
+        }
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        for (var i = 0; i < 10; i++)
+        {
+            await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
+                outputDirectory,
+                "API Product",
+                $"doc-{i}",
+                $"Article {i}",
+                $"# Article {i}\n\n##Contents\n* Item 1"
+            );
+        }
+    }
+
+    [Fact]
+    public async Task VersionWithSpecificationIsDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var productId = Guid.NewGuid().ToString();
+        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
+        testHost.Given.AnExistingApiProductVersion(
+            apiProductId: productId,
+            name: "v1.0",
+            publishStatus: "published",
+            deprecated: false,
+            specificationFilename: "api-product-1.0.yml",
+            specificationContents: "- openapi: 3.0.0"
+        );
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(
+            outputDirectory,
+            "API Product",
+            "v1.0",
+            "published",
+            false,
+            "api-product-1.0.yml",
+            "- openapi: 3.0.0"
+        );
+    }
+
+    [Fact]
+    public async Task VersionWithoutSpecificationIsDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var productId = Guid.NewGuid().ToString();
+        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
+        testHost.Given.AnExistingApiProductVersion(apiProductId: productId, name: "v1.0", publishStatus: "published", deprecated: false);
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(outputDirectory, "API Product", "v1.0", "published", false);
     }
 }
