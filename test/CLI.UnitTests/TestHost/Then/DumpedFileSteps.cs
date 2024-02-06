@@ -1,5 +1,6 @@
 ﻿using System.IO.Abstractions;
 using System.Text.Json.Nodes;
+using Kong.Portal.CLI;
 
 namespace CLI.UnitTests.TestHost;
 
@@ -18,7 +19,7 @@ public class DumpedFileSteps(IFileSystem fileSystem)
         json.ShouldHaveStringProperty("sync_id", syncId);
         json.ShouldHaveStringProperty("name", name);
         json.ShouldHaveStringProperty("description", description);
-        json.ShouldHaveMapProperty("labels", labels);
+        json.ShouldHaveMapProperty("labels", labels.ToNullableValueDictionary());
     }
 
     public async Task ShouldHaveApiProductDocument(
@@ -133,6 +134,82 @@ public class DumpedFileSteps(IFileSystem fileSystem)
         json.ShouldHaveStringArrayProperty("products", products);
     }
 
+    public async Task ShouldHavePortalAppearance(
+        string outputDirectory,
+        string name,
+        string themeName,
+        bool useCustomFonts,
+        string? customFontBase,
+        string? customFontCode,
+        string? customFontHeadings,
+        string? welcomeMessage,
+        string? primaryHeader,
+        string? faviconImage,
+        string? faviconImageName,
+        string? logoImage,
+        string? logoImageName,
+        string? catalogCoverImage,
+        string? catalogCoverImageName
+    )
+    {
+        var portalDirectory = Path.Combine(outputDirectory, "portals", name);
+        DirectoryShouldExist(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "appearance.json");
+        FileShouldExist(metadataFilename);
+
+        var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
+
+        json.ShouldHaveStringProperty("theme_name", themeName);
+        json.ShouldHaveBooleanProperty("use_custom_fonts", useCustomFonts);
+
+        json.ShouldHaveMapProperty(
+            "custom_fonts",
+            new Dictionary<string, string?>
+            {
+                ["base"] = customFontBase,
+                ["code"] = customFontCode,
+                ["headings"] = customFontHeadings
+            }
+        );
+
+        json.ShouldHaveMapProperty(
+            "text",
+            new Dictionary<string, string?> { ["welcome_message"] = welcomeMessage, ["primary_header"] = primaryHeader }
+        );
+
+        json.ShouldHaveMapProperty(
+            "images",
+            new Dictionary<string, string?>
+            {
+                ["favicon"] = faviconImageName,
+                ["logo"] = logoImageName,
+                ["catalog_cover"] = catalogCoverImageName
+            }
+        );
+
+        if (faviconImage != null && faviconImageName != null)
+        {
+            var imageFilename = Path.Combine(portalDirectory, faviconImageName);
+            FileShouldExist(imageFilename);
+            FileShouldHaveContents(imageFilename, DataUriHelpers.GetData(faviconImage));
+        }
+
+        if (logoImage != null && logoImageName != null)
+        {
+            var imageFilename = Path.Combine(portalDirectory, logoImageName);
+            FileShouldExist(imageFilename);
+            FileShouldHaveContents(imageFilename, DataUriHelpers.GetData(logoImage));
+        }
+
+        if (catalogCoverImage != null && catalogCoverImageName != null)
+        {
+            var imageFilename = Path.Combine(portalDirectory, catalogCoverImageName);
+            FileShouldExist(imageFilename);
+            FileShouldHaveContents(imageFilename, DataUriHelpers.GetData(catalogCoverImage));
+        }
+    }
+
     private void DirectoryShouldExist(string path)
     {
         fileSystem.Directory.Exists(path).Should().BeTrue($"directory does not exist: {path}");
@@ -147,5 +224,15 @@ public class DumpedFileSteps(IFileSystem fileSystem)
     {
         FileShouldExist(path);
         fileSystem.File.ReadAllText(path).Should().Be(contents);
+    }
+
+    private void FileShouldHaveContents(string path, byte[] contents)
+    {
+        FileShouldExist(path);
+
+        var actualContents = Convert.ToBase64String(fileSystem.File.ReadAllBytes(path));
+        var expectedContents = Convert.ToBase64String(contents);
+
+        actualContents.Should().Be(expectedContents);
     }
 }

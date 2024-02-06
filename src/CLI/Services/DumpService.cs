@@ -31,30 +31,6 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
         }
     }
 
-    private async Task DumpPortal(DumpContext context, ApiClient.Models.Portal portal)
-    {
-        consoleOutput.WriteLine($"  * {portal.Name}");
-
-        var portalDirectory = Path.Combine(context.OutputDirectory, "portals", portal.Name);
-        fileSystem.Directory.EnsureDirectory(portalDirectory);
-
-        var products = await apiClient.GetPortalProducts(portal.Id);
-
-        var metadata = new PortalMetadata(
-            portal.Name,
-            portal.CustomDomain,
-            portal.CustomClientDomain,
-            portal.IsPublic,
-            portal.AutoApproveDevelopers,
-            portal.AutoApproveApplications,
-            portal.RbacEnabled,
-            products.Select(p => context.ApiProductSyncIdGenerator.GetSyncId(p.Id))
-        );
-
-        var metadataFilename = Path.Combine(portalDirectory, "portal.json");
-        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
-    }
-
     private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct)
     {
         var apiProductSyncId = context.ApiProductSyncIdGenerator.Generate(apiProduct.Id, apiProduct.Name);
@@ -158,6 +134,65 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
         await fileSystem.File.WriteAllTextAsync(contentFilename, apiProductDocument.MarkdownContent);
     }
 
+    private async Task DumpPortal(DumpContext context, ApiClient.Models.Portal portal)
+    {
+        consoleOutput.WriteLine($"  * {portal.Name}");
+
+        var portalDirectory = context.GetPortalDirectory(portal.Name);
+        fileSystem.Directory.EnsureDirectory(portalDirectory);
+
+        var products = await apiClient.GetPortalProducts(portal.Id);
+        var portalAppearance = await apiClient.GetPortalAppearance(portal.Id);
+
+        var appearanceMetadata = new PortalAppearanceMetadata(
+            portalAppearance.ThemeName,
+            portalAppearance.UseCustomFonts,
+            null, // TODO: CustomTheme
+            new PortalCustomFonts(portalAppearance.CustomFonts?.Base, portalAppearance.CustomFonts?.Code, portalAppearance.CustomFonts?.Headings),
+            new PortalText(portalAppearance.Text?.Catalog.WelcomeMessage, portalAppearance.Text?.Catalog.PrimaryHeader),
+            new PortalImages(
+                portalAppearance.Images.Favicon?.Filename,
+                portalAppearance.Images.Logo?.Filename,
+                portalAppearance.Images.CatalogCover?.Filename
+            )
+        );
+
+        var metadata = new PortalMetadata(
+            portal.Name,
+            portal.CustomDomain,
+            portal.CustomClientDomain,
+            portal.IsPublic,
+            portal.AutoApproveDevelopers,
+            portal.AutoApproveApplications,
+            portal.RbacEnabled,
+            products.Select(p => context.ApiProductSyncIdGenerator.GetSyncId(p.Id))
+        );
+
+        var metadataFilename = Path.Combine(portalDirectory, "portal.json");
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+
+        var appearanceMetadataFilename = Path.Combine(portalDirectory, "appearance.json");
+        await metadataSerializer.SerializeAsync(appearanceMetadataFilename, appearanceMetadata);
+
+        if (portalAppearance.Images.Favicon != null)
+        {
+            var imageFilename = Path.Combine(portalDirectory, portalAppearance.Images.Favicon.Filename);
+            await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.Favicon.Data);
+        }
+
+        if (portalAppearance.Images.Logo != null)
+        {
+            var imageFilename = Path.Combine(portalDirectory, portalAppearance.Images.Logo.Filename);
+            await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.Logo.Data);
+        }
+
+        if (portalAppearance.Images.CatalogCover != null)
+        {
+            var imageFilename = Path.Combine(portalDirectory, portalAppearance.Images.CatalogCover.Filename);
+            await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.CatalogCover.Data);
+        }
+    }
+
     private void Cleanup(string outputDirectory)
     {
         var apiProductsDirectory = fileSystem.DirectoryInfo.New(Path.Combine(outputDirectory, "api-products"));
@@ -176,19 +211,12 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
         public SyncIdGenerator ApiProductSyncIdGenerator { get; } = new();
         public SyncIdGenerator ApiProductVersionSyncIdGenerator { get; } = new();
 
-        public string GetApiProductDirectory(string syncId)
-        {
-            return Path.Combine(OutputDirectory, "api-products", syncId);
-        }
+        public string GetApiProductDirectory(string syncId) => Path.Combine(OutputDirectory, "api-products", syncId);
 
-        public string GetVersionDirectory(string syncId)
-        {
-            return Path.Combine(GetApiProductDirectory(syncId), "versions");
-        }
+        public string GetVersionDirectory(string syncId) => Path.Combine(GetApiProductDirectory(syncId), "versions");
 
-        public string GetDocumentsDirectory(string syncId)
-        {
-            return Path.Combine(GetApiProductDirectory(syncId), "documents");
-        }
+        public string GetDocumentsDirectory(string syncId) => Path.Combine(GetApiProductDirectory(syncId), "documents");
+
+        public string GetPortalDirectory(string portalName) => Path.Combine(OutputDirectory, "portals", portalName);
     }
 }

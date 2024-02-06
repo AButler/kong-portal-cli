@@ -101,14 +101,14 @@ internal class KongApiClient(IOptions<KongOptions> kongOptions)
     {
         var allPortals = new List<Models.Portal>();
 
-        PortalsResponse portalsResponse;
+        PagedResponse<Models.Portal> portalsResponse;
         var pageNumber = 1;
 
         do
         {
             var response = await _flurlClient.Request("portals").SetQueryParam("page[number]", pageNumber++).GetAsync();
 
-            portalsResponse = await response.GetJsonAsync<PortalsResponse>();
+            portalsResponse = await response.GetJsonAsync<PagedResponse<Models.Portal>>();
 
             allPortals.AddRange(portalsResponse.Data);
         } while (portalsResponse.Meta.Page.HasMore());
@@ -133,5 +133,11 @@ internal class KongApiClient(IOptions<KongOptions> kongOptions)
         } while (productsResponse.Meta.Page.HasMore());
 
         return allProducts;
+    }
+
+    public async Task<PortalAppearance> GetPortalAppearance(string portalId)
+    {
+        var response = await _flurlClient.Request($"portals/{portalId}/appearance").GetAsync();
+        return await response.GetJsonAsync<PortalAppearance>();
     }
 }

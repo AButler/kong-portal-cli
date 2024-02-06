@@ -378,4 +378,55 @@ public class DumpServiceTests
             ["api-product", "api-product-2"]
         );
     }
+
+    [Fact]
+    public async Task PortalAppearanceIsDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var portalId = Guid.NewGuid().ToString();
+
+        testHost.Given.AnExistingDevPortal(portalId: portalId, name: "default");
+
+        testHost.Given.AnExistingDevPortalAppearance(
+            portalId: portalId,
+            themeName: "custom",
+            useCustomFonts: true,
+            customFontBase: "Inter",
+            customFontCode: "Source Code Pro",
+            customFontHeadings: "Open Sans",
+            welcomeMessage: "Welcome to the DevPortal",
+            primaryHeader: "This portal contains all the information you could need",
+            faviconImage: Icons.Favicon,
+            faviconImageName: "favicon.png",
+            logoImage: Icons.Logo,
+            logoImageName: "logo.png",
+            catalogCoverImage: Icons.CatalogCover,
+            catalogCoverImageName: "catalog_cover.png"
+        );
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        await testHost.Then.DumpedFile.ShouldHavePortalAppearance(
+            outputDirectory,
+            "default",
+            "custom",
+            true,
+            "Inter",
+            "Source Code Pro",
+            "Open Sans",
+            "Welcome to the DevPortal",
+            "This portal contains all the information you could need",
+            Icons.Favicon,
+            "favicon.png",
+            Icons.Logo,
+            "logo.png",
+            Icons.CatalogCover,
+            "catalog_cover.png"
+        );
+    }
 }

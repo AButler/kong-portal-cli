@@ -1,4 +1,5 @@
-﻿using Flurl.Http.Testing;
+﻿using System.Net;
+using Flurl.Http.Testing;
 
 namespace CLI.UnitTests.TestHost;
 
@@ -10,6 +11,7 @@ public class GivenSteps
     private readonly List<dynamic> _devPortals = [];
     private readonly Dictionary<string, List<dynamic>> _apiProductDocuments = new();
     private readonly Dictionary<string, List<dynamic>> _apiProductVersions = new();
+    private readonly Dictionary<string, dynamic> _devPortalAppearances = new();
 
     private int _pageSize = 100;
 
@@ -163,12 +165,101 @@ public class GivenSteps
             }
         );
 
+        _devPortalAppearances.Add(
+            id,
+            new
+            {
+                theme_name = "custom",
+                use_custom_fonts = false,
+                custom_theme = (object?)null,
+                custom_fonts = (object?)null,
+                text = (object?)null,
+                images = new
+                {
+                    favicon = (string?)null,
+                    logo = (string?)null,
+                    catalog_cover = (string?)null
+                }
+            }
+        );
+
+        HttpTest
+            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/portals/{id}/appearance")
+            .WithVerb("GET")
+            .RespondWithDynamicJson(() => _devPortalAppearances[id]);
+
         var apiProductIds = apiProducts ?? [];
 
         SetupPagedApi(
             $"https://eu.api.konghq.com/v2/portals/{id}/products",
             () => _apiProducts.Where(v => apiProductIds.Contains((string)v.id)).ToList()
         );
+    }
+
+    public void AnExistingDevPortalAppearance(
+        string portalId,
+        Discretionary<string> themeName = default,
+        Discretionary<bool> useCustomFonts = default,
+        Discretionary<string?> customFontBase = default,
+        Discretionary<string?> customFontCode = default,
+        Discretionary<string?> customFontHeadings = default,
+        Discretionary<string?> welcomeMessage = default,
+        Discretionary<string?> primaryHeader = default,
+        Discretionary<string?> faviconImage = default,
+        Discretionary<string?> faviconImageName = default,
+        Discretionary<string?> logoImage = default,
+        Discretionary<string?> logoImageName = default,
+        Discretionary<string?> catalogCoverImage = default,
+        Discretionary<string?> catalogCoverImageName = default
+    )
+    {
+        var customFontObject =
+            !customFontBase.IsSpecified && !customFontCode.IsSpecified && !customFontHeadings.IsSpecified
+                ? (object?)null
+                : new
+                {
+                    @base = customFontBase.GetValueOrDefault(null),
+                    code = customFontCode.GetValueOrDefault(null),
+                    headings = customFontHeadings.GetValueOrDefault(null)
+                };
+
+        var textObject =
+            !welcomeMessage.IsSpecified && !primaryHeader.IsSpecified
+                ? (object?)null
+                : new
+                {
+                    catalog = new { welcome_message = welcomeMessage.GetValueOrDefault(null), primary_header = primaryHeader.GetValueOrDefault(null) }
+                };
+
+        var faviconObject =
+            !faviconImage.IsSpecified && !faviconImageName.IsSpecified
+                ? (object?)null
+                : new { data = faviconImage.GetValueOrDefault(null), filename = faviconImageName.GetValueOrDefault(null) };
+
+        var logoObject =
+            !logoImage.IsSpecified && !logoImageName.IsSpecified
+                ? (object?)null
+                : new { data = logoImage.GetValueOrDefault(null), filename = logoImageName.GetValueOrDefault(null) };
+
+        var catalogCoverObject =
+            !catalogCoverImage.IsSpecified && !catalogCoverImageName.IsSpecified
+                ? (object?)null
+                : new { data = catalogCoverImage.GetValueOrDefault(null), filename = catalogCoverImageName.GetValueOrDefault(null) };
+
+        _devPortalAppearances[portalId] = new
+        {
+            theme_name = themeName.GetValueOrDefault("minty_rocket"),
+            use_custom_fonts = useCustomFonts.GetValueOrDefault(false),
+            custom_theme = (object?)null,
+            custom_fonts = customFontObject,
+            text = textObject,
+            images = new
+            {
+                favicon = faviconObject,
+                logo = logoObject,
+                catalog_cover = catalogCoverObject
+            }
+        };
     }
 
     private void SetupApiProductsApis()
