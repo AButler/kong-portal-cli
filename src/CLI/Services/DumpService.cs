@@ -1,12 +1,11 @@
 ﻿using System.IO.Abstractions;
-using System.Text.Json;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
 using Kong.Portal.CLI.Services.Metadata;
 
 namespace Kong.Portal.CLI.Services;
 
-internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, IConsoleOutput consoleOutput)
+internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataSerializer, IFileSystem fileSystem, IConsoleOutput consoleOutput)
 {
     public async Task Dump(string outputDirectory)
     {
@@ -41,7 +40,7 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
 
         var products = await apiClient.GetPortalProducts(portal.Id);
 
-        var metadata = new ApiPortalMetadata(
+        var metadata = new PortalMetadata(
             portal.Name,
             portal.CustomDomain,
             portal.CustomClientDomain,
@@ -53,8 +52,7 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         );
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
-        await using var file = fileSystem.File.Create(metadataFilename);
-        await JsonSerializer.SerializeAsync(file, metadata, MetadataSerializerSettings.SerializerOptions);
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
     }
 
     private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct)
@@ -70,8 +68,7 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
 
         consoleOutput.WriteLine("    - Metadata");
         var metadataFilename = Path.Combine(apiProductDirectory, "api-product.json");
-        await using var file = fileSystem.File.Create(metadataFilename);
-        await JsonSerializer.SerializeAsync(file, metadata, MetadataSerializerSettings.SerializerOptions);
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
 
         await DumpApiProductVersions(context, apiProductSyncId, apiProduct);
 
@@ -117,8 +114,7 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         fileSystem.Directory.EnsureDirectory(versionDirectory);
 
         var metadataFilename = Path.Combine(versionDirectory, "version.json");
-        await using var file = fileSystem.File.Create(metadataFilename);
-        await JsonSerializer.SerializeAsync(file, metadata, MetadataSerializerSettings.SerializerOptions);
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
 
         if (specification == null)
         {
@@ -153,11 +149,10 @@ internal class DumpService(KongApiClient apiClient, IFileSystem fileSystem, ICon
         var documentsDirectory = context.GetDocumentsDirectory(apiProductSyncId);
         var apiProductDocument = await apiClient.GetApiProductDocumentBody(apiProduct.Id, documentId);
 
-        var metadata = new ApiProductDocumentMetadata(apiProductDocument.Title, apiProductDocument.Slug, apiProductDocument.Status);
+        var metadata = new ApiProductDocumentMetadata(apiProductDocument.Title, apiProductDocument.Slug, fullSlug, apiProductDocument.Status);
         var metadataFilename = Path.Combine(documentsDirectory, $"{fullSlug}.json");
         fileSystem.Directory.EnsureDirectory(Path.GetDirectoryName(metadataFilename)!);
-        await using var file = fileSystem.File.Create(metadataFilename);
-        await JsonSerializer.SerializeAsync(file, metadata, MetadataSerializerSettings.SerializerOptions);
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
 
         var contentFilename = Path.Combine(documentsDirectory, $"{fullSlug}.md");
         await fileSystem.File.WriteAllTextAsync(contentFilename, apiProductDocument.MarkdownContent);

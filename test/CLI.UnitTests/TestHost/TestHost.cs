@@ -45,11 +45,12 @@ public class TestHost : IDisposable
             .AddSingleton<KongApiClient>()
             .AddSingleton<IFileSystem>(mockFileSystem)
             .AddSingleton<IConsoleOutput, NullConsoleOutput>()
+            .AddSingleton<MetadataSerializer>()
             .AddSingleton<DumpService>()
             .AddSingleton<GivenSteps>()
             .AddSingleton<ThenSteps>()
             .AddSingleton<DumpedFileSteps>()
-            //.AddSingleton<SyncService>()
+            .AddSingleton<SyncService>()
             .BuildServiceProvider();
 
         return services;

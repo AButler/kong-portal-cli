@@ -124,8 +124,54 @@ public class DumpServiceTests
             outputDirectory,
             "api-product",
             "authentication",
+            "authentication",
             "How to Authenticate",
             "# How to Authenticate"
+        );
+    }
+
+    [Fact]
+    public async Task NestedDocumentsAreDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var productId = Guid.NewGuid().ToString();
+        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
+        testHost.Given.AnExistingApiProductDocument(
+            apiProductId: productId,
+            slug: "authentication",
+            title: "How to Authenticate",
+            content: "# How to Authenticate"
+        );
+        testHost.Given.AnExistingApiProductDocument(
+            apiProductId: productId,
+            slug: "authentication/faq",
+            title: "Frequently Asked Questions",
+            content: "# Frequently Asked Questions"
+        );
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
+            outputDirectory,
+            "api-product",
+            "authentication",
+            "authentication",
+            "How to Authenticate",
+            "# How to Authenticate"
+        );
+
+        await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
+            outputDirectory,
+            "api-product",
+            "faq",
+            "authentication/faq",
+            "Frequently Asked Questions",
+            "# Frequently Asked Questions"
         );
     }
 
@@ -160,6 +206,7 @@ public class DumpServiceTests
             await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
                 outputDirectory,
                 "api-product",
+                $"doc-{i}",
                 $"doc-{i}",
                 $"Article {i}",
                 $"# Article {i}\n\n##Contents\n* Item 1"

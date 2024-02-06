@@ -72,7 +72,7 @@ public class GivenSteps
                 {
                     id,
                     title,
-                    slug,
+                    slug = Path.GetFileName(slug),
                     status = "published",
                     str_md_content = content
                 }

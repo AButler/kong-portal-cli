@@ -25,21 +25,23 @@ public class DumpedFileSteps(IFileSystem fileSystem)
         string outputDirectory,
         string apiProductSyncId,
         string documentSlug,
+        string fullSlug,
         string documentTitle,
         string documentContents
     )
     {
         var documentsDirectory = Path.Combine(outputDirectory, "api-products", apiProductSyncId, "documents");
 
-        var contentDocumentFilename = Path.Combine(documentsDirectory, $"{documentSlug}.md");
+        var contentDocumentFilename = Path.Combine(documentsDirectory, $"{fullSlug}.md");
         FileShouldHaveContents(contentDocumentFilename, documentContents);
 
-        var metadataFilename = Path.Combine(documentsDirectory, $"{documentSlug}.json");
+        var metadataFilename = Path.Combine(documentsDirectory, $"{fullSlug}.json");
         FileShouldExist(metadataFilename);
         var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
 
         json.ShouldHaveStringProperty("title", documentTitle);
         json.ShouldHaveStringProperty("slug", documentSlug);
+        json.ShouldHaveStringProperty("full_slug", fullSlug);
         json.ShouldHaveStringProperty("status", "published");
     }
 

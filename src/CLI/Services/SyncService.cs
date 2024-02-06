@@ -9,6 +9,7 @@ internal class SyncService(SourceDirectoryReader sourceDirectoryReader, IConsole
         {
             consoleOutput.WriteLine(" ** Dry run only - no changes will be made **");
         }
+
         consoleOutput.WriteLine("Reading input directory...");
         var sourceData = await sourceDirectoryReader.Read(inputDirectory);
 

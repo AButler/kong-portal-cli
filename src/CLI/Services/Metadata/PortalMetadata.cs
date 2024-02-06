@@ -1,6 +1,6 @@
 ﻿namespace Kong.Portal.CLI.Services.Metadata;
 
-internal record ApiPortalMetadata(
+internal record PortalMetadata(
     string Name,
     string? CustomDomain,
     string? CustomClientDomain,
