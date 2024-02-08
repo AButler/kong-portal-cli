@@ -41,7 +41,16 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
             throw new SyncException($"Cannot read portal: {portalFile}");
         }
 
+        var portalAppearanceFile = Path.Combine(Path.GetDirectoryName(portalFile)!, "appearance.json");
+        var portalAppearanceMetadata = await metadataSerializer.DeserializeAsync<PortalAppearanceMetadata>(portalAppearanceFile);
+
+        if (portalAppearanceMetadata == null)
+        {
+            throw new SyncException($"Cannot read portal appearance: {portalAppearanceFile}");
+        }
+
         sourceData.Portals.Add(portalMetadata);
+        sourceData.PortalAppearances.Add(portalMetadata.Name, portalAppearanceMetadata);
     }
 
     private async Task ReadApiProducts(SourceData sourceData)

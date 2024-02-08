@@ -147,7 +147,35 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
         var appearanceMetadata = new PortalAppearanceMetadata(
             portalAppearance.ThemeName,
             portalAppearance.UseCustomFonts,
-            null, // TODO: CustomTheme
+            portalAppearance.CustomTheme == null
+                ? null
+                : new PortalCustomTheme(
+                    new PortalCustomThemeColors(
+                        new PortalCustomThemeColorsSection(
+                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Body.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Accent.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Tertiary.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Stroke.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Footer.Value
+                        ),
+                        new PortalCustomThemeColorsText(
+                            portalAppearance.CustomTheme.Colors.Text.Header.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Hero.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Headings.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Primary.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Secondary.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Accent.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Link.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Footer.Value
+                        ),
+                        new PortalCustomThemeColorsButton(
+                            portalAppearance.CustomTheme.Colors.Button.PrimaryFill.Value,
+                            portalAppearance.CustomTheme.Colors.Button.PrimaryText.Value
+                        )
+                    )
+                ),
             new PortalCustomFonts(portalAppearance.CustomFonts?.Base, portalAppearance.CustomFonts?.Code, portalAppearance.CustomFonts?.Headings),
             new PortalText(portalAppearance.Text?.Catalog.WelcomeMessage, portalAppearance.Text?.Catalog.PrimaryHeader),
             new PortalImages(
