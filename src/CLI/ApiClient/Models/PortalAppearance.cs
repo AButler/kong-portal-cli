@@ -7,7 +7,7 @@ internal record PortalAppearance(
     PortalAppearanceCustomFonts? CustomFonts,
     PortalAppearanceText? Text,
     PortalAppearanceImages Images
-);
+) : IEntity;
 
 internal record PortalAppearanceCustomFonts(string Base, string Code, string Headings);
 

@@ -11,7 +11,7 @@ public class DumpServiceTests
 
         var dumpService = testHost.GetRequiredService<DumpService>();
 
-        testHost.Given.AnExistingApiProduct(
+        testHost.Given.Api.AnExistingApiProduct(
             name: "API Product 1",
             description: "This is API Product 1",
             labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
@@ -37,13 +37,13 @@ public class DumpServiceTests
 
         var dumpService = testHost.GetRequiredService<DumpService>();
 
-        testHost.Given.AnExistingApiProduct(
+        testHost.Given.Api.AnExistingApiProduct(
             name: "API Product",
             description: "This is API Product 1",
             labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
         );
 
-        testHost.Given.AnExistingApiProduct(
+        testHost.Given.Api.AnExistingApiProduct(
             name: "API Product",
             description: "This is API Product 2",
             labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "Frontend" }
@@ -75,13 +75,13 @@ public class DumpServiceTests
     {
         using var testHost = new TestHost.TestHost();
 
-        testHost.Given.TheKongApiPageSizeIs(2);
+        testHost.Given.Api.TheKongApiPageSizeIs(2);
 
         var dumpService = testHost.GetRequiredService<DumpService>();
 
         for (var i = 1; i < 10; i++)
         {
-            testHost.Given.AnExistingApiProduct(name: $"API Product {i}", description: $"This is API Product {i}");
+            testHost.Given.Api.AnExistingApiProduct(name: $"API Product {i}", description: $"This is API Product {i}");
         }
 
         var outputDirectory = @"c:\temp\output";
@@ -108,8 +108,8 @@ public class DumpServiceTests
         var dumpService = testHost.GetRequiredService<DumpService>();
 
         var productId = Guid.NewGuid().ToString();
-        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
-        testHost.Given.AnExistingApiProductDocument(
+        testHost.Given.Api.AnExistingApiProduct(productId: productId, name: "API Product");
+        testHost.Given.Api.AnExistingApiProductDocument(
             apiProductId: productId,
             slug: "authentication",
             title: "How to Authenticate",
@@ -138,14 +138,14 @@ public class DumpServiceTests
         var dumpService = testHost.GetRequiredService<DumpService>();
 
         var productId = Guid.NewGuid().ToString();
-        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
-        testHost.Given.AnExistingApiProductDocument(
+        testHost.Given.Api.AnExistingApiProduct(productId: productId, name: "API Product");
+        testHost.Given.Api.AnExistingApiProductDocument(
             apiProductId: productId,
             slug: "authentication",
             title: "How to Authenticate",
             content: "# How to Authenticate"
         );
-        testHost.Given.AnExistingApiProductDocument(
+        testHost.Given.Api.AnExistingApiProductDocument(
             apiProductId: productId,
             slug: "authentication/faq",
             title: "Frequently Asked Questions",
@@ -180,16 +180,16 @@ public class DumpServiceTests
     {
         using var testHost = new TestHost.TestHost();
 
-        testHost.Given.TheKongApiPageSizeIs(2);
+        testHost.Given.Api.TheKongApiPageSizeIs(2);
 
         var dumpService = testHost.GetRequiredService<DumpService>();
 
         var productId = Guid.NewGuid().ToString();
-        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
+        testHost.Given.Api.AnExistingApiProduct(productId: productId, name: "API Product");
 
         for (var i = 0; i < 10; i++)
         {
-            testHost.Given.AnExistingApiProductDocument(
+            testHost.Given.Api.AnExistingApiProductDocument(
                 apiProductId: productId,
                 slug: $"doc-{i}",
                 title: $"Article {i}",
@@ -222,8 +222,8 @@ public class DumpServiceTests
         var dumpService = testHost.GetRequiredService<DumpService>();
 
         var productId = Guid.NewGuid().ToString();
-        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
-        testHost.Given.AnExistingApiProductVersion(
+        testHost.Given.Api.AnExistingApiProduct(productId: productId, name: "API Product");
+        testHost.Given.Api.AnExistingApiProductVersion(
             apiProductId: productId,
             name: "v1.0",
             publishStatus: "published",
@@ -256,8 +256,8 @@ public class DumpServiceTests
         var dumpService = testHost.GetRequiredService<DumpService>();
 
         var productId = Guid.NewGuid().ToString();
-        testHost.Given.AnExistingApiProduct(productId: productId, name: "API Product");
-        testHost.Given.AnExistingApiProductVersion(apiProductId: productId, name: "v1.0", publishStatus: "published", deprecated: false);
+        testHost.Given.Api.AnExistingApiProduct(productId: productId, name: "API Product");
+        testHost.Given.Api.AnExistingApiProductVersion(apiProductId: productId, name: "v1.0", publishStatus: "published", deprecated: false);
 
         var outputDirectory = @"c:\temp\output";
 
@@ -274,7 +274,7 @@ public class DumpServiceTests
         var dumpService = testHost.GetRequiredService<DumpService>();
 
         var portalId = Guid.NewGuid().ToString();
-        testHost.Given.AnExistingDevPortal(
+        testHost.Given.Api.AnExistingDevPortal(
             portalId: portalId,
             name: "default",
             isPublic: true,
@@ -304,9 +304,9 @@ public class DumpServiceTests
         var product2Id = Guid.NewGuid().ToString();
         var portalId = Guid.NewGuid().ToString();
 
-        testHost.Given.AnExistingApiProduct(productId: product1Id, name: "API Product 1");
-        testHost.Given.AnExistingApiProduct(productId: product2Id, name: "API Product 2");
-        testHost.Given.AnExistingDevPortal(
+        testHost.Given.Api.AnExistingApiProduct(productId: product1Id, name: "API Product 1");
+        testHost.Given.Api.AnExistingApiProduct(productId: product2Id, name: "API Product 2");
+        testHost.Given.Api.AnExistingDevPortal(
             portalId: portalId,
             name: "default",
             isPublic: true,
@@ -346,11 +346,11 @@ public class DumpServiceTests
         var product2Id = Guid.NewGuid().ToString();
         var portalId = Guid.NewGuid().ToString();
 
-        testHost.Given.AnExistingApiProduct(productId: product1Id, name: "API Product");
-        testHost.Given.AnExistingApiProduct(name: "API Product");
-        testHost.Given.AnExistingApiProduct(productId: product2Id, name: "API Product");
-        testHost.Given.AnExistingApiProduct(name: "API Product");
-        testHost.Given.AnExistingDevPortal(
+        testHost.Given.Api.AnExistingApiProduct(productId: product1Id, name: "API Product");
+        testHost.Given.Api.AnExistingApiProduct(name: "API Product");
+        testHost.Given.Api.AnExistingApiProduct(productId: product2Id, name: "API Product");
+        testHost.Given.Api.AnExistingApiProduct(name: "API Product");
+        testHost.Given.Api.AnExistingDevPortal(
             portalId: portalId,
             name: "default",
             isPublic: true,
@@ -388,9 +388,9 @@ public class DumpServiceTests
 
         var portalId = Guid.NewGuid().ToString();
 
-        testHost.Given.AnExistingDevPortal(portalId: portalId, name: "default");
+        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
 
-        testHost.Given.AnExistingDevPortalAppearance(
+        testHost.Given.Api.AnExistingDevPortalAppearance(
             portalId: portalId,
             themeName: "custom",
             useCustomFonts: true,

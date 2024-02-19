@@ -1,6 +1,8 @@
 namespace CLI.UnitTests.TestHost;
 
-public class ThenSteps(DumpedFileSteps dumpedFile)
+internal class ThenSteps(DumpedFileThenSteps dumpedFile, ApiThenSteps api)
 {
-    public DumpedFileSteps DumpedFile { get; } = dumpedFile;
+    public DumpedFileThenSteps DumpedFile { get; } = dumpedFile;
+
+    public ApiThenSteps Api { get; } = api;
 }

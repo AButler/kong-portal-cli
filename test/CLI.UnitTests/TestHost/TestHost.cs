@@ -3,7 +3,6 @@ using System.IO.Abstractions.TestingHelpers;
 using CLI.UnitTests.Services;
 using Flurl.Http.Testing;
 using Kong.Portal.CLI.ApiClient;
-using Kong.Portal.CLI.Commands;
 using Kong.Portal.CLI.Config;
 using Kong.Portal.CLI.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +10,7 @@ using Microsoft.Extensions.Options;
 
 namespace CLI.UnitTests.TestHost;
 
-public class TestHost : IDisposable
+internal class TestHost : IDisposable
 {
     private readonly HttpTest _httpTest;
     private readonly ServiceProvider _services;
@@ -49,8 +48,13 @@ public class TestHost : IDisposable
             .AddSingleton<DumpService>()
             .AddSingleton<GivenSteps>()
             .AddSingleton<ThenSteps>()
-            .AddSingleton<DumpedFileSteps>()
+            .AddSingleton<ApiGivenSteps>()
+            .AddSingleton<FileGivenSteps>()
+            .AddSingleton<DumpedFileThenSteps>()
+            .AddSingleton<ApiThenSteps>()
             .AddSingleton<SyncService>()
+            .AddSingleton<ComparerService>()
+            .AddSingleton<SourceDirectoryReader>()
             .BuildServiceProvider();
 
         return services;

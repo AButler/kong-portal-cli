@@ -9,4 +9,4 @@ internal record Portal(
     bool AutoApproveDevelopers,
     bool AutoApproveApplications,
     bool RbacEnabled
-);
+) : IEntity;

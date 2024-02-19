@@ -17,14 +17,14 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
 
         var context = new DumpContext(outputDirectory);
 
-        var apiProducts = await apiClient.GetApiProducts();
+        var apiProducts = await apiClient.ApiProducts.GetAll();
         foreach (var apiProduct in apiProducts)
         {
             await DumpApiProduct(context, apiProduct);
         }
 
         consoleOutput.WriteLine("- Portals");
-        var portals = await apiClient.GetPortals();
+        var portals = await apiClient.Portals.GetAll();
         foreach (var portal in portals)
         {
             await DumpPortal(context, portal);
@@ -33,7 +33,8 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
 
     private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct)
     {
-        var apiProductSyncId = context.ApiProductSyncIdGenerator.Generate(apiProduct.Id, apiProduct.Name);
+        var apiProductSyncId = context.ApiProductSyncIdGenerator.Generate(apiProduct.Name);
+        context.StoreApiProductId(apiProduct.Id, apiProductSyncId);
 
         consoleOutput.WriteLine($"  * {apiProductSyncId}");
 
@@ -55,7 +56,7 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
     {
         consoleOutput.WriteLine("    - Versions");
 
-        var versions = await apiClient.GetApiProductVersions(apiProduct.Id);
+        var versions = await apiClient.ApiProductVersions.GetAll(apiProduct.Id);
 
         if (!versions.Any())
         {
@@ -74,9 +75,9 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
     private async Task DumpApiProductVersion(DumpContext context, string apiProductSyncId, ApiProduct apiProduct, ApiProductVersion apiProductVersion)
     {
         var versionsDirectory = context.GetVersionDirectory(apiProductSyncId);
-        var specification = await apiClient.GetApiProductSpecification(apiProduct.Id, apiProductVersion.Id);
+        var specification = await apiClient.ApiProductVersions.GetSpecification(apiProduct.Id, apiProductVersion.Id);
 
-        var apiProductVersionSyncId = context.ApiProductVersionSyncIdGenerator.Generate(apiProductVersion.Id, apiProductVersion.Name);
+        var apiProductVersionSyncId = context.ApiProductVersionSyncIdGenerator.Generate(apiProductVersion.Name);
 
         var metadata = new ApiProductVersionMetadata(
             apiProductVersionSyncId,
@@ -104,7 +105,7 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
     private async Task DumpApiProductDocuments(DumpContext context, string apiProductSyncId, ApiProduct apiProduct)
     {
         consoleOutput.WriteLine("    - Documents");
-        var documents = await apiClient.GetApiProductDocuments(apiProduct.Id);
+        var documents = await apiClient.ApiProductDocuments.GetAll(apiProduct.Id);
 
         if (!documents.Any())
         {
@@ -123,7 +124,7 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
     private async Task DumpApiProductDocument(DumpContext context, string apiProductSyncId, ApiProduct apiProduct, string documentId, string fullSlug)
     {
         var documentsDirectory = context.GetDocumentsDirectory(apiProductSyncId);
-        var apiProductDocument = await apiClient.GetApiProductDocumentBody(apiProduct.Id, documentId);
+        var apiProductDocument = await apiClient.ApiProductDocuments.GetBody(apiProduct.Id, documentId);
 
         var metadata = new ApiProductDocumentMetadata(apiProductDocument.Title, apiProductDocument.Slug, fullSlug, apiProductDocument.Status);
         var metadataFilename = Path.Combine(documentsDirectory, $"{fullSlug}.json");
@@ -141,8 +142,8 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
         var portalDirectory = context.GetPortalDirectory(portal.Name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
-        var products = await apiClient.GetPortalProducts(portal.Id);
-        var portalAppearance = await apiClient.GetPortalAppearance(portal.Id);
+        var products = await apiClient.Portals.GetPortalProducts(portal.Id);
+        var portalAppearance = await apiClient.Portals.GetAppearance(portal.Id);
 
         var appearanceMetadata = new PortalAppearanceMetadata(
             portalAppearance.ThemeName,
@@ -193,7 +194,7 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
             portal.AutoApproveDevelopers,
             portal.AutoApproveApplications,
             portal.RbacEnabled,
-            products.Select(p => context.ApiProductSyncIdGenerator.GetSyncId(p.Id))
+            products.Select(p => context.GetApiProductSyncId(p.Id))
         );
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
@@ -235,6 +236,8 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
 
     private class DumpContext(string outputDirectory)
     {
+        private readonly Dictionary<string, string> _apiProductIdMap = new();
+
         public string OutputDirectory { get; } = outputDirectory;
         public SyncIdGenerator ApiProductSyncIdGenerator { get; } = new();
         public SyncIdGenerator ApiProductVersionSyncIdGenerator { get; } = new();
@@ -246,5 +249,15 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
         public string GetDocumentsDirectory(string syncId) => Path.Combine(GetApiProductDirectory(syncId), "documents");
 
         public string GetPortalDirectory(string portalName) => Path.Combine(OutputDirectory, "portals", portalName);
+
+        public void StoreApiProductId(string apiProductId, string syncId)
+        {
+            _apiProductIdMap[apiProductId] = syncId;
+        }
+
+        public string GetApiProductSyncId(string apiProductId)
+        {
+            return _apiProductIdMap[apiProductId];
+        }
     }
 }

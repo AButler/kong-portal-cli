@@ -22,6 +22,7 @@ var services = new ServiceCollection()
     .AddSingleton<MetadataSerializer>()
     .AddSingleton<DumpService>()
     .AddSingleton<SyncService>()
+    .AddSingleton<ComparerService>()
     .AddSingleton<SourceDirectoryReader>()
     .BuildServiceProvider();
 

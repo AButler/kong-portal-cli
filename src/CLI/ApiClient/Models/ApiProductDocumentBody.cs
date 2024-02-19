@@ -8,4 +8,4 @@ internal record ApiProductDocumentBody(
     string Status,
     string Title,
     [property: JsonPropertyName("str_md_content")] string MarkdownContent
-);
+) : IEntity;

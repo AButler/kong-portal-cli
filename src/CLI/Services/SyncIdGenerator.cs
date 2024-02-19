@@ -5,9 +5,8 @@ namespace Kong.Portal.CLI.Services;
 internal class SyncIdGenerator
 {
     private readonly List<string> _existingIds = new();
-    private readonly Dictionary<string, string> _idMap = new();
 
-    public string Generate(string id, string name)
+    public string Generate(string name)
     {
         var syncId = Regex.Replace(name.ToLowerInvariant(), @"\s", "-");
 
@@ -21,7 +20,6 @@ internal class SyncIdGenerator
         if (!_existingIds.Contains(syncId))
         {
             _existingIds.Add(syncId);
-            _idMap.Add(id, syncId);
             return syncId;
         }
 
@@ -38,12 +36,6 @@ internal class SyncIdGenerator
         } while (_existingIds.Contains(newSyncId));
 
         _existingIds.Add(newSyncId);
-        _idMap.Add(id, newSyncId);
         return newSyncId;
-    }
-
-    public string GetSyncId(string id)
-    {
-        return _idMap[id];
     }
 }

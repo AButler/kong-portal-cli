@@ -4,7 +4,7 @@ using Kong.Portal.CLI;
 
 namespace CLI.UnitTests.TestHost;
 
-public class DumpedFileSteps(IFileSystem fileSystem)
+internal class DumpedFileThenSteps(IFileSystem fileSystem)
 {
     public async Task ShouldHaveApiProduct(string outputDirectory, string syncId, string name, string description, Dictionary<string, string> labels)
     {
