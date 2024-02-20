@@ -1,6 +1,7 @@
 <Project>
     <PropertyGroup>
         <IsPackable>false</IsPackable>
+        <IsPublishable>false</IsPublishable>
         <IsTestProject>true</IsTestProject>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
