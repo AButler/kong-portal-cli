@@ -26,14 +26,14 @@ internal class ApiProductsClient(IFlurlClient flurlClient)
 
     public async Task<ApiProduct> Create(ApiProduct apiProduct)
     {
-        var response = await flurlClient.Request("api-products").PostJsonAsync(apiProduct);
+        var response = await flurlClient.Request("api-products").PostJsonAsync(apiProduct.ToUpdateModel());
 
         return await response.GetJsonAsync<ApiProduct>();
     }
 
     public async Task<ApiProduct> Update(string apiProductId, ApiProduct apiProduct)
     {
-        var response = await flurlClient.Request($"api-products/{Uri.EscapeDataString(apiProductId)}").PatchJsonAsync(apiProduct);
+        var response = await flurlClient.Request($"api-products/{Uri.EscapeDataString(apiProductId)}").PatchJsonAsync(apiProduct.ToUpdateModel());
 
         return await response.GetJsonAsync<ApiProduct>();
     }

@@ -4,14 +4,5 @@ namespace Kong.Portal.CLI;
 
 internal static class ApiModelExtensions
 {
-    public static ApiProduct WithSyncIdLabel(this ApiProduct apiProduct, string syncId)
-    {
-        var labels = apiProduct.Labels.Clone();
-        labels[Constants.SyncIdLabel] = syncId;
-
-        return apiProduct with
-        {
-            Labels = labels
-        };
-    }
+    public static ApiProductUpdate ToUpdateModel(this ApiProduct apiProduct) => new(apiProduct.Name, apiProduct.Description, apiProduct.Labels);
 }

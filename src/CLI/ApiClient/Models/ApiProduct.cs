@@ -1,6 +1,6 @@
 ﻿namespace Kong.Portal.CLI.ApiClient.Models;
 
-internal record ApiProduct(string Id, string Name, string Description, LabelDictionary Labels) : IEntity
+internal record ApiProduct(string Id, string Name, string Description, LabelDictionary Labels)
 {
     public virtual bool Equals(ApiProduct? other)
     {

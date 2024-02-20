@@ -32,9 +32,7 @@ internal class ComparerService(KongApiClient apiClient)
                 toMatch.Remove(sourceApiProduct);
 
                 var apiProduct = sourceApiProduct.ToApiProduct(serverApiProduct.Id);
-                context.ApiProducts.Add(
-                    Difference.UpdateOrNoChange<ApiProduct>(sourceApiProduct.SyncId, serverApiProduct.Id, serverApiProduct, apiProduct)
-                );
+                context.ApiProducts.Add(Difference.UpdateOrNoChange(sourceApiProduct.SyncId, serverApiProduct.Id, serverApiProduct, apiProduct));
 
                 continue;
             }

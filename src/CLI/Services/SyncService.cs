@@ -1,4 +1,5 @@
 ﻿using Kong.Portal.CLI.ApiClient;
+using Kong.Portal.CLI.ApiClient.Models;
 using Kong.Portal.CLI.Services.Models;
 
 namespace Kong.Portal.CLI.Services;
@@ -39,23 +40,28 @@ internal class SyncService(
             consoleOutput.WriteLine("Displaying changes...");
         }
 
-        var context = new SyncContext();
+        var context = new SyncContext(apply);
 
-        await SyncApiProducts(compareResult, context);
+        foreach (var difference in compareResult.ApiProducts)
+        {
+            await SyncApiProduct(context, difference);
+        }
     }
 
-    private async Task SyncApiProducts(CompareResult compareResult, SyncContext context)
+    private async Task SyncApiProduct(SyncContext context, Difference<ApiProduct> difference)
     {
-        foreach (var difference in compareResult.ApiProducts)
+        consoleOutput.WriteLine($"  {difference.DifferenceType.ToSymbol()} {difference.Entity.Name}");
+
+        if (context.Apply)
         {
             switch (difference.DifferenceType)
             {
                 case DifferenceType.Add:
-                    var apiProduct = await apiClient.ApiProducts.Create(difference.Entity.WithSyncIdLabel(difference.SyncId!));
+                    var apiProduct = await apiClient.ApiProducts.Create(difference.Entity);
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, apiProduct.Id);
                     break;
                 case DifferenceType.Update:
-                    await apiClient.ApiProducts.Update(difference.Id!, difference.Entity.WithSyncIdLabel(difference.SyncId!));
+                    await apiClient.ApiProducts.Update(difference.Id!, difference.Entity);
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
                     break;
                 case DifferenceType.Delete:
@@ -65,8 +71,9 @@ internal class SyncService(
         }
     }
 
-    private class SyncContext
+    private class SyncContext(bool apply)
     {
+        public bool Apply { get; } = apply;
         public Dictionary<string, string> ApiProductSyncIdMap { get; } = new();
     }
 }
