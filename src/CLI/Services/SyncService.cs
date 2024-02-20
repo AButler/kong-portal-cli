@@ -119,9 +119,11 @@ internal class SyncService(
             }
         }
 
-        if (difference.SyncId != null)
+        if (
+            difference.SyncId != null
+            && compareResult.ApiProductVersionSpecifications[apiProductSyncId].TryGetValue(difference.SyncId, out var specification)
+        )
         {
-            var specification = compareResult.ApiProductVersionSpecifications[apiProductSyncId][difference.SyncId];
             await SyncApiProductVersionSpecification(context, apiProductSyncId, difference.SyncId, specification);
         }
     }
