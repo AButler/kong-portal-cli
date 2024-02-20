@@ -33,7 +33,19 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
 
     private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct)
     {
-        var apiProductSyncId = context.ApiProductSyncIdGenerator.Generate(apiProduct.Name);
+        var syncIdFromLabel = apiProduct.GetSyncIdFromLabel();
+        string apiProductSyncId;
+
+        if (syncIdFromLabel != null)
+        {
+            context.ApiProductSyncIdGenerator.StoreExistingSyncId(syncIdFromLabel);
+            apiProductSyncId = syncIdFromLabel;
+        }
+        else
+        {
+            apiProductSyncId = context.ApiProductSyncIdGenerator.Generate(apiProduct.Name);
+        }
+
         context.StoreApiProductId(apiProduct.Id, apiProductSyncId);
 
         consoleOutput.WriteLine($"  * {apiProductSyncId}");
@@ -41,7 +53,7 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
         var apiProductDirectory = context.GetApiProductDirectory(apiProductSyncId);
         fileSystem.Directory.EnsureDirectory(apiProductDirectory);
 
-        var metadata = new ApiProductMetadata(apiProductSyncId, apiProduct.Name, apiProduct.Description, apiProduct.Labels);
+        var metadata = apiProduct.ToMetadata(apiProductSyncId);
 
         consoleOutput.WriteLine("    - Metadata");
         var metadataFilename = Path.Combine(apiProductDirectory, "api-product.json");

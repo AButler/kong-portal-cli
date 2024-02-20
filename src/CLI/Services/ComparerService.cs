@@ -48,7 +48,9 @@ internal class ComparerService(KongApiClient apiClient)
 
     private static ApiProductMetadata? FindApiProduct(List<ApiProductMetadata> existing, ApiProduct apiProduct)
     {
-        if (apiProduct.Labels.TryGetValue(Constants.SyncIdLabel, out var syncIdLabel))
+        var syncIdLabel = apiProduct.GetSyncIdFromLabel();
+
+        if (syncIdLabel != null)
         {
             var matchedOnSyncId = existing.FirstOrDefault(p => p.SyncId == syncIdLabel);
             if (matchedOnSyncId != null)

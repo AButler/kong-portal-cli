@@ -6,6 +6,14 @@ internal class SyncIdGenerator
 {
     private readonly List<string> _existingIds = new();
 
+    public void StoreExistingSyncId(string syncId)
+    {
+        if (!_existingIds.Contains(syncId))
+        {
+            _existingIds.Add(syncId);
+        }
+    }
+
     public string Generate(string name)
     {
         var syncId = Regex.Replace(name.ToLowerInvariant(), @"\s", "-");

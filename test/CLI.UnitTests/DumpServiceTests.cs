@@ -1,4 +1,5 @@
-﻿using Kong.Portal.CLI.Services;
+﻿using Kong.Portal.CLI;
+using Kong.Portal.CLI.Services;
 
 namespace CLI.UnitTests;
 
@@ -24,6 +25,37 @@ public class DumpServiceTests
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
             outputDirectory,
             "api-product-1",
+            "API Product 1",
+            "This is API Product 1",
+            new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+        );
+    }
+
+    [Fact]
+    public async Task ApiProductWithSyncIdLabelIsDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        testHost.Given.Api.AnExistingApiProduct(
+            name: "API Product 1",
+            description: "This is API Product 1",
+            labels: new Dictionary<string, string>
+            {
+                ["Author"] = "Bob Bobertson",
+                ["Tag"] = "eCommerce",
+                [Constants.SyncIdLabel] = "different-sync-id"
+            }
+        );
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory);
+
+        await testHost.Then.DumpedFile.ShouldHaveApiProduct(
+            outputDirectory,
+            "different-sync-id",
             "API Product 1",
             "This is API Product 1",
             new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
