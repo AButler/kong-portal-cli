@@ -49,7 +49,10 @@ internal class ApiGivenSteps
         _apiProductDocuments[id] = [];
         _apiProductVersions[id] = [];
 
-        HttpTest.Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{id}").WithVerb("PATCH").RespondWithJson(new { id });
+        HttpTest
+            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{id}")
+            .WithVerb("PATCH")
+            .RespondWithJson(_apiProducts.Single(p => p.id == id));
         SetupApiProductDocumentsApis(id);
         SetupApiProductVersionApis(id);
     }
@@ -270,7 +273,17 @@ internal class ApiGivenSteps
         HttpTest
             .Current.ForCallsTo("https://eu.api.konghq.com/v2/api-products")
             .WithVerb("POST")
-            .RespondWithDynamicJson(() => new { id = Guid.NewGuid().ToString() }, 201);
+            .RespondWithDynamicJson(
+                () =>
+                {
+                    var productId = Guid.NewGuid().ToString();
+
+                    AnExistingApiProduct(productId: productId);
+
+                    return _apiProducts.Single(p => p.id == productId);
+                },
+                201
+            );
     }
 
     private void SetupApiProductsApis()
@@ -291,6 +304,20 @@ internal class ApiGivenSteps
     private void SetupApiProductVersionApis(string apiProductId)
     {
         SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions", () => _apiProductVersions[apiProductId]);
+        HttpTest
+            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions")
+            .WithVerb("POST")
+            .RespondWithDynamicJson(
+                () =>
+                    new
+                    {
+                        id = Guid.NewGuid().ToString(),
+                        name = "DUMMY NAME",
+                        publish_status = "unpublished",
+                        deprecated = false
+                    },
+                201
+            );
     }
 
     private void SetupPagedApi(string url, Func<IReadOnlyCollection<dynamic>> results)

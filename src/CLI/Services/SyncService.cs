@@ -44,11 +44,11 @@ internal class SyncService(
 
         foreach (var difference in compareResult.ApiProducts)
         {
-            await SyncApiProduct(context, difference);
+            await SyncApiProduct(context, compareResult, difference);
         }
     }
 
-    private async Task SyncApiProduct(SyncContext context, Difference<ApiProduct> difference)
+    private async Task SyncApiProduct(SyncContext context, CompareResult compareResult, Difference<ApiProduct> difference)
     {
         consoleOutput.WriteLine($"  {difference.DifferenceType.ToSymbol()} {difference.Entity.Name}");
 
@@ -66,6 +66,43 @@ internal class SyncService(
                     break;
                 case DifferenceType.Delete:
                     await apiClient.ApiProducts.Delete(difference.Id!);
+                    break;
+                case DifferenceType.NoChange:
+                    context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
+                    break;
+            }
+        }
+
+        foreach (var apiProductVersion in compareResult.ApiProductVersions[difference.SyncId!])
+        {
+            await SyncApiProductVersion(context, compareResult, difference.SyncId!, apiProductVersion);
+        }
+    }
+
+    private async Task SyncApiProductVersion(
+        SyncContext context,
+        CompareResult compareResult,
+        string apiProductSyncId,
+        Difference<ApiProductVersion> difference
+    )
+    {
+        consoleOutput.WriteLine($"    {difference.DifferenceType.ToSymbol()} {difference.Entity.Name}");
+
+        if (context.Apply)
+        {
+            var apiProductId = context.ApiProductSyncIdMap[apiProductSyncId];
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                    var apiProductVersion = await apiClient.ApiProductVersions.Create(apiProductId, difference.Entity);
+                    context.ApiProductSyncIdMap.Add(difference.SyncId!, apiProductVersion.Id);
+                    break;
+                case DifferenceType.Update:
+                    await apiClient.ApiProductVersions.Update(apiProductId, difference.Id!, difference.Entity);
+                    context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
+                    break;
+                case DifferenceType.Delete:
+                    await apiClient.ApiProductVersions.Delete(apiProductId, difference.Id!);
                     break;
             }
         }

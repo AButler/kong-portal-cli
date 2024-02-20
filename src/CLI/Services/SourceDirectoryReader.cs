@@ -81,6 +81,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
         sourceData.ApiProducts.Add(apiProductMetadata);
         sourceData.ApiProductDocuments.Add(apiProductMetadata.SyncId, []);
         sourceData.ApiProductDocumentContents.Add(apiProductMetadata.SyncId, []);
+        sourceData.ApiProductVersions.Add(apiProductMetadata.SyncId, []);
         sourceData.ApiProductVersionSpecifications.Add(apiProductMetadata.SyncId, []);
 
         var versionsDirectory = Path.Combine(Path.GetDirectoryName(apiProductFile)!, "versions");
@@ -132,7 +133,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
             throw new SyncException($"Cannot read API Product Version: {versionFile}");
         }
 
-        sourceData.ApiProductVersions.Add(apiProductMetadata.SyncId, apiProductVersionMetadata);
+        sourceData.ApiProductVersions[apiProductMetadata.SyncId].Add(apiProductVersionMetadata);
 
         if (apiProductVersionMetadata.SpecificationFilename != null)
         {

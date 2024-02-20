@@ -27,6 +27,27 @@ internal class ApiProductVersionsClient(IFlurlClient flurlClient)
         return allVersions;
     }
 
+    public async Task<ApiProductVersion> Create(string apiProductId, ApiProductVersion apiProductVersion)
+    {
+        var response = await flurlClient.Request($"api-products/{apiProductId}/product-versions").PostJsonAsync(apiProductVersion.ToUpdateModel());
+
+        return await response.GetJsonAsync<ApiProductVersion>();
+    }
+
+    public async Task<ApiProductVersion> Update(string apiProductId, string apiProductVersionId, ApiProductVersion apiProductVersion)
+    {
+        var response = await flurlClient
+            .Request($"api-products/{apiProductId}/product-versions/{apiProductVersionId}")
+            .PatchJsonAsync(apiProductVersion.ToUpdateModel());
+
+        return await response.GetJsonAsync<ApiProductVersion>();
+    }
+
+    public async Task Delete(string apiProductId, string apiProductVersionId)
+    {
+        await flurlClient.Request($"api-products/{apiProductId}/product-versions/{apiProductVersionId}").DeleteAsync();
+    }
+
     public async Task<ApiProductSpecification?> GetSpecification(string apiProductId, string productVersionId)
     {
         var response = await flurlClient.Request($"api-products/{apiProductId}/product-versions/{productVersionId}/specifications").GetAsync();

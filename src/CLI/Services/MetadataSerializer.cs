@@ -6,12 +6,13 @@ namespace Kong.Portal.CLI.Services;
 
 internal class MetadataSerializer(IFileSystem fileSystem)
 {
-    private static readonly JsonSerializerOptions SerializerOptions =
+    internal static readonly JsonSerializerOptions SerializerOptions =
         new(JsonSerializerDefaults.Web)
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            DefaultIgnoreCondition = JsonIgnoreCondition.Never
+            DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) }
         };
 
     public async Task SerializeAsync<T>(string filename, T value)

@@ -7,7 +7,7 @@ internal class SourceData(string inputDirectory)
     public string InputDirectory { get; } = inputDirectory;
 
     public List<ApiProductMetadata> ApiProducts { get; } = new();
-    public Dictionary<string, ApiProductVersionMetadata> ApiProductVersions { get; } = new();
+    public Dictionary<string, List<ApiProductVersionMetadata>> ApiProductVersions { get; } = new();
     public Dictionary<string, Dictionary<string, string>> ApiProductVersionSpecifications { get; } = new();
     public Dictionary<string, List<ApiProductDocumentMetadata>> ApiProductDocuments { get; } = new();
     public Dictionary<string, Dictionary<string, string>> ApiProductDocumentContents { get; } = new();

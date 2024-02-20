@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Kong.Portal.CLI.Config;
@@ -13,7 +14,12 @@ internal class KongApiClient
         var flurlClient = new FlurlClient(kongOptions.Value.GetKongBaseUri())
             .WithSettings(c =>
             {
-                var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+                var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) }
+                };
+
                 c.JsonSerializer = new DefaultJsonSerializer(options);
             })
             .WithHeader("User-Agent", "Kong Portal CLI")

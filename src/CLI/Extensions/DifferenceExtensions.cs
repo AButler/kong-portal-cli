@@ -9,7 +9,7 @@ internal static class DifferenceExtensions
     {
         return differenceType switch
         {
-            DifferenceType.NoChange => "#".Pastel(ConsoleColor.Gray),
+            DifferenceType.NoChange => "o".Pastel(ConsoleColor.Gray),
             DifferenceType.Add => "+".Pastel(ConsoleColor.Green),
             DifferenceType.Update => "~".Pastel(ConsoleColor.Yellow),
             DifferenceType.Delete => "-".Pastel(ConsoleColor.Red),

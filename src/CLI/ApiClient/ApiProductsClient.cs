@@ -33,13 +33,13 @@ internal class ApiProductsClient(IFlurlClient flurlClient)
 
     public async Task<ApiProduct> Update(string apiProductId, ApiProduct apiProduct)
     {
-        var response = await flurlClient.Request($"api-products/{Uri.EscapeDataString(apiProductId)}").PatchJsonAsync(apiProduct.ToUpdateModel());
+        var response = await flurlClient.Request($"api-products/{apiProductId}").PatchJsonAsync(apiProduct.ToUpdateModel());
 
         return await response.GetJsonAsync<ApiProduct>();
     }
 
     public async Task Delete(string apiProductId)
     {
-        await flurlClient.Request($"api-products/{Uri.EscapeDataString(apiProductId)}").DeleteAsync();
+        await flurlClient.Request($"api-products/{apiProductId}").DeleteAsync();
     }
 }

@@ -61,7 +61,7 @@ public class SyncServiceTests
 
         await syncService.Sync(@"c:\temp\input", true);
 
-        testHost.Then.Api.ApiProductShouldHaveBeenCreated();
+        await testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
     }
 
     [Fact]
@@ -91,5 +91,29 @@ public class SyncServiceTests
         await syncService.Sync(@"c:\temp\input", true);
 
         testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
+    }
+
+    [Fact]
+    public async Task ApiProductAndVersionCreated()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        await testHost.Given.File.AnExistingApiProduct(@"c:\temp\input", syncId: "api-product-1");
+
+        await testHost.Given.File.AnExistingApiProductVersion(
+            @"c:\temp\input",
+            apiProductSyncId: "api-product-1",
+            syncId: "1.0.0",
+            name: "1.0.0",
+            publishStatus: "published",
+            deprecated: false
+        );
+
+        var syncService = testHost.GetRequiredService<SyncService>();
+
+        await syncService.Sync(@"c:\temp\input", true);
+
+        var apiProductId = await testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
+        testHost.Then.Api.ApiProductVersionShouldHaveBeenCreated(apiProductId, "1.0.0");
     }
 }

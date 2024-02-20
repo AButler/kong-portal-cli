@@ -91,13 +91,7 @@ internal class DumpService(KongApiClient apiClient, MetadataSerializer metadataS
 
         var apiProductVersionSyncId = context.ApiProductVersionSyncIdGenerator.Generate(apiProductVersion.Name);
 
-        var metadata = new ApiProductVersionMetadata(
-            apiProductVersionSyncId,
-            apiProductVersion.Name,
-            apiProductVersion.PublishStatus,
-            apiProductVersion.Deprecated,
-            specification?.Name
-        );
+        var metadata = apiProductVersion.ToMetadata(apiProductVersionSyncId, specification?.Name);
 
         var versionDirectory = Path.Combine(versionsDirectory, $"{apiProductVersion.Name}");
         fileSystem.Directory.EnsureDirectory(versionDirectory);

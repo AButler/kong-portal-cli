@@ -13,7 +13,7 @@ internal class ComparerService(KongApiClient apiClient)
 
         await CompareApiProducts(sourceData, context);
 
-        var result = new CompareResult(context.ApiProducts);
+        var result = new CompareResult(context.ApiProducts, context.ApiProductVersions);
 
         return result;
     }
@@ -34,6 +34,9 @@ internal class ComparerService(KongApiClient apiClient)
                 var apiProduct = sourceApiProduct.ToApiProduct(serverApiProduct.Id);
                 context.ApiProducts.Add(Difference.UpdateOrNoChange(sourceApiProduct.SyncId, serverApiProduct.Id, serverApiProduct, apiProduct));
 
+                context.ApiProductVersions.Add(sourceApiProduct.SyncId, []);
+                await CompareApiProductVersions(sourceData, context, sourceApiProduct.SyncId, apiProduct.Id);
+
                 continue;
             }
 
@@ -43,6 +46,56 @@ internal class ComparerService(KongApiClient apiClient)
         foreach (var sourceApiProduct in toMatch)
         {
             context.ApiProducts.Add(Difference.Add(sourceApiProduct.SyncId, sourceApiProduct.ToApiProduct()));
+            context.ApiProductVersions.Add(sourceApiProduct.SyncId, []);
+            await CompareApiProductVersions(sourceData, context, sourceApiProduct.SyncId);
+        }
+    }
+
+    private async Task CompareApiProductVersions(SourceData sourceData, CompareContext context, string apiProductSyncId, string? apiProductId = null)
+    {
+        var toMatch = sourceData.ApiProductVersions[apiProductSyncId].ToList();
+
+        if (apiProductId == null)
+        {
+            var versions = toMatch.Select(versionMetadata => Difference.Add(versionMetadata.SyncId, versionMetadata.ToApiProductVersion())).ToList();
+
+            context.ApiProductVersions[apiProductSyncId].AddRange(versions);
+            return;
+        }
+
+        var serverApiProductVersions = await apiClient.ApiProductVersions.GetAll(apiProductId);
+
+        var versionDifferences = context.ApiProductVersions[apiProductSyncId];
+
+        foreach (var serverApiProductVersion in serverApiProductVersions)
+        {
+            var sourceApiProductVersion = toMatch.FirstOrDefault(v => v.Name == serverApiProductVersion.Name);
+
+            if (sourceApiProductVersion != null)
+            {
+                toMatch.Remove(sourceApiProductVersion);
+
+                var apiProductVersion = sourceApiProductVersion.ToApiProductVersion(serverApiProductVersion.Id);
+                versionDifferences.Add(
+                    Difference.UpdateOrNoChange(
+                        sourceApiProductVersion.SyncId,
+                        serverApiProductVersion.Id,
+                        serverApiProductVersion,
+                        apiProductVersion
+                    )
+                );
+
+                //TODO: specifications
+
+                continue;
+            }
+
+            versionDifferences.Add(Difference.Delete(serverApiProductVersion.Id, serverApiProductVersion));
+        }
+
+        foreach (var sourceApiProductVersion in toMatch)
+        {
+            versionDifferences.Add(Difference.Add(sourceApiProductVersion.SyncId, sourceApiProductVersion.ToApiProductVersion()));
         }
     }
 
@@ -66,5 +119,6 @@ internal class ComparerService(KongApiClient apiClient)
     private class CompareContext
     {
         public List<Difference<ApiProduct>> ApiProducts { get; } = new();
+        public Dictionary<string, List<Difference<ApiProductVersion>>> ApiProductVersions { get; } = new();
     }
 }
