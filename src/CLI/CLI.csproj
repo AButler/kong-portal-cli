@@ -16,6 +16,7 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions"/>
+        <PackageReference Include="Pastel" />
         <PackageReference Include="System.CommandLine"/>
         <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers"/>
     </ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using Kong.Portal.CLI.Services.Models;
+using Pastel;
 
 namespace Kong.Portal.CLI;
 
@@ -8,10 +9,10 @@ internal static class DifferenceExtensions
     {
         return differenceType switch
         {
-            DifferenceType.NoChange => "#",
-            DifferenceType.Add => "+",
-            DifferenceType.Update => "~",
-            DifferenceType.Delete => "-",
+            DifferenceType.NoChange => "#".Pastel(ConsoleColor.Gray),
+            DifferenceType.Add => "+".Pastel(ConsoleColor.Green),
+            DifferenceType.Update => "~".Pastel(ConsoleColor.Yellow),
+            DifferenceType.Delete => "-".Pastel(ConsoleColor.Red),
             _ => throw new ArgumentOutOfRangeException(nameof(differenceType), differenceType, null)
         };
     }
