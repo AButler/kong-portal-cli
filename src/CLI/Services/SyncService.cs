@@ -1,6 +1,7 @@
 ﻿using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
 using Kong.Portal.CLI.Services.Models;
+using Pastel;
 
 namespace Kong.Portal.CLI.Services;
 
@@ -16,7 +17,7 @@ internal class SyncService(
         consoleOutput.WriteLine($"Input Directory: {inputDirectory}");
         if (!apply)
         {
-            consoleOutput.WriteLine(" ** Dry run only - no changes will be made **");
+            consoleOutput.WriteLine(" ** Dry run only - no changes will be made **".Pastel(ConsoleColor.Yellow));
         }
 
         consoleOutput.WriteLine("Reading input directory...");
@@ -46,6 +47,8 @@ internal class SyncService(
         {
             await SyncApiProduct(context, compareResult, difference);
         }
+
+        consoleOutput.WriteLine("Done!");
     }
 
     private async Task SyncApiProduct(SyncContext context, CompareResult compareResult, Difference<ApiProduct> difference)
@@ -59,23 +62,29 @@ internal class SyncService(
                 case DifferenceType.Add:
                     var apiProduct = await apiClient.ApiProducts.Create(difference.Entity);
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, apiProduct.Id);
+                    context.ApiProductVersionSyncIdMap.Add(difference.SyncId!, []);
                     break;
                 case DifferenceType.Update:
                     await apiClient.ApiProducts.Update(difference.Id!, difference.Entity);
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
+                    context.ApiProductVersionSyncIdMap.Add(difference.SyncId!, []);
                     break;
                 case DifferenceType.Delete:
                     await apiClient.ApiProducts.Delete(difference.Id!);
                     break;
                 case DifferenceType.NoChange:
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
+                    context.ApiProductVersionSyncIdMap.Add(difference.SyncId!, []);
                     break;
             }
         }
 
-        foreach (var apiProductVersion in compareResult.ApiProductVersions[difference.SyncId!])
+        if (difference.SyncId != null)
         {
-            await SyncApiProductVersion(context, compareResult, difference.SyncId!, apiProductVersion);
+            foreach (var apiProductVersion in compareResult.ApiProductVersions[difference.SyncId])
+            {
+                await SyncApiProductVersion(context, compareResult, difference.SyncId, apiProductVersion);
+            }
         }
     }
 
@@ -95,14 +104,51 @@ internal class SyncService(
             {
                 case DifferenceType.Add:
                     var apiProductVersion = await apiClient.ApiProductVersions.Create(apiProductId, difference.Entity);
-                    context.ApiProductSyncIdMap.Add(difference.SyncId!, apiProductVersion.Id);
+                    context.ApiProductVersionSyncIdMap[apiProductSyncId].Add(difference.SyncId!, apiProductVersion.Id);
                     break;
                 case DifferenceType.Update:
                     await apiClient.ApiProductVersions.Update(apiProductId, difference.Id!, difference.Entity);
-                    context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
+                    context.ApiProductVersionSyncIdMap[apiProductSyncId].Add(difference.SyncId!, difference.Id!);
                     break;
                 case DifferenceType.Delete:
                     await apiClient.ApiProductVersions.Delete(apiProductId, difference.Id!);
+                    break;
+                case DifferenceType.NoChange:
+                    context.ApiProductVersionSyncIdMap[apiProductSyncId].Add(difference.SyncId!, difference.Id!);
+                    break;
+            }
+        }
+
+        if (difference.SyncId != null)
+        {
+            var specification = compareResult.ApiProductVersionSpecifications[apiProductSyncId][difference.SyncId];
+            await SyncApiProductVersionSpecification(context, apiProductSyncId, difference.SyncId, specification);
+        }
+    }
+
+    private async Task SyncApiProductVersionSpecification(
+        SyncContext context,
+        string apiProductSyncId,
+        string apiProductVersionSyncId,
+        Difference<ApiProductSpecification> difference
+    )
+    {
+        consoleOutput.WriteLine($"      {difference.DifferenceType.ToSymbol()} {difference.Entity.Name}");
+
+        if (context.Apply)
+        {
+            var apiProductId = context.ApiProductSyncIdMap[apiProductSyncId];
+            var apiProductVersionId = context.ApiProductVersionSyncIdMap[apiProductSyncId][apiProductVersionSyncId];
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                    await apiClient.ApiProductVersions.CreateSpecification(apiProductId, apiProductVersionId, difference.Entity);
+                    break;
+                case DifferenceType.Update:
+                    await apiClient.ApiProductVersions.UpdateSpecification(apiProductId, apiProductVersionId, difference.Id!, difference.Entity);
+                    break;
+                case DifferenceType.Delete:
+                    await apiClient.ApiProductVersions.DeleteSpecification(apiProductId, apiProductVersionId, difference.Id!);
                     break;
             }
         }
@@ -112,5 +158,6 @@ internal class SyncService(
     {
         public bool Apply { get; } = apply;
         public Dictionary<string, string> ApiProductSyncIdMap { get; } = new();
+        public Dictionary<string, Dictionary<string, string>> ApiProductVersionSyncIdMap { get; } = new();
     }
 }

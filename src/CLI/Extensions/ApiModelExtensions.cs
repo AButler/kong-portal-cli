@@ -1,4 +1,5 @@
-﻿using Kong.Portal.CLI.ApiClient.Models;
+﻿using System.Text;
+using Kong.Portal.CLI.ApiClient.Models;
 using Kong.Portal.CLI.Services.Metadata;
 
 namespace Kong.Portal.CLI;
@@ -30,6 +31,9 @@ internal static class ApiModelExtensions
             specificationFilename
         );
     }
+
+    public static ApiProductSpecificationUpdate ToUpdateModel(this ApiProductSpecification apiProductSpecification) =>
+        new(apiProductSpecification.Name, Convert.ToBase64String(Encoding.UTF8.GetBytes(apiProductSpecification.Content)));
 
     private static ApiProductVersionMetadataPublishStatus ToMetadataPublishStatus(this ApiVersionPublishStatus publishStatus) =>
         publishStatus switch

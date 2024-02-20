@@ -145,5 +145,9 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
             sourceData.ApiProductVersionSpecifications[apiProductMetadata.SyncId].Add(apiProductVersionMetadata.SyncId, specificationContents);
         }
+        else
+        {
+            sourceData.ApiProductVersionSpecifications[apiProductMetadata.SyncId].Add(apiProductVersionMetadata.SyncId, null);
+        }
     }
 }

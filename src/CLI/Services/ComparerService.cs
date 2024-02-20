@@ -13,7 +13,7 @@ internal class ComparerService(KongApiClient apiClient)
 
         await CompareApiProducts(sourceData, context);
 
-        var result = new CompareResult(context.ApiProducts, context.ApiProductVersions);
+        var result = new CompareResult(context.ApiProducts, context.ApiProductVersions, context.ApiProductVersionSpecifications);
 
         return result;
     }
@@ -35,6 +35,7 @@ internal class ComparerService(KongApiClient apiClient)
                 context.ApiProducts.Add(Difference.UpdateOrNoChange(sourceApiProduct.SyncId, serverApiProduct.Id, serverApiProduct, apiProduct));
 
                 context.ApiProductVersions.Add(sourceApiProduct.SyncId, []);
+                context.ApiProductVersionSpecifications.Add(sourceApiProduct.SyncId, []);
                 await CompareApiProductVersions(sourceData, context, sourceApiProduct.SyncId, apiProduct.Id);
 
                 continue;
@@ -46,7 +47,7 @@ internal class ComparerService(KongApiClient apiClient)
         foreach (var sourceApiProduct in toMatch)
         {
             context.ApiProducts.Add(Difference.Add(sourceApiProduct.SyncId, sourceApiProduct.ToApiProduct()));
-            context.ApiProductVersions.Add(sourceApiProduct.SyncId, []);
+            context.ApiProductVersionSpecifications.Add(sourceApiProduct.SyncId, []);
             await CompareApiProductVersions(sourceData, context, sourceApiProduct.SyncId);
         }
     }
@@ -85,7 +86,14 @@ internal class ComparerService(KongApiClient apiClient)
                     )
                 );
 
-                //TODO: specifications
+                await CompareApiProductVersionSpecification(
+                    sourceData,
+                    context,
+                    apiProductSyncId,
+                    apiProductId,
+                    sourceApiProductVersion.SyncId,
+                    serverApiProductVersion.Id
+                );
 
                 continue;
             }
@@ -96,6 +104,95 @@ internal class ComparerService(KongApiClient apiClient)
         foreach (var sourceApiProductVersion in toMatch)
         {
             versionDifferences.Add(Difference.Add(sourceApiProductVersion.SyncId, sourceApiProductVersion.ToApiProductVersion()));
+        }
+    }
+
+    private async Task CompareApiProductVersionSpecification(
+        SourceData sourceData,
+        CompareContext context,
+        string apiProductSyncId,
+        string apiProductId,
+        string apiProductVersionSyncId,
+        string? apiProductVersionId = null
+    )
+    {
+        var filename = sourceData.ApiProductVersions[apiProductSyncId].Single(v => v.SyncId == apiProductVersionSyncId).SpecificationFilename;
+
+        var sourceApiProductVersionSpecification = sourceData.ApiProductVersionSpecifications[apiProductSyncId][apiProductVersionSyncId];
+
+        if (apiProductVersionId == null)
+        {
+            if (sourceApiProductVersionSpecification != null)
+            {
+                context
+                    .ApiProductVersionSpecifications[apiProductSyncId]
+                    .Add(
+                        apiProductVersionSyncId,
+                        Difference.Add(
+                            apiProductVersionSyncId,
+                            new ApiProductSpecification(
+                                $"resolve://api-product-specification/{apiProductVersionSyncId}",
+                                filename!,
+                                sourceApiProductVersionSpecification
+                            )
+                        )
+                    );
+            }
+
+            return;
+        }
+
+        var serverApiProductVersionSpecification = await apiClient.ApiProductVersions.GetSpecification(apiProductId, apiProductVersionId);
+
+        if (sourceApiProductVersionSpecification != null)
+        {
+            // Has specification locally
+            if (serverApiProductVersionSpecification == null)
+            {
+                context
+                    .ApiProductVersionSpecifications[apiProductSyncId]
+                    .Add(
+                        apiProductVersionSyncId,
+                        Difference.Add(
+                            apiProductVersionSyncId,
+                            new ApiProductSpecification(
+                                $"resolve://api-product-specification/{apiProductVersionSyncId}",
+                                filename!,
+                                sourceApiProductVersionSpecification
+                            )
+                        )
+                    );
+            }
+            else
+            {
+                var apiProductVersionSpecification = new ApiProductSpecification(
+                    serverApiProductVersionSpecification.Id,
+                    filename!,
+                    sourceApiProductVersionSpecification
+                );
+
+                context
+                    .ApiProductVersionSpecifications[apiProductSyncId]
+                    .Add(
+                        apiProductVersionSyncId,
+                        Difference.UpdateOrNoChange(
+                            apiProductVersionSyncId,
+                            serverApiProductVersionSpecification.Id,
+                            serverApiProductVersionSpecification,
+                            apiProductVersionSpecification
+                        )
+                    );
+            }
+        }
+        else
+        {
+            // Doesn't have locally
+            if (serverApiProductVersionSpecification != null)
+            {
+                context
+                    .ApiProductVersionSpecifications[apiProductSyncId]
+                    .Add(apiProductVersionSyncId, Difference.Delete(serverApiProductVersionSpecification.Id, serverApiProductVersionSpecification));
+            }
         }
     }
 
@@ -120,5 +217,6 @@ internal class ComparerService(KongApiClient apiClient)
     {
         public List<Difference<ApiProduct>> ApiProducts { get; } = new();
         public Dictionary<string, List<Difference<ApiProductVersion>>> ApiProductVersions { get; } = new();
+        public Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> ApiProductVersionSpecifications { get; } = new();
     }
 }

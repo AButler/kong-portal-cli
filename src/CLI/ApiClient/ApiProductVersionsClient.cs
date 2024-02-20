@@ -48,12 +48,46 @@ internal class ApiProductVersionsClient(IFlurlClient flurlClient)
         await flurlClient.Request($"api-products/{apiProductId}/product-versions/{apiProductVersionId}").DeleteAsync();
     }
 
-    public async Task<ApiProductSpecification?> GetSpecification(string apiProductId, string productVersionId)
+    public async Task<ApiProductSpecification?> GetSpecification(string apiProductId, string apiProductVersionId)
     {
-        var response = await flurlClient.Request($"api-products/{apiProductId}/product-versions/{productVersionId}/specifications").GetAsync();
+        var response = await flurlClient.Request($"api-products/{apiProductId}/product-versions/{apiProductVersionId}/specifications").GetAsync();
 
         var specificationsResponse = await response.GetJsonAsync<PagedResponse<ApiProductSpecification>>();
 
         return specificationsResponse.Data.FirstOrDefault();
+    }
+
+    public async Task<ApiProductSpecification> CreateSpecification(
+        string apiProductId,
+        string apiProductVersionId,
+        ApiProductSpecification apiProductVersionSpecification
+    )
+    {
+        var response = await flurlClient
+            .Request($"api-products/{apiProductId}/product-versions/{apiProductVersionId}/specifications")
+            .PostJsonAsync(apiProductVersionSpecification.ToUpdateModel());
+
+        return await response.GetJsonAsync<ApiProductSpecification>();
+    }
+
+    public async Task<ApiProductSpecification> UpdateSpecification(
+        string apiProductId,
+        string apiProductVersionId,
+        string specificationId,
+        ApiProductSpecification apiProductVersionSpecification
+    )
+    {
+        var response = await flurlClient
+            .Request($"api-products/{apiProductId}/product-versions/{apiProductVersionId}/specifications/{specificationId}")
+            .PatchJsonAsync(apiProductVersionSpecification.ToUpdateModel());
+
+        return await response.GetJsonAsync<ApiProductSpecification>();
+    }
+
+    public async Task DeleteSpecification(string apiProductId, string apiProductVersionId, string specificationId)
+    {
+        await flurlClient
+            .Request($"api-products/{apiProductId}/product-versions/{apiProductVersionId}/specifications/{specificationId}")
+            .DeleteAsync();
     }
 }

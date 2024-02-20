@@ -25,6 +25,19 @@ internal static class MetadataMappingExtensions
         );
     }
 
+    public static ApiProductSpecification ToApiProductVersionSpecification(
+        this ApiProductVersionMetadata metadata,
+        string specificationContent,
+        string? id = null
+    )
+    {
+        return new ApiProductSpecification(
+            id ?? $"resolve://api-product-specification/{metadata.SyncId}",
+            metadata.SpecificationFilename!,
+            specificationContent
+        );
+    }
+
     private static ApiVersionPublishStatus ToApiPublishStatus(this ApiProductVersionMetadataPublishStatus publishStatus) =>
         publishStatus switch
         {
