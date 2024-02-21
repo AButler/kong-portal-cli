@@ -62,12 +62,15 @@ jobs:
 
       - name: Publish (linux-x64)
         run: ./build/Build-Release.ps1 -Runtime linux-x64 -Version "${{ needs.version.outputs.version_3 }}" -VersionSuffix "${{ needs.version.outputs.version_suffix }}"
+        shell: pwsh
 
       - name: Publish (linux-arm64)
         run: ./build/Build-Release.ps1 -Runtime linux-arm64 -Version "${{ needs.version.outputs.version_3 }}" -VersionSuffix "${{ needs.version.outputs.version_suffix }}"
+        shell: pwsh
 
       - name: Publish (linux-musl-x64)
         run: ./build/Build-Release.ps1 -Runtime linux-musl-x64 -Version "${{ needs.version.outputs.version_3 }}" -VersionSuffix "${{ needs.version.outputs.version_suffix }}"
+        shell: pwsh
 
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
