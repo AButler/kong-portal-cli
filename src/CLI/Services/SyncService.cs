@@ -6,14 +6,16 @@ using Pastel;
 namespace Kong.Portal.CLI.Services;
 
 internal class SyncService(
-    KongApiClient apiClient,
+    KongApiClientFactory apiClientFactory,
     SourceDirectoryReader sourceDirectoryReader,
     ComparerService comparerService,
     IConsoleOutput consoleOutput
 )
 {
-    public async Task Sync(string inputDirectory, bool apply)
+    public async Task Sync(string inputDirectory, bool apply, KongApiClientOptions apiClientOptions)
     {
+        var apiClient = apiClientFactory.CreateClient(apiClientOptions);
+
         consoleOutput.WriteLine($"Input Directory: {inputDirectory}");
         if (!apply)
         {
@@ -24,7 +26,7 @@ internal class SyncService(
         var sourceData = await sourceDirectoryReader.Read(inputDirectory);
 
         consoleOutput.WriteLine("Comparing...");
-        var compareResult = await comparerService.Compare(sourceData);
+        var compareResult = await comparerService.Compare(sourceData, apiClient);
 
         if (!compareResult.AnyChanges)
         {
@@ -41,7 +43,7 @@ internal class SyncService(
             consoleOutput.WriteLine("Displaying changes...");
         }
 
-        var context = new SyncContext(apply);
+        var context = new SyncContext(apiClient, apply);
 
         foreach (var difference in compareResult.ApiProducts)
         {
@@ -60,17 +62,17 @@ internal class SyncService(
             switch (difference.DifferenceType)
             {
                 case DifferenceType.Add:
-                    var apiProduct = await apiClient.ApiProducts.Create(difference.Entity);
+                    var apiProduct = await context.ApiClient.ApiProducts.Create(difference.Entity);
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, apiProduct.Id);
                     context.ApiProductVersionSyncIdMap.Add(difference.SyncId!, []);
                     break;
                 case DifferenceType.Update:
-                    await apiClient.ApiProducts.Update(difference.Id!, difference.Entity);
+                    await context.ApiClient.ApiProducts.Update(difference.Id!, difference.Entity);
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
                     context.ApiProductVersionSyncIdMap.Add(difference.SyncId!, []);
                     break;
                 case DifferenceType.Delete:
-                    await apiClient.ApiProducts.Delete(difference.Id!);
+                    await context.ApiClient.ApiProducts.Delete(difference.Id!);
                     break;
                 case DifferenceType.NoChange:
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
@@ -103,15 +105,15 @@ internal class SyncService(
             switch (difference.DifferenceType)
             {
                 case DifferenceType.Add:
-                    var apiProductVersion = await apiClient.ApiProductVersions.Create(apiProductId, difference.Entity);
+                    var apiProductVersion = await context.ApiClient.ApiProductVersions.Create(apiProductId, difference.Entity);
                     context.ApiProductVersionSyncIdMap[apiProductSyncId].Add(difference.SyncId!, apiProductVersion.Id);
                     break;
                 case DifferenceType.Update:
-                    await apiClient.ApiProductVersions.Update(apiProductId, difference.Id!, difference.Entity);
+                    await context.ApiClient.ApiProductVersions.Update(apiProductId, difference.Id!, difference.Entity);
                     context.ApiProductVersionSyncIdMap[apiProductSyncId].Add(difference.SyncId!, difference.Id!);
                     break;
                 case DifferenceType.Delete:
-                    await apiClient.ApiProductVersions.Delete(apiProductId, difference.Id!);
+                    await context.ApiClient.ApiProductVersions.Delete(apiProductId, difference.Id!);
                     break;
                 case DifferenceType.NoChange:
                     context.ApiProductVersionSyncIdMap[apiProductSyncId].Add(difference.SyncId!, difference.Id!);
@@ -144,20 +146,26 @@ internal class SyncService(
             switch (difference.DifferenceType)
             {
                 case DifferenceType.Add:
-                    await apiClient.ApiProductVersions.CreateSpecification(apiProductId, apiProductVersionId, difference.Entity);
+                    await context.ApiClient.ApiProductVersions.CreateSpecification(apiProductId, apiProductVersionId, difference.Entity);
                     break;
                 case DifferenceType.Update:
-                    await apiClient.ApiProductVersions.UpdateSpecification(apiProductId, apiProductVersionId, difference.Id!, difference.Entity);
+                    await context.ApiClient.ApiProductVersions.UpdateSpecification(
+                        apiProductId,
+                        apiProductVersionId,
+                        difference.Id!,
+                        difference.Entity
+                    );
                     break;
                 case DifferenceType.Delete:
-                    await apiClient.ApiProductVersions.DeleteSpecification(apiProductId, apiProductVersionId, difference.Id!);
+                    await context.ApiClient.ApiProductVersions.DeleteSpecification(apiProductId, apiProductVersionId, difference.Id!);
                     break;
             }
         }
     }
 
-    private class SyncContext(bool apply)
+    private class SyncContext(KongApiClient apiClient, bool apply)
     {
+        public KongApiClient ApiClient { get; } = apiClient;
         public bool Apply { get; } = apply;
         public Dictionary<string, string> ApiProductSyncIdMap { get; } = new();
         public Dictionary<string, Dictionary<string, string>> ApiProductVersionSyncIdMap { get; } = new();

@@ -1,4 +1,5 @@
 ﻿using System.CommandLine;
+using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.Services;
 
 namespace Kong.Portal.CLI.Commands;
@@ -16,18 +17,18 @@ internal class SyncCommand : Command
 
     private void SetupCommand()
     {
-        var inputDirectory = new Option<string>("--input", "Input directory") { IsRequired = true };
-        var apply = new Option<bool>("--apply", "Apply changes");
+        var inputDirectoryOption = new Option<string>("--input", "Input directory containing data to sync from") { IsRequired = true };
+        var applyOption = new Option<bool>("--apply", "Applies changes to Konnect (do not set to perform a dry-run)");
 
-        AddOption(inputDirectory);
-        AddOption(apply);
+        AddOption(inputDirectoryOption);
+        AddOption(applyOption);
 
-        this.SetHandler(Handle, inputDirectory, apply);
+        this.SetHandler(Handle, inputDirectoryOption, applyOption, GlobalOptions.TokenOption, GlobalOptions.KonnectAddressOption);
     }
 
-    private async Task<int> Handle(string inputDirectory, bool apply)
+    private async Task<int> Handle(string inputDirectory, bool apply, string token, string konnectAddress)
     {
-        await _syncService.Sync(Path.GetFullPath(inputDirectory), apply);
+        await _syncService.Sync(Path.GetFullPath(inputDirectory), apply, new KongApiClientOptions(token, konnectAddress));
 
         return 0;
     }

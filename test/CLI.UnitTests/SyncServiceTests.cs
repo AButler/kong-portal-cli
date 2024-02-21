@@ -12,7 +12,7 @@ public class SyncServiceTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", true);
+        await syncService.Sync(@"c:\temp\input", true, testHost.ApiClientOptions);
 
         testHost.Then.Api.ShouldNotHaveReceivedAnyUpdates();
     }
@@ -40,7 +40,7 @@ public class SyncServiceTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", true);
+        await syncService.Sync(@"c:\temp\input", true, testHost.ApiClientOptions);
 
         testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
     }
@@ -59,7 +59,7 @@ public class SyncServiceTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", true);
+        await syncService.Sync(@"c:\temp\input", true, testHost.ApiClientOptions);
 
         await testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
     }
@@ -88,7 +88,7 @@ public class SyncServiceTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", true);
+        await syncService.Sync(@"c:\temp\input", true, testHost.ApiClientOptions);
 
         testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
     }
@@ -111,7 +111,7 @@ public class SyncServiceTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", true);
+        await syncService.Sync(@"c:\temp\input", true, testHost.ApiClientOptions);
 
         var apiProductId = await testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
         testHost.Then.Api.ApiProductVersionShouldHaveBeenCreated(apiProductId, "1.0.0");

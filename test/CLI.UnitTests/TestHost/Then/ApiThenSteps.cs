@@ -1,16 +1,15 @@
 ﻿using System.Text.Json;
 using Flurl.Http.Testing;
 using Kong.Portal.CLI;
+using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
-using Kong.Portal.CLI.Config;
 using Kong.Portal.CLI.Services;
-using Microsoft.Extensions.Options;
 
 namespace CLI.UnitTests.TestHost;
 
-internal class ApiThenSteps(IOptions<KongOptions> kongOptions)
+internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
 {
-    private readonly string _kongBaseUri = kongOptions.Value.GetKongBaseUri();
+    private readonly string _kongBaseUri = $"{apiClientOptions.BaseUrl}/v2/";
 
     public void ShouldNotHaveReceivedAnyUpdates()
     {

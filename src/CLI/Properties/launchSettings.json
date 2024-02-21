@@ -3,24 +3,19 @@
   "profiles": {
     "CLI - Dump": {
       "commandName": "Project",
-      "commandLineArgs": "dump --output c:\\temp\\kong",
-      "environmentVariables": {
-        "KONG__TOKEN": "spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR"
-      }
+      "commandLineArgs": "dump --output c:\\temp\\kong --konnect-token spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR --konnect-addr https://eu.api.konghq.com"
     },
     "CLI - Sync": {
       "commandName": "Project",
-      "commandLineArgs": "sync --input c:\\temp\\kong",
-      "environmentVariables": {
-        "KONG__TOKEN": "spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR"
-      }
+      "commandLineArgs": "sync --input c:\\temp\\kong --konnect-token spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR --konnect-addr https://cn.api.konghq.com"
     },
     "CLI - Sync (Apply)": {
       "commandName": "Project",
-      "commandLineArgs": "sync --input c:\\temp\\kong --apply",
-      "environmentVariables": {
-        "KONG__TOKEN": "spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR"
-      }
+      "commandLineArgs": "sync --input c:\\temp\\kong --apply --konnect-token spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR --konnect-addr https://eu.api.konghq.com"
+    },
+    "CLI - Version": {
+      "commandName": "Project",
+      "commandLineArgs": "--version"
     }
   }
 }

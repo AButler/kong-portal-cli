@@ -5,11 +5,11 @@ using Kong.Portal.CLI.Services.Models;
 
 namespace Kong.Portal.CLI.Services;
 
-internal class ComparerService(KongApiClient apiClient)
+internal class ComparerService
 {
-    public async Task<CompareResult> Compare(SourceData sourceData)
+    public async Task<CompareResult> Compare(SourceData sourceData, KongApiClient apiClient)
     {
-        var context = new CompareContext();
+        var context = new CompareContext(apiClient);
 
         await CompareApiProducts(sourceData, context);
 
@@ -22,7 +22,7 @@ internal class ComparerService(KongApiClient apiClient)
     {
         var toMatch = sourceData.ApiProducts.ToList();
 
-        var serverApiProducts = await apiClient.ApiProducts.GetAll();
+        var serverApiProducts = await context.ApiClient.ApiProducts.GetAll();
 
         foreach (var serverApiProduct in serverApiProducts)
         {
@@ -86,7 +86,7 @@ internal class ComparerService(KongApiClient apiClient)
             return;
         }
 
-        var serverApiProductVersions = await apiClient.ApiProductVersions.GetAll(apiProductId);
+        var serverApiProductVersions = await context.ApiClient.ApiProductVersions.GetAll(apiProductId);
 
         var versionDifferences = context.ApiProductVersions[apiProductSyncId];
 
@@ -166,7 +166,7 @@ internal class ComparerService(KongApiClient apiClient)
             return;
         }
 
-        var serverApiProductVersionSpecification = await apiClient.ApiProductVersions.GetSpecification(apiProductId, apiProductVersionId);
+        var serverApiProductVersionSpecification = await context.ApiClient.ApiProductVersions.GetSpecification(apiProductId, apiProductVersionId);
 
         if (sourceApiProductVersionSpecification != null)
         {
@@ -237,8 +237,9 @@ internal class ComparerService(KongApiClient apiClient)
         return matchedOnName;
     }
 
-    private class CompareContext
+    private class CompareContext(KongApiClient apiClient)
     {
+        public KongApiClient ApiClient { get; } = apiClient;
         public List<Difference<ApiProduct>> ApiProducts { get; } = new();
         public Dictionary<string, List<Difference<ApiProductVersion>>> ApiProductVersions { get; } = new();
         public Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> ApiProductVersionSpecifications { get; } = new();

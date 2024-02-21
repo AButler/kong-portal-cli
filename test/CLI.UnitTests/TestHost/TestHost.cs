@@ -3,10 +3,8 @@ using System.IO.Abstractions.TestingHelpers;
 using CLI.UnitTests.Services;
 using Flurl.Http.Testing;
 using Kong.Portal.CLI.ApiClient;
-using Kong.Portal.CLI.Config;
 using Kong.Portal.CLI.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace CLI.UnitTests.TestHost;
 
@@ -18,6 +16,7 @@ internal class TestHost : IDisposable
     public IFileSystem FileSystem { get; }
     public GivenSteps Given { get; }
     public ThenSteps Then { get; }
+    public KongApiClientOptions ApiClientOptions { get; }
 
     public TestHost()
     {
@@ -27,6 +26,7 @@ internal class TestHost : IDisposable
         FileSystem = _services.GetRequiredService<IFileSystem>();
         Given = _services.GetRequiredService<GivenSteps>();
         Then = _services.GetRequiredService<ThenSteps>();
+        ApiClientOptions = _services.GetRequiredService<KongApiClientOptions>();
     }
 
     public T? GetService<T>() => _services.GetService<T>();
@@ -39,12 +39,22 @@ internal class TestHost : IDisposable
         var mockFileSystem = new MockFileSystem();
 
         var services = new ServiceCollection()
-            .AddSingleton<IValidateOptions<KongOptions>, KongOptionsValidator>()
-            .Configure<KongOptions>(options => options.Token = "Test_Kong_Token")
-            .AddSingleton<KongApiClient>()
+            .AddSingleton<KongApiClientFactory>()
             .AddSingleton<IFileSystem>(mockFileSystem)
             .AddSingleton<IConsoleOutput, NullConsoleOutput>()
             .AddSingleton<MetadataSerializer>()
+            .AddSingleton<SyncService>()
+            .AddSingleton<ComparerService>()
+            .AddSingleton<SourceDirectoryReader>();
+
+        ConfigureTestServices(services);
+
+        return services.BuildServiceProvider();
+    }
+
+    private static void ConfigureTestServices(IServiceCollection services)
+    {
+        services
             .AddSingleton<DumpService>()
             .AddSingleton<GivenSteps>()
             .AddSingleton<ThenSteps>()
@@ -52,12 +62,7 @@ internal class TestHost : IDisposable
             .AddSingleton<FileGivenSteps>()
             .AddSingleton<DumpedFileThenSteps>()
             .AddSingleton<ApiThenSteps>()
-            .AddSingleton<SyncService>()
-            .AddSingleton<ComparerService>()
-            .AddSingleton<SourceDirectoryReader>()
-            .BuildServiceProvider();
-
-        return services;
+            .AddSingleton<KongApiClientOptions>(_ => new KongApiClientOptions("KONG-API-TOKEN", "https://eu.api.konghq.com"));
     }
 
     public void Dispose()

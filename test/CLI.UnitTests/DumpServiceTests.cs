@@ -20,7 +20,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
             outputDirectory,
@@ -51,7 +51,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
             outputDirectory,
@@ -83,7 +83,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
             outputDirectory,
@@ -118,7 +118,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         for (var i = 1; i < 10; i++)
         {
@@ -150,7 +150,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
             outputDirectory,
@@ -186,7 +186,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
             outputDirectory,
@@ -231,7 +231,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         for (var i = 0; i < 10; i++)
         {
@@ -266,7 +266,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(
             outputDirectory,
@@ -293,7 +293,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(outputDirectory, "api-product", "v1.0", "v1.0", "published", false);
     }
@@ -320,7 +320,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHavePortal(outputDirectory, "default", true, false, false, false, null, null, []);
     }
@@ -352,7 +352,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
             outputDirectory,
@@ -396,7 +396,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
             outputDirectory,
@@ -441,7 +441,7 @@ public class DumpServiceTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHavePortalAppearance(
             outputDirectory,
