@@ -7,8 +7,6 @@
         <Nullable>enable</Nullable>
         <AssemblyName>portal-cli</AssemblyName>
         <RootNamespace>Kong.Portal.CLI</RootNamespace>
-<!--        <PublishSingleFile>true</PublishSingleFile>-->
-<!--        <SelfContained>true</SelfContained>-->
     </PropertyGroup>
 
     <ItemGroup>
