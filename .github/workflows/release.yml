@@ -16,6 +16,7 @@ jobs:
       version_3: ${{ steps.version.outputs.version_3 }}
       version_suffix: ${{ steps.version.outputs.version_suffix }}
       version_full: ${{ steps.version.outputs.version_full }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,12 +89,6 @@ jobs:
       - name: Prepare release
         run: ./build/Prepare-Release.ps1
         shell: pwsh
-
-      - name: Upload artifacts to action
-        uses: actions/upload-artifact@v4
-        with:
-          name: releases
-          path: dist/
 
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
