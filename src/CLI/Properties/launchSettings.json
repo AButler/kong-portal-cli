@@ -7,7 +7,7 @@
     },
     "CLI - Sync": {
       "commandName": "Project",
-      "commandLineArgs": "sync --inpu2t c:\\temp\\kong --konnect-token-file c:\\temp\\kong.token --konnect-addr https://eu.api.konghq.com"
+      "commandLineArgs": "sync --input c:\\temp\\kong --konnect-token-file c:\\temp\\kong.token --konnect-addr https://eu.api.konghq.com"
     },
     "CLI - Sync (Apply)": {
       "commandName": "Project",
