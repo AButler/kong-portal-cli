@@ -35,6 +35,7 @@ internal class ApiGivenSteps
         Discretionary<string> productId = default,
         Discretionary<string> name = default,
         Discretionary<string> description = default,
+        Discretionary<string[]> portalIds = default,
         IDictionary<string, string>? labels = null
     )
     {
@@ -46,6 +47,7 @@ internal class ApiGivenSteps
                 id,
                 labels = labels ?? new Dictionary<string, string>(),
                 name = name.GetValueOrDefault($"API Product {id}"),
+                portal_ids = portalIds.GetValueOrDefault([]),
                 description = description.GetValueOrDefault($"Description for API Product {id}")
             }
         );
@@ -152,8 +154,7 @@ internal class ApiGivenSteps
         Discretionary<bool> autoApproveApplications = default,
         Discretionary<bool> autoApproveDevelopers = default,
         Discretionary<string?> customDomain = default,
-        Discretionary<string?> customClientDomain = default,
-        IReadOnlyCollection<string>? apiProducts = default
+        Discretionary<string?> customClientDomain = default
     )
     {
         var id = portalId.GetValueOrDefault(Guid.NewGuid().ToString());
@@ -191,10 +192,6 @@ internal class ApiGivenSteps
         );
 
         HttpTest.Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/appearance").WithVerb("GET").RespondWithDynamicJson(() => _devPortalAppearances[id]);
-
-        var apiProductIds = apiProducts ?? [];
-
-        SetupPagedApi($"{_kongBaseUrl}portals/{id}/products", () => _apiProducts.Where(v => apiProductIds.Contains((string)v.id)).ToList());
     }
 
     public void AnExistingDevPortalAppearance(

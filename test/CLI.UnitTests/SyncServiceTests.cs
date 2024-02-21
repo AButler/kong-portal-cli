@@ -25,10 +25,10 @@ public class SyncServiceTests
         var productId = Guid.NewGuid().ToString();
 
         testHost.Given.Api.AnExistingApiProduct(
-            productId,
-            "API Product 1",
-            "This is API Product 1",
-            new Dictionary<string, string> { ["Foo"] = "Bar" }
+            productId: productId,
+            name: "API Product 1",
+            description: "This is API Product 1",
+            labels: new Dictionary<string, string> { ["Foo"] = "Bar" }
         );
 
         await testHost.Given.File.AnExistingApiProduct(
@@ -72,10 +72,10 @@ public class SyncServiceTests
         var productId = Guid.NewGuid().ToString();
 
         testHost.Given.Api.AnExistingApiProduct(
-            productId,
-            "API Product 1",
-            "This is API Product One",
-            new Dictionary<string, string> { ["Foo"] = "Bar", [Constants.SyncIdLabel] = "api-product-1" }
+            productId: productId,
+            name: "API Product 1",
+            description: "This is API Product One",
+            labels: new Dictionary<string, string> { ["Foo"] = "Bar", [Constants.SyncIdLabel] = "api-product-1" }
         );
 
         await testHost.Given.File.AnExistingApiProduct(

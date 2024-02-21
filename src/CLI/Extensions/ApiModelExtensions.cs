@@ -8,14 +8,23 @@ internal static class ApiModelExtensions
 {
     public static string? GetSyncIdFromLabel(this ApiProduct apiProduct) => apiProduct.Labels.GetValueOrDefault(Constants.SyncIdLabel);
 
-    public static ApiProductUpdate ToUpdateModel(this ApiProduct apiProduct) => new(apiProduct.Name, apiProduct.Description, apiProduct.Labels);
+    public static ApiProductCreate ToCreateModel(this ApiProduct apiProduct) => new(apiProduct.Name, apiProduct.Description, apiProduct.Labels);
 
-    public static ApiProductMetadata ToMetadata(this ApiProduct apiProduct, string syncId)
+    public static ApiProductUpdate ToUpdateModel(this ApiProduct apiProduct) =>
+        new(apiProduct.Name, apiProduct.Description, apiProduct.PortalIds, apiProduct.Labels);
+
+    public static ApiProductMetadata ToMetadata(this ApiProduct apiProduct, string syncId, IReadOnlyDictionary<string, string> portalMap)
     {
         var labels = apiProduct.Labels.Clone();
         labels.Remove(Constants.SyncIdLabel);
 
-        return new ApiProductMetadata(syncId, apiProduct.Name, apiProduct.Description, labels);
+        var portals = new List<string>();
+        foreach (var portalId in apiProduct.PortalIds)
+        {
+            portals.Add(portalMap[portalId]);
+        }
+
+        return new ApiProductMetadata(syncId, apiProduct.Name, apiProduct.Description, portals, labels);
     }
 
     public static ApiProductVersionUpdate ToUpdateModel(this ApiProductVersion apiProductVersion) =>

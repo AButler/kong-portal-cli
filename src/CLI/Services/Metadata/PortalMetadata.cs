@@ -7,6 +7,5 @@ internal record PortalMetadata(
     bool IsPublic,
     bool AutoApproveDevelopers,
     bool AutoApproveApplications,
-    bool RbacEnabled,
-    IEnumerable<string> Products
+    bool RbacEnabled
 );

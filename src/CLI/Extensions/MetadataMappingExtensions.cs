@@ -5,12 +5,34 @@ namespace Kong.Portal.CLI;
 
 internal static class MetadataMappingExtensions
 {
-    public static ApiProduct ToApiProduct(this ApiProductMetadata metadata, string? id = null)
+    public static ApiClient.Models.Portal ToPortal(this PortalMetadata metadata, string? id = null)
     {
+        return new ApiClient.Models.Portal(
+            id ?? $"resolve://portal/{metadata.Name}",
+            metadata.Name,
+            metadata.CustomDomain,
+            metadata.CustomClientDomain,
+            metadata.IsPublic,
+            metadata.AutoApproveDevelopers,
+            metadata.AutoApproveApplications,
+            metadata.RbacEnabled
+        );
+    }
+
+    public static ApiProduct ToApiProduct(this ApiProductMetadata metadata, IReadOnlyDictionary<string, string> portalNameMap, string? id = null)
+    {
+        var portalIds = new List<string>();
+
+        foreach (var portalName in metadata.Portals)
+        {
+            portalIds.Add(portalNameMap[portalName]);
+        }
+
         return new ApiProduct(
             id ?? $"resolve://api-product/{metadata.SyncId}",
             metadata.Name,
             metadata.Description,
+            portalIds,
             metadata.Labels.WithSyncId(metadata.SyncId)
         );
     }

@@ -18,16 +18,9 @@ internal class DumpService(
 
         consoleOutput.WriteLine($"Output Directory: {outputDirectory}");
         consoleOutput.WriteLine("Dumping...");
-        consoleOutput.WriteLine("- API Products");
 
         var apiClient = apiClientFactory.CreateClient(apiClientOptions);
         var context = new DumpContext(apiClient, outputDirectory);
-
-        var apiProducts = await apiClient.ApiProducts.GetAll();
-        foreach (var apiProduct in apiProducts)
-        {
-            await DumpApiProduct(context, apiProduct);
-        }
 
         consoleOutput.WriteLine("- Portals");
         var portals = await apiClient.Portals.GetAll();
@@ -35,6 +28,16 @@ internal class DumpService(
         {
             await DumpPortal(context, portal);
         }
+
+        consoleOutput.WriteLine("- API Products");
+
+        var apiProducts = await apiClient.ApiProducts.GetAll();
+        foreach (var apiProduct in apiProducts)
+        {
+            await DumpApiProduct(context, apiProduct);
+        }
+
+        consoleOutput.WriteLine("Done!");
     }
 
     private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct)
@@ -52,16 +55,13 @@ internal class DumpService(
             apiProductSyncId = context.ApiProductSyncIdGenerator.Generate(apiProduct.Name);
         }
 
-        context.StoreApiProductId(apiProduct.Id, apiProductSyncId);
-
-        consoleOutput.WriteLine($"  * {apiProductSyncId}");
+        consoleOutput.WriteLine($"  - {apiProductSyncId}");
 
         var apiProductDirectory = context.GetApiProductDirectory(apiProductSyncId);
         fileSystem.Directory.EnsureDirectory(apiProductDirectory);
 
-        var metadata = apiProduct.ToMetadata(apiProductSyncId);
+        var metadata = apiProduct.ToMetadata(apiProductSyncId, context.PortalIdMap);
 
-        consoleOutput.WriteLine("    - Metadata");
         var metadataFilename = Path.Combine(apiProductDirectory, "api-product.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
 
@@ -72,19 +72,11 @@ internal class DumpService(
 
     private async Task DumpApiProductVersions(DumpContext context, string apiProductSyncId, ApiProduct apiProduct)
     {
-        consoleOutput.WriteLine("    - Versions");
-
         var versions = await context.ApiClient.ApiProductVersions.GetAll(apiProduct.Id);
-
-        if (!versions.Any())
-        {
-            consoleOutput.WriteLine($"      - (none)");
-            return;
-        }
 
         foreach (var apiProductVersion in versions)
         {
-            consoleOutput.WriteLine($"      - {apiProductVersion.Name}");
+            consoleOutput.WriteLine($"    - Version: {apiProductVersion.Name}");
 
             await DumpApiProductVersion(context, apiProductSyncId, apiProduct, apiProductVersion);
         }
@@ -116,18 +108,11 @@ internal class DumpService(
 
     private async Task DumpApiProductDocuments(DumpContext context, string apiProductSyncId, ApiProduct apiProduct)
     {
-        consoleOutput.WriteLine("    - Documents");
         var documents = await context.ApiClient.ApiProductDocuments.GetAll(apiProduct.Id);
-
-        if (!documents.Any())
-        {
-            consoleOutput.WriteLine("      - (none)");
-            return;
-        }
 
         foreach (var document in documents)
         {
-            consoleOutput.WriteLine($"      - {document.Slug}");
+            consoleOutput.WriteLine($"    - Document: {document.Slug}");
 
             await DumpApiProductDocument(context, apiProductSyncId, apiProduct, document.Id, document.Slug);
         }
@@ -149,12 +134,13 @@ internal class DumpService(
 
     private async Task DumpPortal(DumpContext context, ApiClient.Models.Portal portal)
     {
-        consoleOutput.WriteLine($"  * {portal.Name}");
+        consoleOutput.WriteLine($"  - {portal.Name}");
+
+        context.StorePortalId(portal.Id, portal.Name);
 
         var portalDirectory = context.GetPortalDirectory(portal.Name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
-        var products = await context.ApiClient.Portals.GetPortalProducts(portal.Id);
         var portalAppearance = await context.ApiClient.Portals.GetAppearance(portal.Id);
 
         var appearanceMetadata = new PortalAppearanceMetadata(
@@ -205,8 +191,7 @@ internal class DumpService(
             portal.IsPublic,
             portal.AutoApproveDevelopers,
             portal.AutoApproveApplications,
-            portal.RbacEnabled,
-            products.Select(p => context.GetApiProductSyncId(p.Id))
+            portal.RbacEnabled
         );
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
@@ -248,12 +233,13 @@ internal class DumpService(
 
     private class DumpContext(KongApiClient apiClient, string outputDirectory)
     {
-        private readonly Dictionary<string, string> _apiProductIdMap = new();
+        private readonly Dictionary<string, string> _portalIdMap = new();
 
         public KongApiClient ApiClient { get; } = apiClient;
         public string OutputDirectory { get; } = outputDirectory;
         public SyncIdGenerator ApiProductSyncIdGenerator { get; } = new();
         public SyncIdGenerator ApiProductVersionSyncIdGenerator { get; } = new();
+        public IReadOnlyDictionary<string, string> PortalIdMap => _portalIdMap;
 
         public string GetApiProductDirectory(string syncId) => Path.Combine(OutputDirectory, "api-products", syncId);
 
@@ -263,14 +249,9 @@ internal class DumpService(
 
         public string GetPortalDirectory(string portalName) => Path.Combine(OutputDirectory, "portals", portalName);
 
-        public void StoreApiProductId(string apiProductId, string syncId)
+        public void StorePortalId(string portalId, string portalName)
         {
-            _apiProductIdMap[apiProductId] = syncId;
-        }
-
-        public string GetApiProductSyncId(string apiProductId)
-        {
-            return _apiProductIdMap[apiProductId];
+            _portalIdMap[portalId] = portalName;
         }
     }
 }

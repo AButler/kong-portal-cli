@@ -26,9 +26,17 @@ internal class ApiProductsClient(IFlurlClient flurlClient)
 
     public async Task<ApiProduct> Create(ApiProduct apiProduct)
     {
-        var response = await flurlClient.Request("api-products").PostJsonAsync(apiProduct.ToUpdateModel());
+        var response = await flurlClient.Request("api-products").PostJsonAsync(apiProduct.ToCreateModel());
 
-        return await response.GetJsonAsync<ApiProduct>();
+        var createdApiProduct = await response.GetJsonAsync<ApiProduct>();
+
+        if (apiProduct.PortalIds.Count > 0)
+        {
+            // Cannot publish API products in the same call as create so have to do a subsequent update
+            return await Update(createdApiProduct.Id, apiProduct);
+        }
+
+        return createdApiProduct;
     }
 
     public async Task<ApiProduct> Update(string apiProductId, ApiProduct apiProduct)

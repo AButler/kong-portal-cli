@@ -23,11 +23,44 @@ public class DumpServiceTests
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
-            outputDirectory,
-            "api-product-1",
-            "API Product 1",
-            "This is API Product 1",
-            new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+            outputDirectory: outputDirectory,
+            syncId: "api-product-1",
+            name: "API Product 1",
+            description: "This is API Product 1",
+            portals: [],
+            labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+        );
+    }
+
+    [Fact]
+    public async Task ApiProductPublishedToPortalIsDumped()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var portalId = Guid.NewGuid().ToString();
+
+        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
+
+        testHost.Given.Api.AnExistingApiProduct(
+            name: "API Product 1",
+            description: "This is API Product 1",
+            portalIds: new[] { portalId },
+            labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+        );
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+
+        await testHost.Then.DumpedFile.ShouldHaveApiProduct(
+            outputDirectory: outputDirectory,
+            syncId: "api-product-1",
+            name: "API Product 1",
+            description: "This is API Product 1",
+            portals: ["default"],
+            labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
         );
     }
 
@@ -54,11 +87,12 @@ public class DumpServiceTests
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
-            outputDirectory,
-            "different-sync-id",
-            "API Product 1",
-            "This is API Product 1",
-            new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
+            outputDirectory: outputDirectory,
+            syncId: "different-sync-id",
+            name: "API Product 1",
+            description: "This is API Product 1",
+            portals: [],
+            labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
         );
     }
 
@@ -90,15 +124,17 @@ public class DumpServiceTests
             "api-product",
             "API Product",
             "This is API Product 1",
+            [],
             new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
         );
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
-            outputDirectory,
-            "api-product-1",
-            "API Product",
-            "This is API Product 2",
-            new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "Frontend" }
+            outputDirectory: outputDirectory,
+            syncId: "api-product-1",
+            name: "API Product",
+            description: "This is API Product 2",
+            portals: [],
+            labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "Frontend" }
         );
     }
 
@@ -123,11 +159,12 @@ public class DumpServiceTests
         for (var i = 1; i < 10; i++)
         {
             await testHost.Then.DumpedFile.ShouldHaveApiProduct(
-                outputDirectory,
-                $"api-product-{i}",
-                $"API Product {i}",
-                $"This is API Product {i}",
-                new Dictionary<string, string>()
+                outputDirectory: outputDirectory,
+                syncId: $"api-product-{i}",
+                name: $"API Product {i}",
+                description: $"This is API Product {i}",
+                portals: [],
+                labels: new Dictionary<string, string>()
             );
         }
     }
@@ -153,12 +190,12 @@ public class DumpServiceTests
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
-            outputDirectory,
-            "api-product",
-            "authentication",
-            "authentication",
-            "How to Authenticate",
-            "# How to Authenticate"
+            outputDirectory: outputDirectory,
+            apiProductSyncId: "api-product",
+            documentSlug: "authentication",
+            fullSlug: "authentication",
+            documentTitle: "How to Authenticate",
+            documentContents: "# How to Authenticate"
         );
     }
 
@@ -189,21 +226,21 @@ public class DumpServiceTests
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
-            outputDirectory,
-            "api-product",
-            "authentication",
-            "authentication",
-            "How to Authenticate",
-            "# How to Authenticate"
+            outputDirectory: outputDirectory,
+            apiProductSyncId: "api-product",
+            documentSlug: "authentication",
+            fullSlug: "authentication",
+            documentTitle: "How to Authenticate",
+            documentContents: "# How to Authenticate"
         );
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
-            outputDirectory,
-            "api-product",
-            "faq",
-            "authentication/faq",
-            "Frequently Asked Questions",
-            "# Frequently Asked Questions"
+            outputDirectory: outputDirectory,
+            apiProductSyncId: "api-product",
+            documentSlug: "faq",
+            fullSlug: "authentication/faq",
+            documentTitle: "Frequently Asked Questions",
+            documentContents: "# Frequently Asked Questions"
         );
     }
 
@@ -236,12 +273,12 @@ public class DumpServiceTests
         for (var i = 0; i < 10; i++)
         {
             await testHost.Then.DumpedFile.ShouldHaveApiProductDocument(
-                outputDirectory,
-                "api-product",
-                $"doc-{i}",
-                $"doc-{i}",
-                $"Article {i}",
-                $"# Article {i}\n\n##Contents\n* Item 1"
+                outputDirectory: outputDirectory,
+                apiProductSyncId: "api-product",
+                documentSlug: $"doc-{i}",
+                fullSlug: $"doc-{i}",
+                documentTitle: $"Article {i}",
+                documentContents: $"# Article {i}\n\n##Contents\n* Item 1"
             );
         }
     }
@@ -269,14 +306,14 @@ public class DumpServiceTests
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(
-            outputDirectory,
-            "api-product",
-            "v1.0",
-            "v1.0",
-            "published",
-            false,
-            "api-product-1.0.yml",
-            "- openapi: 3.0.0"
+            outputDirectory: outputDirectory,
+            apiProductSyncId: "api-product",
+            apiProductVersionSyncId: "v1.0",
+            name: "v1.0",
+            publishStatus: "published",
+            deprecated: false,
+            specificationFilename: "api-product-1.0.yml",
+            specificationContents: "- openapi: 3.0.0"
         );
     }
 
@@ -295,7 +332,14 @@ public class DumpServiceTests
 
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
-        await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(outputDirectory, "api-product", "v1.0", "v1.0", "published", false);
+        await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(
+            outputDirectory: outputDirectory,
+            apiProductSyncId: "api-product",
+            apiProductVersionSyncId: "v1.0",
+            name: "v1.0",
+            publishStatus: "published",
+            deprecated: false
+        );
     }
 
     [Fact]
@@ -314,15 +358,23 @@ public class DumpServiceTests
             autoApproveApplications: false,
             autoApproveDevelopers: false,
             customDomain: null,
-            customClientDomain: null,
-            apiProducts: []
+            customClientDomain: null
         );
 
         var outputDirectory = @"c:\temp\output";
 
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
-        await testHost.Then.DumpedFile.ShouldHavePortal(outputDirectory, "default", true, false, false, false, null, null, []);
+        await testHost.Then.DumpedFile.ShouldHavePortal(
+            outputDirectory: outputDirectory,
+            name: "default",
+            isPublic: true,
+            rbacEnabled: false,
+            autoApproveApplications: false,
+            autoApproveDevelopers: false,
+            customDomain: null,
+            customClientDomain: null
+        );
     }
 
     [Fact]
@@ -346,8 +398,7 @@ public class DumpServiceTests
             autoApproveApplications: false,
             autoApproveDevelopers: false,
             customDomain: null,
-            customClientDomain: null,
-            apiProducts: [product1Id, product2Id]
+            customClientDomain: null
         );
 
         var outputDirectory = @"c:\temp\output";
@@ -355,15 +406,14 @@ public class DumpServiceTests
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
-            outputDirectory,
-            "default",
-            true,
-            false,
-            false,
-            false,
-            null,
-            null,
-            ["api-product-1", "api-product-2"]
+            outputDirectory: outputDirectory,
+            name: "default",
+            isPublic: true,
+            rbacEnabled: false,
+            autoApproveApplications: false,
+            autoApproveDevelopers: false,
+            customDomain: null,
+            customClientDomain: null
         );
     }
 
@@ -390,8 +440,7 @@ public class DumpServiceTests
             autoApproveApplications: false,
             autoApproveDevelopers: false,
             customDomain: null,
-            customClientDomain: null,
-            apiProducts: [product1Id, product2Id]
+            customClientDomain: null
         );
 
         var outputDirectory = @"c:\temp\output";
@@ -399,15 +448,14 @@ public class DumpServiceTests
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
-            outputDirectory,
-            "default",
-            true,
-            false,
-            false,
-            false,
-            null,
-            null,
-            ["api-product", "api-product-2"]
+            outputDirectory: outputDirectory,
+            name: "default",
+            isPublic: true,
+            rbacEnabled: false,
+            autoApproveApplications: false,
+            autoApproveDevelopers: false,
+            customDomain: null,
+            customClientDomain: null
         );
     }
 
@@ -444,21 +492,21 @@ public class DumpServiceTests
         await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
 
         await testHost.Then.DumpedFile.ShouldHavePortalAppearance(
-            outputDirectory,
-            "default",
-            "custom",
-            true,
-            "Inter",
-            "Source Code Pro",
-            "Open Sans",
-            "Welcome to the DevPortal",
-            "This portal contains all the information you could need",
-            Icons.Favicon,
-            "favicon.png",
-            Icons.Logo,
-            "logo.png",
-            Icons.CatalogCover,
-            "catalog_cover.png"
+            outputDirectory: outputDirectory,
+            name: "default",
+            themeName: "custom",
+            useCustomFonts: true,
+            customFontBase: "Inter",
+            customFontCode: "Source Code Pro",
+            customFontHeadings: "Open Sans",
+            welcomeMessage: "Welcome to the DevPortal",
+            primaryHeader: "This portal contains all the information you could need",
+            faviconImage: Icons.Favicon,
+            faviconImageName: "favicon.png",
+            logoImage: Icons.Logo,
+            logoImageName: "logo.png",
+            catalogCoverImage: Icons.CatalogCover,
+            catalogCoverImageName: "catalog_cover.png"
         );
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Kong.Portal.CLI.ApiClient.Models;
 
-internal record ApiProduct(string Id, string Name, string Description, LabelDictionary Labels)
+internal record ApiProduct(string Id, string Name, string Description, IReadOnlyCollection<string> PortalIds, LabelDictionary Labels)
 {
     public virtual bool Equals(ApiProduct? other)
     {
@@ -24,6 +24,11 @@ internal record ApiProduct(string Id, string Name, string Description, LabelDict
             return false;
         }
 
+        if (!PortalIds.OrderBy(s => s).SequenceEqual(other.PortalIds.OrderBy(s => s)))
+        {
+            return false;
+        }
+
         if (!Labels.Equals(other.Labels))
         {
             return false;
@@ -34,6 +39,6 @@ internal record ApiProduct(string Id, string Name, string Description, LabelDict
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Id, Name, Description, Labels);
+        return HashCode.Combine(Id, Name, Description, PortalIds, Labels);
     }
 }
