@@ -1,6 +1,7 @@
 ﻿using System.CommandLine;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.Services;
+using Pastel;
 
 namespace Kong.Portal.CLI.Commands;
 
@@ -23,13 +24,30 @@ internal class SyncCommand : Command
         AddOption(inputDirectoryOption);
         AddOption(applyOption);
 
-        this.SetHandler(Handle, inputDirectoryOption, applyOption, GlobalOptions.TokenOption, GlobalOptions.KonnectAddressOption);
+        this.SetHandler(
+            Handle,
+            inputDirectoryOption,
+            applyOption,
+            GlobalOptions.TokenOption,
+            GlobalOptions.TokenFileOption,
+            GlobalOptions.KonnectAddressOption
+        );
     }
 
-    private async Task<int> Handle(string inputDirectory, bool apply, string token, string konnectAddress)
+    private async Task<int> Handle(string inputDirectory, bool apply, string token, string tokenFile, string konnectAddress)
     {
-        await _syncService.Sync(Path.GetFullPath(inputDirectory), apply, new KongApiClientOptions(token, konnectAddress));
+        try
+        {
+            var resolvedToken = TokenResolutionHelper.ResolveToken(token, tokenFile);
 
-        return 0;
+            await _syncService.Sync(Path.GetFullPath(inputDirectory), apply, new KongApiClientOptions(resolvedToken, konnectAddress));
+
+            return 0;
+        }
+        catch (OutputErrorException ex)
+        {
+            await Console.Error.WriteLineAsync(ex.Message.Pastel(ConsoleColor.Red));
+            return 1;
+        }
     }
 }

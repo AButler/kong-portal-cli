@@ -1,6 +1,7 @@
 ﻿using System.CommandLine;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.Services;
+using Pastel;
 
 namespace Kong.Portal.CLI.Commands;
 
@@ -21,13 +22,23 @@ internal class DumpCommand : Command
 
         AddOption(outputDirectoryOption);
 
-        this.SetHandler(Handle, outputDirectoryOption, GlobalOptions.TokenOption, GlobalOptions.KonnectAddressOption);
+        this.SetHandler(Handle, outputDirectoryOption, GlobalOptions.TokenOption, GlobalOptions.TokenFileOption, GlobalOptions.KonnectAddressOption);
     }
 
-    private async Task<int> Handle(string outputDirectory, string token, string konnectAddress)
+    private async Task<int> Handle(string outputDirectory, string token, string tokenFile, string konnectAddress)
     {
-        await _dumpService.Dump(Path.GetFullPath(outputDirectory), new KongApiClientOptions(token, konnectAddress));
+        try
+        {
+            var resolvedToken = TokenResolutionHelper.ResolveToken(token, tokenFile);
 
-        return 0;
+            await _dumpService.Dump(Path.GetFullPath(outputDirectory), new KongApiClientOptions(resolvedToken, konnectAddress));
+
+            return 0;
+        }
+        catch (OutputErrorException ex)
+        {
+            await Console.Error.WriteLineAsync(ex.Message.Pastel(ConsoleColor.Red));
+            return 1;
+        }
     }
 }

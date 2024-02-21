@@ -2,6 +2,7 @@
 using System.IO.Abstractions.TestingHelpers;
 using CLI.UnitTests.Services;
 using Flurl.Http.Testing;
+using Kong.Portal.CLI;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,7 +63,7 @@ internal class TestHost : IDisposable
             .AddSingleton<FileGivenSteps>()
             .AddSingleton<DumpedFileThenSteps>()
             .AddSingleton<ApiThenSteps>()
-            .AddSingleton<KongApiClientOptions>(_ => new KongApiClientOptions("KONG-API-TOKEN", "https://eu.api.konghq.com"));
+            .AddSingleton<KongApiClientOptions>(_ => new KongApiClientOptions("KONG-API-TOKEN", KongRegions.EuRegion));
     }
 
     public void Dispose()

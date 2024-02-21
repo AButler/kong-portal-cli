@@ -3,15 +3,15 @@
   "profiles": {
     "CLI - Dump": {
       "commandName": "Project",
-      "commandLineArgs": "dump --output c:\\temp\\kong --konnect-token spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR --konnect-addr https://eu.api.konghq.com"
+      "commandLineArgs": "dump --output c:\\temp\\kong --konnect-token-file c:\\temp\\kong.token --konnect-addr https://eu.api.konghq.com"
     },
     "CLI - Sync": {
       "commandName": "Project",
-      "commandLineArgs": "sync --input c:\\temp\\kong --konnect-token spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR --konnect-addr https://cn.api.konghq.com"
+      "commandLineArgs": "sync --inpu2t c:\\temp\\kong --konnect-token-file c:\\temp\\kong.token --konnect-addr https://eu.api.konghq.com"
     },
     "CLI - Sync (Apply)": {
       "commandName": "Project",
-      "commandLineArgs": "sync --input c:\\temp\\kong --apply --konnect-token spat_8YQDaDPCG8ufPW91yRAYpf4g06FvVMoGUyFZfw9utzagiQPrR --konnect-addr https://eu.api.konghq.com"
+      "commandLineArgs": "sync --input c:\\temp\\kong --apply --konnect-token-file c:\\temp\\kong.token --konnect-addr https://eu.api.konghq.com"
     },
     "CLI - Version": {
       "commandName": "Project",

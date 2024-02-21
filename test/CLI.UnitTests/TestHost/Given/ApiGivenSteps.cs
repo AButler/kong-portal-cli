@@ -1,4 +1,5 @@
 ﻿using Flurl.Http.Testing;
+using Kong.Portal.CLI.ApiClient;
 
 namespace CLI.UnitTests.TestHost;
 
@@ -6,6 +7,7 @@ internal class ApiGivenSteps
 {
     private const int MaximumPageSize = 10;
 
+    private readonly string _kongBaseUrl;
     private readonly List<dynamic> _apiProducts = [];
     private readonly List<dynamic> _devPortals = [];
     private readonly Dictionary<string, List<dynamic>> _apiProductDocuments = new();
@@ -14,8 +16,10 @@ internal class ApiGivenSteps
 
     private int _pageSize = 100;
 
-    public ApiGivenSteps()
+    public ApiGivenSteps(KongApiClientOptions apiClientOptions)
     {
+        _kongBaseUrl = $"{apiClientOptions.BaseUrl}/v2/";
+
         SetupApiProductsApis();
         SetupDevPortalApis();
 
@@ -49,10 +53,7 @@ internal class ApiGivenSteps
         _apiProductDocuments[id] = [];
         _apiProductVersions[id] = [];
 
-        HttpTest
-            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{id}")
-            .WithVerb("PATCH")
-            .RespondWithJson(_apiProducts.Single(p => p.id == id));
+        HttpTest.Current.ForCallsTo($"{_kongBaseUrl}api-products/{id}").WithVerb("PATCH").RespondWithJson(_apiProducts.Single(p => p.id == id));
         SetupApiProductDocumentsApis(id);
         SetupApiProductVersionApis(id);
     }
@@ -73,7 +74,7 @@ internal class ApiGivenSteps
             );
 
         HttpTest
-            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/documents/{id}")
+            .Current.ForCallsTo($"{_kongBaseUrl}api-products/{apiProductId}/documents/{id}")
             .WithVerb("GET")
             .RespondWithJson(
                 new
@@ -112,7 +113,7 @@ internal class ApiGivenSteps
             );
 
         HttpTest
-            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions/{id}")
+            .Current.ForCallsTo($"{_kongBaseUrl}api-products/{apiProductId}/product-versions/{id}")
             .WithVerb("GET")
             .RespondWithJson(
                 new
@@ -138,7 +139,7 @@ internal class ApiGivenSteps
                 : Array.Empty<object>();
 
         HttpTest
-            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions/{id}/specifications")
+            .Current.ForCallsTo($"{_kongBaseUrl}api-products/{apiProductId}/product-versions/{id}/specifications")
             .WithVerb("GET")
             .RespondWithJson(new { data = specificationResponse });
     }
@@ -189,17 +190,11 @@ internal class ApiGivenSteps
             }
         );
 
-        HttpTest
-            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/portals/{id}/appearance")
-            .WithVerb("GET")
-            .RespondWithDynamicJson(() => _devPortalAppearances[id]);
+        HttpTest.Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/appearance").WithVerb("GET").RespondWithDynamicJson(() => _devPortalAppearances[id]);
 
         var apiProductIds = apiProducts ?? [];
 
-        SetupPagedApi(
-            $"https://eu.api.konghq.com/v2/portals/{id}/products",
-            () => _apiProducts.Where(v => apiProductIds.Contains((string)v.id)).ToList()
-        );
+        SetupPagedApi($"{_kongBaseUrl}portals/{id}/products", () => _apiProducts.Where(v => apiProductIds.Contains((string)v.id)).ToList());
     }
 
     public void AnExistingDevPortalAppearance(
@@ -271,7 +266,7 @@ internal class ApiGivenSteps
     private void SetupIncomingApis()
     {
         HttpTest
-            .Current.ForCallsTo("https://eu.api.konghq.com/v2/api-products")
+            .Current.ForCallsTo($"{_kongBaseUrl}api-products")
             .WithVerb("POST")
             .RespondWithDynamicJson(
                 () =>
@@ -288,24 +283,24 @@ internal class ApiGivenSteps
 
     private void SetupApiProductsApis()
     {
-        SetupPagedApi("https://eu.api.konghq.com/v2/api-products", () => _apiProducts);
+        SetupPagedApi($"{_kongBaseUrl}api-products", () => _apiProducts);
     }
 
     private void SetupDevPortalApis()
     {
-        SetupPagedApi("https://eu.api.konghq.com/v2/portals", () => _devPortals);
+        SetupPagedApi($"{_kongBaseUrl}portals", () => _devPortals);
     }
 
     private void SetupApiProductDocumentsApis(string apiProductId)
     {
-        SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/documents", () => _apiProductDocuments[apiProductId]);
+        SetupPagedApi($"{_kongBaseUrl}api-products/{apiProductId}/documents", () => _apiProductDocuments[apiProductId]);
     }
 
     private void SetupApiProductVersionApis(string apiProductId)
     {
-        SetupPagedApi($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions", () => _apiProductVersions[apiProductId]);
+        SetupPagedApi($"{_kongBaseUrl}api-products/{apiProductId}/product-versions", () => _apiProductVersions[apiProductId]);
         HttpTest
-            .Current.ForCallsTo($"https://eu.api.konghq.com/v2/api-products/{apiProductId}/product-versions")
+            .Current.ForCallsTo($"{_kongBaseUrl}api-products/{apiProductId}/product-versions")
             .WithVerb("POST")
             .RespondWithDynamicJson(
                 () =>

@@ -1,6 +1,6 @@
 ﻿namespace Kong.Portal.CLI;
 
-internal class SyncException : Exception
+internal class SyncException : OutputErrorException
 {
     public SyncException(string message)
         : base(message) { }

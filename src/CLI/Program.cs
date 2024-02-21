@@ -1,10 +1,12 @@
 ﻿using System.CommandLine;
 using System.IO.Abstractions;
+using Kong.Portal.CLI;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.Commands;
 using Kong.Portal.CLI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Pastel;
 
 var services = new ServiceCollection()
     .AddSingleton<DumpCommand>()
@@ -23,6 +25,7 @@ try
 {
     var rootCommand = new CliRootCommand();
     rootCommand.AddGlobalOption(GlobalOptions.TokenOption);
+    rootCommand.AddGlobalOption(GlobalOptions.TokenFileOption);
     rootCommand.AddGlobalOption(GlobalOptions.KonnectAddressOption);
 
     rootCommand.AddCommand(services.GetRequiredService<DumpCommand>());
@@ -30,11 +33,9 @@ try
 
     return await rootCommand.InvokeAsync(args);
 }
-catch (OptionsValidationException ex)
+catch (OutputErrorException ex)
 {
-    var consoleColor = Console.ForegroundColor;
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.Error.WriteLine($"ERROR: {ex.Message}");
-    Console.ForegroundColor = consoleColor;
+    Console.Error.WriteLine($"ERROR: {ex.Message}".Pastel(ConsoleColor.Red));
+
     return 1;
 }
