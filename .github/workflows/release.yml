@@ -75,3 +75,12 @@ jobs:
           name: releases
           path: dist/
 
+      - name: Create GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ needs.version.outputs.version_full }}
+          draft: true
+          generateReleaseNotes: true
+          artifacts: "dist/*"
+          allowUpdates: true
+          updateOnlyUnreleased: true
