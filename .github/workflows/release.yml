@@ -17,6 +17,11 @@ jobs:
       version_suffix: ${{ steps.version.outputs.version_suffix }}
       version_full: ${{ steps.version.outputs.version_full }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: build
+
       - name: Parse version
         id: version
         run: ./build/Get-Version.ps1 -Version ${{ inputs.version }}
