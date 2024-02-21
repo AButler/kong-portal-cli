@@ -66,7 +66,7 @@ jobs:
         working-directory: src/CLI
 
       - name: Prepare release
-        run: ./build/Prepare-Releases.ps1
+        run: ./build/Prepare-Release.ps1
         shell: pwsh
 
       - name: Upload artifacts to action
