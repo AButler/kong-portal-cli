@@ -7,7 +7,7 @@ if(-not (Test-Path $distDirectory)) {
   New-Item $distDirectory -ItemType Directory | Out-Null
 }
 
-$runtimes = @('win-x64', 'linux-x64', 'linux-arm64')
+$runtimes = @('win-x64', 'linux-x64', 'linux-arm64', 'linux-musl-x64')
 
 foreach ($runtime in $runtimes) {
   Write-Host "Preparing $runtime..."
