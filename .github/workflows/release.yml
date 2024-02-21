@@ -20,6 +20,7 @@ jobs:
       - name: Parse version
         id: version
         run: ./build/Get-Version.ps1 -Version ${{ inputs.version }}
+        shell: pwsh
 
   build:
     name: Build & Test
@@ -61,6 +62,7 @@ jobs:
 
       - name: Prepare release
         run: ./build/Prepare-Releases.ps1
+        shell: pwsh
 
       - name: Upload artifacts to action
         uses: actions/upload-artifact@v4
