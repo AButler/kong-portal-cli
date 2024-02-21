@@ -17,6 +17,11 @@ jobs:
       version_suffix: ${{ steps.version.outputs.version_suffix }}
       version_full: ${{ steps.version.outputs.version_full }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: build
+
       - name: Parse version
         id: version
         run: ./build/Get-Version.ps1 -Version ${{ inputs.version }}
@@ -49,19 +54,19 @@ jobs:
         run: dotnet restore
 
       - name: Publish (win-x64)
-        run: dotnet publish -r win-x64 -o ../../publish/win-x64
+        run: dotnet publish -r win-x64 -o ../../publish/win-x64 -p:VersionPrefix="${{ needs.version.outputs.version_3 }}" --version-suffix "${{ needs.version.outputs.version_suffix }}"
         working-directory: src/CLI
 
       - name: Publish (linux-x64)
-        run: dotnet publish -r linux-x64 -o ../../publish/linux-x64
+        run: dotnet publish -r linux-x64 -o ../../publish/linux-x64 -p:VersionPrefix="${{ needs.version.outputs.version_3 }}" --version-suffix "${{ needs.version.outputs.version_suffix }}"
         working-directory: src/CLI
 
       - name: Publish (linux-arm64)
-        run: dotnet publish -r linux-arm64 -o ../../publish/linux-arm64
+        run: dotnet publish -r linux-arm64 -o ../../publish/linux-arm64 -p:VersionPrefix="${{ needs.version.outputs.version_3 }}" --version-suffix "${{ needs.version.outputs.version_suffix }}"
         working-directory: src/CLI
 
       - name: Prepare release
-        run: ./build/Prepare-Releases.ps1
+        run: ./build/Prepare-Release.ps1
         shell: pwsh
 
       - name: Upload artifacts to action
