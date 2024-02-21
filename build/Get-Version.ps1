@@ -20,8 +20,10 @@ $minor = $Matches.Minor
 $patch = $Matches.Patch
 $suffix = $Matches.Suffix
 $suffixStripped = ''
+$isPrerelease = 'false'
 if (![string]::IsNullOrWhiteSpace($suffix)) {
   $suffixStripped = $suffix.Substring(1)
+  $isPrerelease = 'true'
 }
 
 Write-GitHubOutput -Name 'version_full' -Value "$major.$minor.$patch$suffix"
@@ -31,4 +33,5 @@ Write-GitHubOutput -Name 'version_patch' -Value $patch
 Write-GitHubOutput -Name 'version_suffix' -Value $suffixStripped
 Write-GitHubOutput -Name 'version_2' -Value "$major.$minor"
 Write-GitHubOutput -Name 'version_3' -Value "$major.$minor.$patch"
+Write-GitHubOutput -Name 'is_prerelease' -Value $isPrerelease
 

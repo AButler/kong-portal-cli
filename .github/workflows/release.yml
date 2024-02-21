@@ -84,3 +84,4 @@ jobs:
           artifacts: "dist/*"
           allowUpdates: true
           updateOnlyUnreleased: true
+          prerelease: ${{ needs.version.outputs.is_prerelease }}
