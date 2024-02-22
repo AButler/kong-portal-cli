@@ -30,13 +30,6 @@ internal class CompareResult
         Portals = portals.AsReadOnly();
 
         PortalAppearances = portalAppearances.ToDictionary(kvp => kvp.Key, kvp => kvp.Value).AsReadOnly();
-
-        AnyChanges =
-            apiProductDifferences.Any(d => d.DifferenceType != DifferenceType.NoChange)
-            || apiProductVersionDifferences.Values.Any(v => v.Any(d => d.DifferenceType != DifferenceType.NoChange))
-            || apiProductVersionSpecifications.Values.Any(v => v.Values.Any(d => d.DifferenceType != DifferenceType.NoChange))
-            || portals.Any(d => d.DifferenceType != DifferenceType.NoChange)
-            || portalAppearances.Values.Any(d => d.DifferenceType != DifferenceType.NoChange);
     }
 
     public IReadOnlyCollection<string> GetValidationErrors()
@@ -55,8 +48,6 @@ internal class CompareResult
 
         return errors;
     }
-
-    public bool AnyChanges { get; }
 
     public IReadOnlyCollection<Difference<ApiProduct>> ApiProducts { get; }
 

@@ -28,12 +28,6 @@ internal class SyncService(
         consoleOutput.WriteLine("Comparing...");
         var compareResult = await comparerService.Compare(sourceData, apiClient);
 
-        if (!compareResult.AnyChanges)
-        {
-            consoleOutput.WriteLine("No changes required");
-            return;
-        }
-
         var validationErrors = compareResult.GetValidationErrors();
         if (validationErrors.Count > 0)
         {
@@ -66,7 +60,7 @@ internal class SyncService(
 
     private async Task SyncPortal(SyncContext context, CompareResult compareResult, Difference<DevPortal> difference)
     {
-        consoleOutput.WriteLine($"  {difference.DifferenceType.ToSymbol()} Portal: {difference.Entity.Name}");
+        consoleOutput.WriteDifference(difference, "Portal", difference.Entity.Name);
 
         if (context.Apply)
         {
@@ -91,7 +85,7 @@ internal class SyncService(
 
     private async Task SyncPortalAppearance(SyncContext context, string portalName, Difference<DevPortalAppearance> difference)
     {
-        consoleOutput.WriteLine($"    {difference.DifferenceType.ToSymbol()} Appearance");
+        consoleOutput.WriteDifference(difference, "Appearance", 1);
 
         if (context.Apply)
         {
@@ -110,7 +104,7 @@ internal class SyncService(
 
     private async Task SyncApiProduct(SyncContext context, CompareResult compareResult, Difference<ApiProduct> difference)
     {
-        consoleOutput.WriteLine($"  {difference.DifferenceType.ToSymbol()} API Product: {difference.Entity.Name}");
+        consoleOutput.WriteDifference(difference, "API Product", difference.Entity.Name);
 
         if (context.Apply)
         {
@@ -152,7 +146,7 @@ internal class SyncService(
         Difference<ApiProductVersion> difference
     )
     {
-        consoleOutput.WriteLine($"    {difference.DifferenceType.ToSymbol()} Version: {difference.Entity.Name}");
+        consoleOutput.WriteDifference(difference, "Version", difference.Entity.Name, 1);
 
         if (context.Apply)
         {
@@ -192,7 +186,7 @@ internal class SyncService(
         Difference<ApiProductSpecification> difference
     )
     {
-        consoleOutput.WriteLine($"      {difference.DifferenceType.ToSymbol()} Specification: {difference.Entity.Name}");
+        consoleOutput.WriteDifference(difference, "Specification", difference.Entity.Name, 2);
 
         if (context.Apply)
         {
