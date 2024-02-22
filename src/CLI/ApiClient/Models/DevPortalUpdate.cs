@@ -1,7 +1,6 @@
-﻿namespace Kong.Portal.CLI.Services;
+﻿namespace Kong.Portal.CLI.ApiClient.Models;
 
-internal record PortalMetadata(
-    string Name,
+internal record DevPortalUpdate(
     string? CustomDomain,
     string? CustomClientDomain,
     bool IsPublic,

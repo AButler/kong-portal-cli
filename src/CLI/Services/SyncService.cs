@@ -34,6 +34,12 @@ internal class SyncService(
             return;
         }
 
+        var validationErrors = compareResult.GetValidationErrors();
+        if (validationErrors.Count > 0)
+        {
+            throw new SyncException(string.Join(Environment.NewLine, validationErrors));
+        }
+
         if (apply)
         {
             consoleOutput.WriteLine("Applying changes...");
@@ -45,6 +51,11 @@ internal class SyncService(
 
         var context = new SyncContext(apiClient, apply);
 
+        foreach (var difference in compareResult.Portals)
+        {
+            await SyncPortal(context, compareResult, difference);
+        }
+
         foreach (var difference in compareResult.ApiProducts)
         {
             await SyncApiProduct(context, compareResult, difference);
@@ -53,9 +64,53 @@ internal class SyncService(
         consoleOutput.WriteLine("Done!");
     }
 
+    private async Task SyncPortal(SyncContext context, CompareResult compareResult, Difference<DevPortal> difference)
+    {
+        consoleOutput.WriteLine($"  {difference.DifferenceType.ToSymbol()} Portal: {difference.Entity.Name}");
+
+        if (context.Apply)
+        {
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                    throw new InvalidOperationException("Cannot create Portals");
+                case DifferenceType.Update:
+                    await context.ApiClient.DevPortals.Update(difference.Id!, difference.Entity);
+                    break;
+                case DifferenceType.Delete:
+                    throw new InvalidOperationException("Cannot delete Portals");
+            }
+        }
+
+        if (difference.SyncId != null)
+        {
+            var portalAppearance = compareResult.PortalAppearances[difference.SyncId];
+            await SyncPortalAppearance(context, difference.SyncId, portalAppearance);
+        }
+    }
+
+    private async Task SyncPortalAppearance(SyncContext context, string portalName, Difference<DevPortalAppearance> difference)
+    {
+        consoleOutput.WriteLine($"    {difference.DifferenceType.ToSymbol()} Appearance");
+
+        if (context.Apply)
+        {
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                    throw new InvalidOperationException("Cannot create Portals");
+                case DifferenceType.Update:
+                    await context.ApiClient.DevPortals.UpdateAppearance(difference.Id!, difference.Entity);
+                    break;
+                case DifferenceType.Delete:
+                    throw new InvalidOperationException("Cannot delete Portals");
+            }
+        }
+    }
+
     private async Task SyncApiProduct(SyncContext context, CompareResult compareResult, Difference<ApiProduct> difference)
     {
-        consoleOutput.WriteLine($"  {difference.DifferenceType.ToSymbol()} {difference.Entity.Name}");
+        consoleOutput.WriteLine($"  {difference.DifferenceType.ToSymbol()} API Product: {difference.Entity.Name}");
 
         if (context.Apply)
         {
@@ -97,7 +152,7 @@ internal class SyncService(
         Difference<ApiProductVersion> difference
     )
     {
-        consoleOutput.WriteLine($"    {difference.DifferenceType.ToSymbol()} {difference.Entity.Name}");
+        consoleOutput.WriteLine($"    {difference.DifferenceType.ToSymbol()} Version: {difference.Entity.Name}");
 
         if (context.Apply)
         {
@@ -137,7 +192,7 @@ internal class SyncService(
         Difference<ApiProductSpecification> difference
     )
     {
-        consoleOutput.WriteLine($"      {difference.DifferenceType.ToSymbol()} {difference.Entity.Name}");
+        consoleOutput.WriteLine($"      {difference.DifferenceType.ToSymbol()} Specification: {difference.Entity.Name}");
 
         if (context.Apply)
         {

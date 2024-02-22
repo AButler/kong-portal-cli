@@ -1,7 +1,6 @@
 ﻿using System.IO.Abstractions;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
-using Kong.Portal.CLI.Services.Metadata;
 
 namespace Kong.Portal.CLI.Services;
 
@@ -23,7 +22,7 @@ internal class DumpService(
         var context = new DumpContext(apiClient, outputDirectory);
 
         consoleOutput.WriteLine("- Portals");
-        var portals = await apiClient.Portals.GetAll();
+        var portals = await apiClient.DevPortals.GetAll();
         foreach (var portal in portals)
         {
             await DumpPortal(context, portal);
@@ -132,25 +131,25 @@ internal class DumpService(
         await fileSystem.File.WriteAllTextAsync(contentFilename, apiProductDocument.MarkdownContent);
     }
 
-    private async Task DumpPortal(DumpContext context, ApiClient.Models.Portal portal)
+    private async Task DumpPortal(DumpContext context, DevPortal devPortal)
     {
-        consoleOutput.WriteLine($"  - {portal.Name}");
+        consoleOutput.WriteLine($"  - {devPortal.Name}");
 
-        context.StorePortalId(portal.Id, portal.Name);
+        context.StorePortalId(devPortal.Id, devPortal.Name);
 
-        var portalDirectory = context.GetPortalDirectory(portal.Name);
+        var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
-        var portalAppearance = await context.ApiClient.Portals.GetAppearance(portal.Id);
+        var portalAppearance = await context.ApiClient.DevPortals.GetAppearance(devPortal.Id);
 
         var appearanceMetadata = new PortalAppearanceMetadata(
             portalAppearance.ThemeName,
             portalAppearance.UseCustomFonts,
             portalAppearance.CustomTheme == null
                 ? null
-                : new PortalCustomTheme(
-                    new PortalCustomThemeColors(
-                        new PortalCustomThemeColorsSection(
+                : new PortalCustomThemeMetadata(
+                    new PortalCustomThemeColorsMetadata(
+                        new PortalCustomThemeColorsSectionMetadata(
                             portalAppearance.CustomTheme.Colors.Section.Header.Value,
                             portalAppearance.CustomTheme.Colors.Section.Body.Value,
                             portalAppearance.CustomTheme.Colors.Section.Header.Value,
@@ -159,7 +158,7 @@ internal class DumpService(
                             portalAppearance.CustomTheme.Colors.Section.Stroke.Value,
                             portalAppearance.CustomTheme.Colors.Section.Footer.Value
                         ),
-                        new PortalCustomThemeColorsText(
+                        new PortalCustomThemeColorsTextMetadata(
                             portalAppearance.CustomTheme.Colors.Text.Header.Value,
                             portalAppearance.CustomTheme.Colors.Text.Hero.Value,
                             portalAppearance.CustomTheme.Colors.Text.Headings.Value,
@@ -169,15 +168,15 @@ internal class DumpService(
                             portalAppearance.CustomTheme.Colors.Text.Link.Value,
                             portalAppearance.CustomTheme.Colors.Text.Footer.Value
                         ),
-                        new PortalCustomThemeColorsButton(
+                        new PortalCustomThemeColorsButtonMetadata(
                             portalAppearance.CustomTheme.Colors.Button.PrimaryFill.Value,
                             portalAppearance.CustomTheme.Colors.Button.PrimaryText.Value
                         )
                     )
                 ),
-            new PortalCustomFonts(portalAppearance.CustomFonts?.Base, portalAppearance.CustomFonts?.Code, portalAppearance.CustomFonts?.Headings),
-            new PortalText(portalAppearance.Text?.Catalog.WelcomeMessage, portalAppearance.Text?.Catalog.PrimaryHeader),
-            new PortalImages(
+            new PortalCustomFontsMetadata(portalAppearance.CustomFonts?.Base, portalAppearance.CustomFonts?.Code, portalAppearance.CustomFonts?.Headings),
+            new PortalTextMetadata(portalAppearance.Text?.Catalog.WelcomeMessage, portalAppearance.Text?.Catalog.PrimaryHeader),
+            new PortalImagesMetadata(
                 portalAppearance.Images.Favicon?.Filename,
                 portalAppearance.Images.Logo?.Filename,
                 portalAppearance.Images.CatalogCover?.Filename
@@ -185,13 +184,13 @@ internal class DumpService(
         );
 
         var metadata = new PortalMetadata(
-            portal.Name,
-            portal.CustomDomain,
-            portal.CustomClientDomain,
-            portal.IsPublic,
-            portal.AutoApproveDevelopers,
-            portal.AutoApproveApplications,
-            portal.RbacEnabled
+            devPortal.Name,
+            devPortal.CustomDomain,
+            devPortal.CustomClientDomain,
+            devPortal.IsPublic,
+            devPortal.AutoApproveDevelopers,
+            devPortal.AutoApproveApplications,
+            devPortal.RbacEnabled
         );
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");

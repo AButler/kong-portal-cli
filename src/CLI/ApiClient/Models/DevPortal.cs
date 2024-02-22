@@ -1,6 +1,6 @@
 ﻿namespace Kong.Portal.CLI.ApiClient.Models;
 
-internal record Portal(
+internal record DevPortal(
     string Id,
     string Name,
     string? CustomDomain,

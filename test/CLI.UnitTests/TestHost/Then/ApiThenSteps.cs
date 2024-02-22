@@ -33,7 +33,7 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}api-products/{productId}").WithVerb(HttpMethod.Delete);
     }
 
-    public async Task<string> ApiProductShouldHaveBeenCreated(string syncId)
+    public void ApiProductShouldHaveBeenCreated(string syncId)
     {
         var call = HttpTest.Current.CallLog.FirstOrDefault(c =>
             c.Request.Url.ToString() == $"{_kongBaseUri}api-products"
@@ -42,6 +42,15 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         );
 
         call.Should().NotBeNull("expected /api-products to be called with a POST");
+    }
+
+    public async Task<string> GetApiProductId(string syncId)
+    {
+        var call = HttpTest.Current.CallLog.FirstOrDefault(c =>
+            c.Request.Url.ToString() == $"{_kongBaseUri}api-products"
+            && c.Request.Verb == HttpMethod.Post
+            && Deserialize<ApiProductUpdate>(c.RequestBody)?.Labels[Constants.SyncIdLabel] == syncId
+        );
 
         var entity = await call!.Response.GetJsonAsync<EntityWithId>();
 
@@ -51,6 +60,16 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
     public void ApiProductVersionShouldHaveBeenCreated(string apiProductId, string versionName)
     {
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}api-products/{apiProductId}/product-versions").WithVerb(HttpMethod.Post);
+    }
+
+    public void PortalShouldHaveBeenUpdated(string portalId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}").WithVerb(HttpMethod.Patch);
+    }
+
+    public void PortalAppearanceShouldHaveBeenUpdated(string portalId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/appearance").WithVerb(HttpMethod.Patch);
     }
 
     private T? Deserialize<T>(string json)

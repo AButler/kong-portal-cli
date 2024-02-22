@@ -26,7 +26,7 @@ internal class KongApiClient
         ApiProducts = new ApiProductsClient(flurlClient);
         ApiProductVersions = new ApiProductVersionsClient(flurlClient);
         ApiProductDocuments = new ApiProductDocumentsClient(flurlClient);
-        Portals = new PortalsClient(flurlClient);
+        DevPortals = new DevPortalsClient(flurlClient);
     }
 
     public ApiProductsClient ApiProducts { get; }
@@ -35,5 +35,5 @@ internal class KongApiClient
 
     public ApiProductDocumentsClient ApiProductDocuments { get; }
 
-    public PortalsClient Portals { get; }
+    public DevPortalsClient DevPortals { get; }
 }

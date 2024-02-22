@@ -1,4 +1,4 @@
-﻿namespace Kong.Portal.CLI.Services.Metadata;
+﻿namespace Kong.Portal.CLI.Services;
 
 internal record ApiProductVersionMetadata(
     string SyncId,

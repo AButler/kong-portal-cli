@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using Kong.Portal.CLI.ApiClient.Models;
-using Kong.Portal.CLI.Services.Metadata;
+using Kong.Portal.CLI.Services;
 
 namespace Kong.Portal.CLI;
 
@@ -43,6 +43,16 @@ internal static class ApiModelExtensions
 
     public static ApiProductSpecificationUpdate ToUpdateModel(this ApiProductSpecification apiProductSpecification) =>
         new(apiProductSpecification.Name, Convert.ToBase64String(Encoding.UTF8.GetBytes(apiProductSpecification.Content)));
+
+    public static DevPortalUpdate ToUpdateModel(this DevPortal devPortal) =>
+        new(
+            devPortal.CustomDomain,
+            devPortal.CustomClientDomain,
+            devPortal.IsPublic,
+            devPortal.AutoApproveDevelopers,
+            devPortal.AutoApproveApplications,
+            devPortal.RbacEnabled
+        );
 
     private static ApiProductVersionMetadataPublishStatus ToMetadataPublishStatus(this ApiVersionPublishStatus publishStatus) =>
         publishStatus switch

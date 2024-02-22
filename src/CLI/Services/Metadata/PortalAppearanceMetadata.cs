@@ -3,23 +3,31 @@
 internal record PortalAppearanceMetadata(
     string ThemeName,
     bool UseCustomFonts,
-    PortalCustomTheme? CustomTheme,
-    PortalCustomFonts CustomFonts,
-    PortalText Text,
-    PortalImages Images
+    PortalCustomThemeMetadata? CustomTheme,
+    PortalCustomFontsMetadata CustomFonts,
+    PortalTextMetadata Text,
+    PortalImagesMetadata Images
 );
 
-internal record PortalCustomTheme(PortalCustomThemeColors Colors);
+internal record PortalCustomThemeMetadata(PortalCustomThemeColorsMetadata Colors);
 
-internal record PortalCustomThemeColors(
-    PortalCustomThemeColorsSection Section,
-    PortalCustomThemeColorsText Text,
-    PortalCustomThemeColorsButton Button
+internal record PortalCustomThemeColorsMetadata(
+    PortalCustomThemeColorsSectionMetadata Section,
+    PortalCustomThemeColorsTextMetadata Text,
+    PortalCustomThemeColorsButtonMetadata Button
 );
 
-internal record PortalCustomThemeColorsSection(string Header, string Body, string Hero, string Accent, string Tertiary, string Stroke, string Footer);
+internal record PortalCustomThemeColorsSectionMetadata(
+    string Header,
+    string Body,
+    string Hero,
+    string Accent,
+    string Tertiary,
+    string Stroke,
+    string Footer
+);
 
-internal record PortalCustomThemeColorsText(
+internal record PortalCustomThemeColorsTextMetadata(
     string Header,
     string Hero,
     string Headings,
@@ -30,10 +38,10 @@ internal record PortalCustomThemeColorsText(
     string Footer
 );
 
-internal record PortalCustomThemeColorsButton(string PrimaryFill, string PrimaryText);
+internal record PortalCustomThemeColorsButtonMetadata(string PrimaryFill, string PrimaryText);
 
-internal record PortalCustomFonts(string? Base, string? Code, string? Headings);
+internal record PortalCustomFontsMetadata(string? Base, string? Code, string? Headings);
 
-internal record PortalText(string? WelcomeMessage, string? PrimaryHeader);
+internal record PortalTextMetadata(string? WelcomeMessage, string? PrimaryHeader);
 
-internal record PortalImages(string? Favicon, string? Logo, string? CatalogCover);
+internal record PortalImagesMetadata(string? Favicon, string? Logo, string? CatalogCover);

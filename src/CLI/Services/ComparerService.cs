@@ -1,6 +1,5 @@
 ﻿using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
-using Kong.Portal.CLI.Services.Metadata;
 using Kong.Portal.CLI.Services.Models;
 
 namespace Kong.Portal.CLI.Services;
@@ -15,7 +14,13 @@ internal class ComparerService
 
         await CompareApiProducts(sourceData, context);
 
-        var result = new CompareResult(context.ApiProducts, context.ApiProductVersions, context.ApiProductVersionSpecifications);
+        var result = new CompareResult(
+            context.ApiProducts,
+            context.ApiProductVersions,
+            context.ApiProductVersionSpecifications,
+            context.Portals,
+            context.PortalAppearances
+        );
 
         return result;
     }
@@ -24,7 +29,7 @@ internal class ComparerService
     {
         var toMatch = sourceData.Portals.ToList();
 
-        var serverPortals = await context.ApiClient.Portals.GetAll();
+        var serverPortals = await context.ApiClient.DevPortals.GetAll();
 
         foreach (var serverPortal in serverPortals)
         {
@@ -33,10 +38,10 @@ internal class ComparerService
             {
                 toMatch.Remove(sourcePortal);
 
-                var portal = sourcePortal.ToPortal(serverPortal.Id);
+                var portal = sourcePortal.ToApiModel(serverPortal.Id);
                 context.Portals.Add(Difference.UpdateOrNoChange(sourcePortal.Name, serverPortal.Id, serverPortal, portal));
 
-                //TODO: other portal data
+                await ComparePortalAppearance(sourceData, context, sourcePortal.Name, serverPortal.Id);
 
                 continue;
             }
@@ -46,8 +51,30 @@ internal class ComparerService
 
         foreach (var sourcePortal in toMatch)
         {
-            context.Portals.Add(Difference.Add(sourcePortal.Name, sourcePortal.ToPortal()));
+            context.Portals.Add(Difference.Add(sourcePortal.Name, sourcePortal.ToApiModel()));
+
+            await ComparePortalAppearance(sourceData, context, sourcePortal.Name);
         }
+    }
+
+    private async Task ComparePortalAppearance(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
+    {
+        var toMatch = sourceData.PortalAppearances[portalName];
+        var imageData = sourceData.PortalAppearanceImageData[portalName];
+
+        if (portalId == null)
+        {
+            context.PortalAppearances[portalName] = Difference.Add(portalName, toMatch.ToApiModel(imageData));
+            return;
+        }
+
+        var serverPortalAppearance = await context.ApiClient.DevPortals.GetAppearance(portalId);
+        context.PortalAppearances[portalName] = Difference.UpdateOrNoChange(
+            portalName,
+            portalId,
+            serverPortalAppearance,
+            toMatch.ToApiModel(imageData)
+        );
     }
 
     private async Task CompareApiProducts(SourceData sourceData, CompareContext context)
@@ -63,7 +90,7 @@ internal class ComparerService
             {
                 toMatch.Remove(sourceApiProduct);
 
-                var apiProduct = sourceApiProduct.ToApiProduct(context.PortalNameMap, serverApiProduct.Id);
+                var apiProduct = sourceApiProduct.ToApiModel(context.PortalNameMap, serverApiProduct.Id);
                 context.ApiProducts.Add(Difference.UpdateOrNoChange(sourceApiProduct.SyncId, serverApiProduct.Id, serverApiProduct, apiProduct));
 
                 context.ApiProductVersions.Add(sourceApiProduct.SyncId, []);
@@ -78,7 +105,7 @@ internal class ComparerService
 
         foreach (var sourceApiProduct in toMatch)
         {
-            context.ApiProducts.Add(Difference.Add(sourceApiProduct.SyncId, sourceApiProduct.ToApiProduct(context.PortalNameMap)));
+            context.ApiProducts.Add(Difference.Add(sourceApiProduct.SyncId, sourceApiProduct.ToApiModel(context.PortalNameMap)));
 
             context.ApiProductVersions.Add(sourceApiProduct.SyncId, []);
             context.ApiProductVersionSpecifications.Add(sourceApiProduct.SyncId, []);
@@ -94,7 +121,7 @@ internal class ComparerService
         {
             foreach (var versionMetadata in toMatch)
             {
-                context.ApiProductVersions[apiProductSyncId].Add(Difference.Add(versionMetadata.SyncId, versionMetadata.ToApiProductVersion()));
+                context.ApiProductVersions[apiProductSyncId].Add(Difference.Add(versionMetadata.SyncId, versionMetadata.ToApiModel()));
 
                 var sourceApiProductVersionSpecification = sourceData.ApiProductVersionSpecifications[apiProductSyncId][versionMetadata.SyncId];
                 if (sourceApiProductVersionSpecification != null)
@@ -130,7 +157,7 @@ internal class ComparerService
             {
                 toMatch.Remove(sourceApiProductVersion);
 
-                var apiProductVersion = sourceApiProductVersion.ToApiProductVersion(serverApiProductVersion.Id);
+                var apiProductVersion = sourceApiProductVersion.ToApiModel(serverApiProductVersion.Id);
                 versionDifferences.Add(
                     Difference.UpdateOrNoChange(
                         sourceApiProductVersion.SyncId,
@@ -157,7 +184,7 @@ internal class ComparerService
 
         foreach (var sourceApiProductVersion in toMatch)
         {
-            versionDifferences.Add(Difference.Add(sourceApiProductVersion.SyncId, sourceApiProductVersion.ToApiProductVersion()));
+            versionDifferences.Add(Difference.Add(sourceApiProductVersion.SyncId, sourceApiProductVersion.ToApiModel()));
 
             await CompareApiProductVersionSpecification(sourceData, context, apiProductSyncId, apiProductId, sourceApiProductVersion.SyncId);
         }
@@ -172,7 +199,7 @@ internal class ComparerService
         string? apiProductVersionId = null
     )
     {
-        var filename = sourceData.ApiProductVersions[apiProductSyncId].Single(v => v.SyncId == apiProductVersionSyncId).SpecificationFilename;
+        var apiProductVersion = sourceData.ApiProductVersions[apiProductSyncId].Single(v => v.SyncId == apiProductVersionSyncId);
 
         var sourceApiProductVersionSpecification = sourceData.ApiProductVersionSpecifications[apiProductSyncId][apiProductVersionSyncId];
 
@@ -186,11 +213,7 @@ internal class ComparerService
                         apiProductVersionSyncId,
                         Difference.Add(
                             apiProductVersionSyncId,
-                            new ApiProductSpecification(
-                                $"resolve://api-product-specification/{apiProductVersionSyncId}",
-                                filename!,
-                                sourceApiProductVersionSpecification
-                            )
+                            apiProductVersion.ToApiProductVersionSpecification(sourceApiProductVersionSpecification)
                         )
                     );
             }
@@ -211,20 +234,15 @@ internal class ComparerService
                         apiProductVersionSyncId,
                         Difference.Add(
                             apiProductVersionSyncId,
-                            new ApiProductSpecification(
-                                $"resolve://api-product-specification/{apiProductVersionSyncId}",
-                                filename!,
-                                sourceApiProductVersionSpecification
-                            )
+                            apiProductVersion.ToApiProductVersionSpecification(sourceApiProductVersionSpecification)
                         )
                     );
             }
             else
             {
-                var apiProductVersionSpecification = new ApiProductSpecification(
-                    serverApiProductVersionSpecification.Id,
-                    filename!,
-                    sourceApiProductVersionSpecification
+                var apiProductVersionSpecification = apiProductVersion.ToApiProductVersionSpecification(
+                    sourceApiProductVersionSpecification,
+                    serverApiProductVersionSpecification.Id
                 );
 
                 context
@@ -272,7 +290,8 @@ internal class ComparerService
     private class CompareContext(KongApiClient apiClient)
     {
         public KongApiClient ApiClient { get; } = apiClient;
-        public List<Difference<ApiClient.Models.Portal>> Portals { get; } = new();
+        public List<Difference<DevPortal>> Portals { get; } = new();
+        public Dictionary<string, Difference<DevPortalAppearance>> PortalAppearances { get; } = new();
         public List<Difference<ApiProduct>> ApiProducts { get; } = new();
         public Dictionary<string, List<Difference<ApiProductVersion>>> ApiProductVersions { get; } = new();
         public Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> ApiProductVersionSpecifications { get; } = new();

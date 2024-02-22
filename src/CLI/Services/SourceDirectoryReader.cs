@@ -1,5 +1,4 @@
 ﻿using System.IO.Abstractions;
-using Kong.Portal.CLI.Services.Metadata;
 
 namespace Kong.Portal.CLI.Services;
 
@@ -41,7 +40,8 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
             throw new SyncException($"Cannot read portal: {portalFile}");
         }
 
-        var portalAppearanceFile = Path.Combine(Path.GetDirectoryName(portalFile)!, "appearance.json");
+        var portalDirectory = Path.GetDirectoryName(portalFile)!;
+        var portalAppearanceFile = Path.Combine(portalDirectory, "appearance.json");
         var portalAppearanceMetadata = await metadataSerializer.DeserializeAsync<PortalAppearanceMetadata>(portalAppearanceFile);
 
         if (portalAppearanceMetadata == null)
@@ -51,6 +51,27 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
         sourceData.Portals.Add(portalMetadata);
         sourceData.PortalAppearances.Add(portalMetadata.Name, portalAppearanceMetadata);
+
+        var imagesMetadata = portalAppearanceMetadata.Images;
+        var faviconImage = await ReadPortalImage(portalDirectory, imagesMetadata.Favicon);
+        var logoImage = await ReadPortalImage(portalDirectory, imagesMetadata.Logo);
+        var catalogCoverImage = await ReadPortalImage(portalDirectory, imagesMetadata.CatalogCover);
+
+        var imageData = new ImageData(faviconImage, logoImage, catalogCoverImage);
+        sourceData.PortalAppearanceImageData[portalMetadata.Name] = imageData;
+    }
+
+    private async Task<string?> ReadPortalImage(string portalDirectory, string? filename)
+    {
+        if (filename == null)
+        {
+            return null;
+        }
+
+        var imageFilename = Path.Combine(portalDirectory, filename);
+        var imageBytes = await fileSystem.File.ReadAllBytesAsync(imageFilename);
+
+        return DataUriHelpers.ToDataUri(filename, imageBytes);
     }
 
     private async Task ReadApiProducts(SourceData sourceData)

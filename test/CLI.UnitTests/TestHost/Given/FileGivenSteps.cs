@@ -1,7 +1,6 @@
 ﻿using System.IO.Abstractions;
 using Kong.Portal.CLI;
 using Kong.Portal.CLI.Services;
-using Kong.Portal.CLI.Services.Metadata;
 
 namespace CLI.UnitTests.TestHost;
 
@@ -64,6 +63,60 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         fileSystem.Directory.EnsureDirectory(apiProductVersionDirectory);
 
         var metadataFilename = Path.Combine(apiProductVersionDirectory, "version.json");
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+    }
+
+    public async Task AnExistingDevPortal(
+        string inputDirectory,
+        Discretionary<string> name = default,
+        Discretionary<string?> customDomain = default,
+        Discretionary<string?> customClientDomain = default,
+        Discretionary<bool> isPublic = default,
+        Discretionary<bool> rbacEnabled = default,
+        Discretionary<bool> autoApproveDevelopers = default,
+        Discretionary<bool> autoApproveApplications = default
+    )
+    {
+        var portalName = name.GetValueOrDefault("default");
+
+        var metadata = new PortalMetadata(
+            portalName,
+            customDomain.GetValueOrDefault(null),
+            customClientDomain.GetValueOrDefault(null),
+            isPublic.GetValueOrDefault(false),
+            autoApproveDevelopers.GetValueOrDefault(false),
+            autoApproveApplications.GetValueOrDefault(false),
+            rbacEnabled.GetValueOrDefault(false)
+        );
+
+        var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
+        fileSystem.Directory.EnsureDirectory(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "portal.json");
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+    }
+
+    public async Task AnExistingDevPortalAppearance(
+        string inputDirectory,
+        Discretionary<string> name = default,
+        Discretionary<string> themeName = default
+    )
+    {
+        var portalName = name.GetValueOrDefault("default");
+
+        var metadata = new PortalAppearanceMetadata(
+            themeName.GetValueOrDefault("mint_rocket"),
+            false,
+            null,
+            new PortalCustomFontsMetadata(null, null, null),
+            new PortalTextMetadata(null, null),
+            new PortalImagesMetadata(null, null, null)
+        );
+
+        var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
+        fileSystem.Directory.EnsureDirectory(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "appearance.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
     }
 }
