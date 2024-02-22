@@ -3,7 +3,7 @@
 internal record PortalAppearanceMetadata(
     string ThemeName,
     bool UseCustomFonts,
-    PortalCustomThemeMetadata CustomTheme,
+    PortalCustomThemeMetadata? CustomTheme,
     PortalCustomFontsMetadata CustomFonts,
     PortalTextMetadata Text,
     PortalImagesMetadata Images

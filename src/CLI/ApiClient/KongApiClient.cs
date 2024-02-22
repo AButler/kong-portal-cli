@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using Flurl.Http;
 using Flurl.Http.Configuration;
+using Pastel;
 
 namespace Kong.Portal.CLI.ApiClient;
 
@@ -12,16 +13,26 @@ internal class KongApiClient
         var flurlClient = new FlurlClient(options.BaseUrl + "/v2/")
             .WithSettings(c =>
             {
-                var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+                var serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
                     Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) }
                 };
 
-                c.JsonSerializer = new DefaultJsonSerializer(options);
+                c.JsonSerializer = new DefaultJsonSerializer(serializerOptions);
             })
             .WithHeader("User-Agent", "Kong Portal CLI")
-            .WithOAuthBearerToken(options.Token);
+            .WithOAuthBearerToken(options.Token)
+            .OnError(async call =>
+            {
+                if (options.DebugLoggingEnabled)
+                {
+                    var request = call.Request;
+                    var response = call.Response;
+                    Console.WriteLine($"[HTTP ERROR {response.StatusCode}] {request.Verb} {request.Url}".Pastel(ConsoleColor.Red));
+                    Console.WriteLine(await response.GetStringAsync());
+                }
+            });
 
         ApiProducts = new ApiProductsClient(flurlClient);
         ApiProductVersions = new ApiProductVersionsClient(flurlClient);

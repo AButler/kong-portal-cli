@@ -27,6 +27,7 @@ try
     rootCommand.AddGlobalOption(GlobalOptions.TokenOption);
     rootCommand.AddGlobalOption(GlobalOptions.TokenFileOption);
     rootCommand.AddGlobalOption(GlobalOptions.KonnectAddressOption);
+    rootCommand.AddGlobalOption(GlobalOptions.Debug);
 
     rootCommand.AddCommand(services.GetRequiredService<DumpCommand>());
     rootCommand.AddCommand(services.GetRequiredService<SyncCommand>());

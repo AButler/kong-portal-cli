@@ -30,17 +30,18 @@ internal class SyncCommand : Command
             applyOption,
             GlobalOptions.TokenOption,
             GlobalOptions.TokenFileOption,
-            GlobalOptions.KonnectAddressOption
+            GlobalOptions.KonnectAddressOption,
+            GlobalOptions.Debug
         );
     }
 
-    private async Task<int> Handle(string inputDirectory, bool apply, string token, string tokenFile, string konnectAddress)
+    private async Task<int> Handle(string inputDirectory, bool apply, string token, string tokenFile, string konnectAddress, bool debug)
     {
         try
         {
             var resolvedToken = TokenResolutionHelper.ResolveToken(token, tokenFile);
 
-            await _syncService.Sync(Path.GetFullPath(inputDirectory), apply, new KongApiClientOptions(resolvedToken, konnectAddress));
+            await _syncService.Sync(Path.GetFullPath(inputDirectory), apply, new KongApiClientOptions(resolvedToken, konnectAddress, debug));
 
             return 0;
         }

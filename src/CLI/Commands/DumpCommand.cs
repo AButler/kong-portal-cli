@@ -22,16 +22,23 @@ internal class DumpCommand : Command
 
         AddOption(outputDirectoryOption);
 
-        this.SetHandler(Handle, outputDirectoryOption, GlobalOptions.TokenOption, GlobalOptions.TokenFileOption, GlobalOptions.KonnectAddressOption);
+        this.SetHandler(
+            Handle,
+            outputDirectoryOption,
+            GlobalOptions.TokenOption,
+            GlobalOptions.TokenFileOption,
+            GlobalOptions.KonnectAddressOption,
+            GlobalOptions.Debug
+        );
     }
 
-    private async Task<int> Handle(string outputDirectory, string token, string tokenFile, string konnectAddress)
+    private async Task<int> Handle(string outputDirectory, string token, string tokenFile, string konnectAddress, bool debug)
     {
         try
         {
             var resolvedToken = TokenResolutionHelper.ResolveToken(token, tokenFile);
 
-            await _dumpService.Dump(Path.GetFullPath(outputDirectory), new KongApiClientOptions(resolvedToken, konnectAddress));
+            await _dumpService.Dump(Path.GetFullPath(outputDirectory), new KongApiClientOptions(resolvedToken, konnectAddress, debug));
 
             return 0;
         }

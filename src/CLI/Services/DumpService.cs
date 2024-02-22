@@ -145,33 +145,35 @@ internal class DumpService(
         var appearanceMetadata = new PortalAppearanceMetadata(
             portalAppearance.ThemeName,
             portalAppearance.UseCustomFonts,
-            new PortalCustomThemeMetadata(
-                new PortalCustomThemeColorsMetadata(
-                    new PortalCustomThemeColorsSectionMetadata(
-                        portalAppearance.CustomTheme.Colors.Section.Header.Value,
-                        portalAppearance.CustomTheme.Colors.Section.Body.Value,
-                        portalAppearance.CustomTheme.Colors.Section.Header.Value,
-                        portalAppearance.CustomTheme.Colors.Section.Accent.Value,
-                        portalAppearance.CustomTheme.Colors.Section.Tertiary.Value,
-                        portalAppearance.CustomTheme.Colors.Section.Stroke.Value,
-                        portalAppearance.CustomTheme.Colors.Section.Footer.Value
-                    ),
-                    new PortalCustomThemeColorsTextMetadata(
-                        portalAppearance.CustomTheme.Colors.Text.Header.Value,
-                        portalAppearance.CustomTheme.Colors.Text.Hero.Value,
-                        portalAppearance.CustomTheme.Colors.Text.Headings.Value,
-                        portalAppearance.CustomTheme.Colors.Text.Primary.Value,
-                        portalAppearance.CustomTheme.Colors.Text.Secondary.Value,
-                        portalAppearance.CustomTheme.Colors.Text.Accent.Value,
-                        portalAppearance.CustomTheme.Colors.Text.Link.Value,
-                        portalAppearance.CustomTheme.Colors.Text.Footer.Value
-                    ),
-                    new PortalCustomThemeColorsButtonMetadata(
-                        portalAppearance.CustomTheme.Colors.Button.PrimaryFill.Value,
-                        portalAppearance.CustomTheme.Colors.Button.PrimaryText.Value
+            portalAppearance.CustomTheme == null
+                ? null
+                : new PortalCustomThemeMetadata(
+                    new PortalCustomThemeColorsMetadata(
+                        new PortalCustomThemeColorsSectionMetadata(
+                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Body.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Accent.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Tertiary.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Stroke.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Footer.Value
+                        ),
+                        new PortalCustomThemeColorsTextMetadata(
+                            portalAppearance.CustomTheme.Colors.Text.Header.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Hero.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Headings.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Primary.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Secondary.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Accent.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Link.Value,
+                            portalAppearance.CustomTheme.Colors.Text.Footer.Value
+                        ),
+                        new PortalCustomThemeColorsButtonMetadata(
+                            portalAppearance.CustomTheme.Colors.Button.PrimaryFill.Value,
+                            portalAppearance.CustomTheme.Colors.Button.PrimaryText.Value
+                        )
                     )
-                )
-            ),
+                ),
             new PortalCustomFontsMetadata(
                 portalAppearance.CustomFonts?.Base,
                 portalAppearance.CustomFonts?.Code,

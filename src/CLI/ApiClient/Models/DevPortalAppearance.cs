@@ -3,7 +3,7 @@
 internal record DevPortalAppearance(
     string ThemeName,
     bool UseCustomFonts,
-    DevPortalAppearanceCustomTheme CustomTheme,
+    DevPortalAppearanceCustomTheme? CustomTheme,
     DevPortalAppearanceCustomFonts? CustomFonts,
     DevPortalAppearanceText? Text,
     DevPortalAppearanceImages? Images

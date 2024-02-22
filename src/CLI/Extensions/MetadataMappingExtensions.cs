@@ -31,8 +31,13 @@ internal static class MetadataMappingExtensions
         );
     }
 
-    public static DevPortalAppearanceCustomTheme ToApiModel(this PortalCustomThemeMetadata metadata)
+    public static DevPortalAppearanceCustomTheme? ToApiModel(this PortalCustomThemeMetadata? metadata)
     {
+        if (metadata == null)
+        {
+            return null;
+        }
+
         var section = new DevPortalAppearanceCustomThemeColorsSection(
             new PortalAppearanceColorValue(metadata.Colors.Section.Header),
             new PortalAppearanceColorValue(metadata.Colors.Section.Body),

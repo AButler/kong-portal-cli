@@ -228,7 +228,7 @@ internal class ApiGivenSteps
             {
                 theme_name = appearance.ThemeName.GetValueOrDefault("mint_rocket"),
                 use_custom_fonts = appearance.UseCustomFonts.GetValueOrDefault(false),
-                custom_theme = GetDefaultCustomThemeObject(),
+                custom_theme = (object?)null,
                 custom_fonts = customFontObject,
                 text = textObject,
                 images = new
@@ -340,37 +340,5 @@ internal class ApiGivenSteps
                         }
                 );
         }
-    }
-
-    private static dynamic GetDefaultCustomThemeObject()
-    {
-        return new
-        {
-            colors = new
-            {
-                section = new
-                {
-                    header = new { value = "#F8F8F8" },
-                    body = new { value = "#FFFFFF" },
-                    hero = new { value = "#F8F8F8" },
-                    accent = new { value = "#F8F8F8" },
-                    tertiary = new { value = "#FFFFFF" },
-                    stroke = new { value = "rgba(0,0,0,0.1)" },
-                    footer = new { value = "#07A88D" }
-                },
-                text = new
-                {
-                    header = new { value = "rgba(0,0,0,0.8)" },
-                    hero = new { value = "#FFFFFF" },
-                    headings = new { value = "rgba(0,0,0,0.8)" },
-                    primary = new { value = "rgba(0,0,0,0.8)" },
-                    secondary = new { value = "rgba(0,0,0,0.8)" },
-                    accent = new { value = "#07A88D" },
-                    link = new { value = "#07A88D" },
-                    footer = new { value = "#FFFFFF" }
-                },
-                button = new { primary_fill = new { value = "#1155CB" }, primary_text = new { value = "#FFFFFF" } }
-            }
-        };
     }
 }

@@ -1,3 +1,3 @@
 ﻿namespace Kong.Portal.CLI.ApiClient;
 
-internal record KongApiClientOptions(string Token, string BaseUrl);
+internal record KongApiClientOptions(string Token, string BaseUrl, bool DebugLoggingEnabled = false);
