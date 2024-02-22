@@ -145,46 +145,46 @@ internal class DumpService(
         var appearanceMetadata = new PortalAppearanceMetadata(
             portalAppearance.ThemeName,
             portalAppearance.UseCustomFonts,
-            portalAppearance.CustomTheme == null
-                ? null
-                : new PortalCustomThemeMetadata(
-                    new PortalCustomThemeColorsMetadata(
-                        new PortalCustomThemeColorsSectionMetadata(
-                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Body.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Accent.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Tertiary.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Stroke.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Footer.Value
-                        ),
-                        new PortalCustomThemeColorsTextMetadata(
-                            portalAppearance.CustomTheme.Colors.Text.Header.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Hero.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Headings.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Primary.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Secondary.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Accent.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Link.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Footer.Value
-                        ),
-                        new PortalCustomThemeColorsButtonMetadata(
-                            portalAppearance.CustomTheme.Colors.Button.PrimaryFill.Value,
-                            portalAppearance.CustomTheme.Colors.Button.PrimaryText.Value
-                        )
+            new PortalCustomThemeMetadata(
+                new PortalCustomThemeColorsMetadata(
+                    new PortalCustomThemeColorsSectionMetadata(
+                        portalAppearance.CustomTheme.Colors.Section.Header.Value,
+                        portalAppearance.CustomTheme.Colors.Section.Body.Value,
+                        portalAppearance.CustomTheme.Colors.Section.Header.Value,
+                        portalAppearance.CustomTheme.Colors.Section.Accent.Value,
+                        portalAppearance.CustomTheme.Colors.Section.Tertiary.Value,
+                        portalAppearance.CustomTheme.Colors.Section.Stroke.Value,
+                        portalAppearance.CustomTheme.Colors.Section.Footer.Value
+                    ),
+                    new PortalCustomThemeColorsTextMetadata(
+                        portalAppearance.CustomTheme.Colors.Text.Header.Value,
+                        portalAppearance.CustomTheme.Colors.Text.Hero.Value,
+                        portalAppearance.CustomTheme.Colors.Text.Headings.Value,
+                        portalAppearance.CustomTheme.Colors.Text.Primary.Value,
+                        portalAppearance.CustomTheme.Colors.Text.Secondary.Value,
+                        portalAppearance.CustomTheme.Colors.Text.Accent.Value,
+                        portalAppearance.CustomTheme.Colors.Text.Link.Value,
+                        portalAppearance.CustomTheme.Colors.Text.Footer.Value
+                    ),
+                    new PortalCustomThemeColorsButtonMetadata(
+                        portalAppearance.CustomTheme.Colors.Button.PrimaryFill.Value,
+                        portalAppearance.CustomTheme.Colors.Button.PrimaryText.Value
                     )
-                ),
+                )
+            ),
             new PortalCustomFontsMetadata(
                 portalAppearance.CustomFonts?.Base,
                 portalAppearance.CustomFonts?.Code,
                 portalAppearance.CustomFonts?.Headings
             ),
             new PortalTextMetadata(portalAppearance.Text?.Catalog.WelcomeMessage, portalAppearance.Text?.Catalog.PrimaryHeader),
-            new PortalImagesMetadata(
-                portalAppearance.Images.Favicon?.Filename,
-                portalAppearance.Images.Logo?.Filename,
-                portalAppearance.Images.CatalogCover?.Filename
-            )
+            portalAppearance.Images == null
+                ? PortalImagesMetadata.NullValue
+                : new PortalImagesMetadata(
+                    portalAppearance.Images.Favicon?.Filename,
+                    portalAppearance.Images.Logo?.Filename,
+                    portalAppearance.Images.CatalogCover?.Filename
+                )
         );
 
         var metadata = new PortalMetadata(
@@ -203,19 +203,19 @@ internal class DumpService(
         var appearanceMetadataFilename = Path.Combine(portalDirectory, "appearance.json");
         await metadataSerializer.SerializeAsync(appearanceMetadataFilename, appearanceMetadata);
 
-        if (portalAppearance.Images.Favicon != null)
+        if (portalAppearance.Images?.Favicon != null)
         {
             var imageFilename = Path.Combine(portalDirectory, portalAppearance.Images.Favicon.Filename);
             await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.Favicon.Data);
         }
 
-        if (portalAppearance.Images.Logo != null)
+        if (portalAppearance.Images?.Logo != null)
         {
             var imageFilename = Path.Combine(portalDirectory, portalAppearance.Images.Logo.Filename);
             await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.Logo.Data);
         }
 
-        if (portalAppearance.Images.CatalogCover != null)
+        if (portalAppearance.Images?.CatalogCover != null)
         {
             var imageFilename = Path.Combine(portalDirectory, portalAppearance.Images.CatalogCover.Filename);
             await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.CatalogCover.Data);

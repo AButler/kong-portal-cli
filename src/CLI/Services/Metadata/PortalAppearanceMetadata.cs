@@ -3,7 +3,7 @@
 internal record PortalAppearanceMetadata(
     string ThemeName,
     bool UseCustomFonts,
-    PortalCustomThemeMetadata? CustomTheme,
+    PortalCustomThemeMetadata CustomTheme,
     PortalCustomFontsMetadata CustomFonts,
     PortalTextMetadata Text,
     PortalImagesMetadata Images
@@ -40,8 +40,17 @@ internal record PortalCustomThemeColorsTextMetadata(
 
 internal record PortalCustomThemeColorsButtonMetadata(string PrimaryFill, string PrimaryText);
 
-internal record PortalCustomFontsMetadata(string? Base, string? Code, string? Headings);
+internal record PortalCustomFontsMetadata(string? Base, string? Code, string? Headings)
+{
+    public static PortalCustomFontsMetadata NullValue => new(null, null, null);
+}
 
-internal record PortalTextMetadata(string? WelcomeMessage, string? PrimaryHeader);
+internal record PortalTextMetadata(string? WelcomeMessage, string? PrimaryHeader)
+{
+    public static PortalTextMetadata NullValue => new(null, null);
+}
 
-internal record PortalImagesMetadata(string? Favicon, string? Logo, string? CatalogCover);
+internal record PortalImagesMetadata(string? Favicon, string? Logo, string? CatalogCover)
+{
+    public static PortalImagesMetadata NullValue => new(null, null, null);
+}

@@ -1,4 +1,5 @@
-﻿using Kong.Portal.CLI;
+﻿using CLI.UnitTests.TestHost;
+using Kong.Portal.CLI;
 using Kong.Portal.CLI.Services;
 
 namespace CLI.UnitTests;
@@ -468,23 +469,24 @@ public class DumpServiceTests
 
         var portalId = Guid.NewGuid().ToString();
 
-        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
-
-        testHost.Given.Api.AnExistingDevPortalAppearance(
+        testHost.Given.Api.AnExistingDevPortal(
             portalId: portalId,
-            themeName: "custom",
-            useCustomFonts: true,
-            customFontBase: "Inter",
-            customFontCode: "Source Code Pro",
-            customFontHeadings: "Open Sans",
-            welcomeMessage: "Welcome to the DevPortal",
-            primaryHeader: "This portal contains all the information you could need",
-            faviconImage: Icons.Favicon,
-            faviconImageName: "favicon.png",
-            logoImage: Icons.Logo,
-            logoImageName: "logo.png",
-            catalogCoverImage: Icons.CatalogCover,
-            catalogCoverImageName: "catalog_cover.png"
+            name: "default",
+            appearanceData: new AppearanceData(
+                ThemeName: "custom",
+                UseCustomFonts: true,
+                CustomFontBase: "Inter",
+                CustomFontCode: "Source Code Pro",
+                CustomFontHeadings: "Open Sans",
+                WelcomeMessage: "Welcome to the DevPortal",
+                PrimaryHeader: "This portal contains all the information you could need",
+                FaviconImage: Icons.Favicon,
+                FaviconImageName: "favicon.png",
+                LogoImage: Icons.Logo,
+                LogoImageName: "logo.png",
+                CatalogCoverImage: Icons.CatalogCover,
+                CatalogCoverImageName: "catalog_cover.png"
+            )
         );
 
         var outputDirectory = @"c:\temp\output";

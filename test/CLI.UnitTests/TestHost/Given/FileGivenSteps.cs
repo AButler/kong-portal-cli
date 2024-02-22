@@ -107,10 +107,10 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         var metadata = new PortalAppearanceMetadata(
             themeName.GetValueOrDefault("mint_rocket"),
             false,
-            null,
-            new PortalCustomFontsMetadata(null, null, null),
-            new PortalTextMetadata(null, null),
-            new PortalImagesMetadata(null, null, null)
+            CreateDefaultCustomTheme(),
+            PortalCustomFontsMetadata.NullValue,
+            PortalTextMetadata.NullValue,
+            PortalImagesMetadata.NullValue
         );
 
         var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
@@ -118,5 +118,25 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
 
         var metadataFilename = Path.Combine(portalDirectory, "appearance.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+    }
+
+    private static PortalCustomThemeMetadata CreateDefaultCustomTheme()
+    {
+        return new PortalCustomThemeMetadata(
+            new PortalCustomThemeColorsMetadata(
+                new PortalCustomThemeColorsSectionMetadata("#F8F8F8", "#FFFFFF", "#F8F8F8", "#F8F8F8", "#FFFFFF", "rgba(0,0,0,0.1)", "#07A88D"),
+                new PortalCustomThemeColorsTextMetadata(
+                    "rgba(0,0,0,0.8)",
+                    "#FFFFFF",
+                    "rgba(0,0,0,0.8)",
+                    "rgba(0,0,0,0.8)",
+                    "rgba(0,0,0,0.8)",
+                    "#07A88D",
+                    "#07A88D",
+                    "#FFFFFF"
+                ),
+                new PortalCustomThemeColorsButtonMetadata("#1155CB", "#FFFFFF")
+            )
+        );
     }
 }

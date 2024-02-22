@@ -156,7 +156,6 @@ public class SyncServiceTests
         var portalId = Guid.NewGuid().ToString();
 
         testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
-        testHost.Given.Api.AnExistingDevPortalAppearance(portalId: portalId);
 
         await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", name: "default");
         await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", name: "default", themeName: "custom");

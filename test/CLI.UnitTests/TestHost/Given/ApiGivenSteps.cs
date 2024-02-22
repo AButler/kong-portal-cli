@@ -154,7 +154,8 @@ internal class ApiGivenSteps
         Discretionary<bool> autoApproveApplications = default,
         Discretionary<bool> autoApproveDevelopers = default,
         Discretionary<string?> customDomain = default,
-        Discretionary<string?> customClientDomain = default
+        Discretionary<string?> customClientDomain = default,
+        Discretionary<AppearanceData> appearanceData = default
     )
     {
         var id = portalId.GetValueOrDefault(Guid.NewGuid().ToString());
@@ -173,91 +174,71 @@ internal class ApiGivenSteps
             }
         );
 
-        _devPortalAppearances.Add(
-            id,
-            new
-            {
-                theme_name = "custom",
-                use_custom_fonts = false,
-                custom_theme = (object?)null,
-                custom_fonts = (object?)null,
-                text = (object?)null,
-                images = new
-                {
-                    favicon = (string?)null,
-                    logo = (string?)null,
-                    catalog_cover = (string?)null
-                }
-            }
-        );
+        AnExistingDevPortalAppearance(id, appearanceData.GetValueOrDefault(new AppearanceData()));
 
         HttpTest.Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/appearance").WithVerb("GET").RespondWithDynamicJson(() => _devPortalAppearances[id]);
     }
 
-    public void AnExistingDevPortalAppearance(
-        string portalId,
-        Discretionary<string> themeName = default,
-        Discretionary<bool> useCustomFonts = default,
-        Discretionary<string?> customFontBase = default,
-        Discretionary<string?> customFontCode = default,
-        Discretionary<string?> customFontHeadings = default,
-        Discretionary<string?> welcomeMessage = default,
-        Discretionary<string?> primaryHeader = default,
-        Discretionary<string?> faviconImage = default,
-        Discretionary<string?> faviconImageName = default,
-        Discretionary<string?> logoImage = default,
-        Discretionary<string?> logoImageName = default,
-        Discretionary<string?> catalogCoverImage = default,
-        Discretionary<string?> catalogCoverImageName = default
-    )
+    private void AnExistingDevPortalAppearance(string portalId, AppearanceData appearance)
     {
         var customFontObject =
-            !customFontBase.IsSpecified && !customFontCode.IsSpecified && !customFontHeadings.IsSpecified
+            !appearance.CustomFontBase.IsSpecified && !appearance.CustomFontCode.IsSpecified && !appearance.CustomFontHeadings.IsSpecified
                 ? (object?)null
                 : new
                 {
-                    @base = customFontBase.GetValueOrDefault(null),
-                    code = customFontCode.GetValueOrDefault(null),
-                    headings = customFontHeadings.GetValueOrDefault(null)
+                    @base = appearance.CustomFontBase.GetValueOrDefault(null),
+                    code = appearance.CustomFontCode.GetValueOrDefault(null),
+                    headings = appearance.CustomFontHeadings.GetValueOrDefault(null)
                 };
 
         var textObject =
-            !welcomeMessage.IsSpecified && !primaryHeader.IsSpecified
+            !appearance.WelcomeMessage.IsSpecified && !appearance.PrimaryHeader.IsSpecified
                 ? (object?)null
                 : new
                 {
-                    catalog = new { welcome_message = welcomeMessage.GetValueOrDefault(null), primary_header = primaryHeader.GetValueOrDefault(null) }
+                    catalog = new
+                    {
+                        welcome_message = appearance.WelcomeMessage.GetValueOrDefault(null),
+                        primary_header = appearance.PrimaryHeader.GetValueOrDefault(null)
+                    }
                 };
 
         var faviconObject =
-            !faviconImage.IsSpecified && !faviconImageName.IsSpecified
+            !appearance.FaviconImage.IsSpecified && !appearance.FaviconImageName.IsSpecified
                 ? (object?)null
-                : new { data = faviconImage.GetValueOrDefault(null), filename = faviconImageName.GetValueOrDefault(null) };
+                : new { data = appearance.FaviconImage.GetValueOrDefault(null), filename = appearance.FaviconImageName.GetValueOrDefault(null) };
 
         var logoObject =
-            !logoImage.IsSpecified && !logoImageName.IsSpecified
+            !appearance.LogoImage.IsSpecified && !appearance.LogoImageName.IsSpecified
                 ? (object?)null
-                : new { data = logoImage.GetValueOrDefault(null), filename = logoImageName.GetValueOrDefault(null) };
+                : new { data = appearance.LogoImage.GetValueOrDefault(null), filename = appearance.LogoImageName.GetValueOrDefault(null) };
 
         var catalogCoverObject =
-            !catalogCoverImage.IsSpecified && !catalogCoverImageName.IsSpecified
+            !appearance.CatalogCoverImage.IsSpecified && !appearance.CatalogCoverImageName.IsSpecified
                 ? (object?)null
-                : new { data = catalogCoverImage.GetValueOrDefault(null), filename = catalogCoverImageName.GetValueOrDefault(null) };
+                : new
+                {
+                    data = appearance.CatalogCoverImage.GetValueOrDefault(null),
+                    filename = appearance.CatalogCoverImageName.GetValueOrDefault(null)
+                };
 
-        _devPortalAppearances[portalId] = new
-        {
-            theme_name = themeName.GetValueOrDefault("mint_rocket"),
-            use_custom_fonts = useCustomFonts.GetValueOrDefault(false),
-            custom_theme = (object?)null,
-            custom_fonts = customFontObject,
-            text = textObject,
-            images = new
+        _devPortalAppearances.Add(
+            portalId,
+            new
             {
-                favicon = faviconObject,
-                logo = logoObject,
-                catalog_cover = catalogCoverObject
+                theme_name = appearance.ThemeName.GetValueOrDefault("mint_rocket"),
+                use_custom_fonts = appearance.UseCustomFonts.GetValueOrDefault(false),
+                custom_theme = GetDefaultCustomThemeObject(),
+                custom_fonts = customFontObject,
+                text = textObject,
+                images = new
+                {
+                    favicon = faviconObject,
+                    logo = logoObject,
+                    catalog_cover = catalogCoverObject
+                }
             }
-        };
+        );
     }
 
     private void SetupIncomingApis()
@@ -359,5 +340,37 @@ internal class ApiGivenSteps
                         }
                 );
         }
+    }
+
+    private static dynamic GetDefaultCustomThemeObject()
+    {
+        return new
+        {
+            colors = new
+            {
+                section = new
+                {
+                    header = new { value = "#F8F8F8" },
+                    body = new { value = "#FFFFFF" },
+                    hero = new { value = "#F8F8F8" },
+                    accent = new { value = "#F8F8F8" },
+                    tertiary = new { value = "#FFFFFF" },
+                    stroke = new { value = "rgba(0,0,0,0.1)" },
+                    footer = new { value = "#07A88D" }
+                },
+                text = new
+                {
+                    header = new { value = "rgba(0,0,0,0.8)" },
+                    hero = new { value = "#FFFFFF" },
+                    headings = new { value = "rgba(0,0,0,0.8)" },
+                    primary = new { value = "rgba(0,0,0,0.8)" },
+                    secondary = new { value = "rgba(0,0,0,0.8)" },
+                    accent = new { value = "#07A88D" },
+                    link = new { value = "#07A88D" },
+                    footer = new { value = "#FFFFFF" }
+                },
+                button = new { primary_fill = new { value = "#1155CB" }, primary_text = new { value = "#FFFFFF" } }
+            }
+        };
     }
 }

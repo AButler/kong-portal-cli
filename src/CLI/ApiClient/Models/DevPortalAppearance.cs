@@ -3,10 +3,10 @@
 internal record DevPortalAppearance(
     string ThemeName,
     bool UseCustomFonts,
-    DevPortalAppearanceCustomTheme? CustomTheme,
+    DevPortalAppearanceCustomTheme CustomTheme,
     DevPortalAppearanceCustomFonts? CustomFonts,
     DevPortalAppearanceText? Text,
-    DevPortalAppearanceImages Images
+    DevPortalAppearanceImages? Images
 );
 
 internal record DevPortalAppearanceCustomFonts(string Base, string Code, string Headings);
