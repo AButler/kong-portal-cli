@@ -174,7 +174,11 @@ internal class DumpService(
                         )
                     )
                 ),
-            new PortalCustomFontsMetadata(portalAppearance.CustomFonts?.Base, portalAppearance.CustomFonts?.Code, portalAppearance.CustomFonts?.Headings),
+            new PortalCustomFontsMetadata(
+                portalAppearance.CustomFonts?.Base,
+                portalAppearance.CustomFonts?.Code,
+                portalAppearance.CustomFonts?.Headings
+            ),
             new PortalTextMetadata(portalAppearance.Text?.Catalog.WelcomeMessage, portalAppearance.Text?.Catalog.PrimaryHeader),
             new PortalImagesMetadata(
                 portalAppearance.Images.Favicon?.Filename,
