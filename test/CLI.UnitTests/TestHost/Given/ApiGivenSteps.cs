@@ -246,7 +246,7 @@ internal class ApiGivenSteps
 
         _devPortalAppearances[portalId] = new
         {
-            theme_name = themeName.GetValueOrDefault("minty_rocket"),
+            theme_name = themeName.GetValueOrDefault("mint_rocket"),
             use_custom_fonts = useCustomFonts.GetValueOrDefault(false),
             custom_theme = (object?)null,
             custom_fonts = customFontObject,
