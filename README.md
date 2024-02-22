@@ -13,6 +13,7 @@ A command line tool for dumping API Products and documentation from Kong Konnect
 - [Features](#features)
 - [Installation](#installation)
 - [Documentation](#documentation)
+- [Supported Entities](#supported-entities)
 
 ## Features
 
@@ -72,3 +73,21 @@ You can use `--help` flag once you've got the Portal CLI installed on your syste
 ```bash
 portal-cli --help
 ```
+
+## Supported Entities
+
+The table below shows the list of Kong Konnect entities that are supported by the sync.
+
+| Entity                            | Supported | Notes                                                              |
+|-----------------------------------|-----------|--------------------------------------------------------------------|
+| API Product                       | ✅         |                                                                    |
+| API Product Document              | ❌         | Coming soon                                                        |
+| API Product Version               | ✅         |                                                                    |
+| API Product Version Specification | ✅         |                                                                    |
+| Portal                            | ✅*        | Cannot create or delete Portals - only update the default Portal.  |
+| Portal Appearance                 | ✅         |                                                                    |
+| Portal Auth Settings              | ❌         |                                                                    |
+| Portal Teams                      | ❌         |                                                                    |
+| Portal Team Group Mappings        | ❌         |                                                                    |
+| Portal Team Roles                 | ❌         |                                                                    |
+
