@@ -108,8 +108,8 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
             themeName.GetValueOrDefault("mint_rocket"),
             false,
             CreateDefaultCustomTheme(),
-            PortalCustomFontsMetadata.NullValue,
-            PortalTextMetadata.NullValue,
+            new PortalCustomFontsMetadata("Roboto", "Roboto Mono", "Lato"),
+            new PortalTextMetadata("Welcome", "Header"),
             PortalImagesMetadata.NullValue
         );
 

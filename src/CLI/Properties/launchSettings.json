@@ -16,6 +16,10 @@
     "CLI - Version": {
       "commandName": "Project",
       "commandLineArgs": "--version"
+    },
+    "CLI - Help": {
+      "commandName": "Project",
+      "commandLineArgs": "--help"
     }
   }
 }

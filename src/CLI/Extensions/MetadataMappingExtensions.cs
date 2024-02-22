@@ -25,8 +25,8 @@ internal static class MetadataMappingExtensions
             metadata.ThemeName,
             metadata.UseCustomFonts,
             metadata.CustomTheme.ToApiModel(),
-            metadata.CustomFonts.ToApiModel(),
-            metadata.Text.ToApiModel(),
+            new DevPortalAppearanceCustomFonts(metadata.CustomFonts.Base, metadata.CustomFonts.Code, metadata.CustomFonts.Headings),
+            new DevPortalAppearanceText(new DevPortalAppearanceTextCatalog(metadata.Text.PrimaryHeader, metadata.Text.WelcomeMessage)),
             metadata.Images.ToApiModel(imageData)
         );
     }
@@ -69,27 +69,7 @@ internal static class MetadataMappingExtensions
         return new DevPortalAppearanceCustomTheme(colors);
     }
 
-    public static DevPortalAppearanceCustomFonts? ToApiModel(this PortalCustomFontsMetadata metadata)
-    {
-        if (metadata.Base == null && metadata.Code == null && metadata.Headings == null)
-        {
-            return null;
-        }
-
-        return new DevPortalAppearanceCustomFonts(metadata.Base ?? "", metadata.Code ?? "", metadata.Headings ?? "");
-    }
-
-    public static DevPortalAppearanceText? ToApiModel(this PortalTextMetadata metadata)
-    {
-        if (metadata.PrimaryHeader == null && metadata.WelcomeMessage == null)
-        {
-            return null;
-        }
-
-        return new DevPortalAppearanceText(new DevPortalAppearanceTextCatalog(metadata.PrimaryHeader, metadata.WelcomeMessage));
-    }
-
-    public static DevPortalAppearanceImages ToApiModel(this PortalImagesMetadata metadata, ImageData imageData)
+    private static DevPortalAppearanceImages ToApiModel(this PortalImagesMetadata metadata, ImageData imageData)
     {
         var favicon = imageData.Favicon == null ? null : new DevPortalAppearanceImage(imageData.Favicon, metadata.Favicon!);
         var logo = imageData.Logo == null ? null : new DevPortalAppearanceImage(imageData.Logo, metadata.Logo!);

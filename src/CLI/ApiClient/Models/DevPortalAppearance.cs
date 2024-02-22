@@ -13,7 +13,7 @@ internal record DevPortalAppearanceCustomFonts(string Base, string Code, string 
 
 internal record DevPortalAppearanceText(DevPortalAppearanceTextCatalog Catalog);
 
-internal record DevPortalAppearanceTextCatalog(string? WelcomeMessage, string? PrimaryHeader);
+internal record DevPortalAppearanceTextCatalog(string WelcomeMessage, string PrimaryHeader);
 
 internal record DevPortalAppearanceImages(DevPortalAppearanceImage? Favicon, DevPortalAppearanceImage? Logo, DevPortalAppearanceImage? CatalogCover);
 

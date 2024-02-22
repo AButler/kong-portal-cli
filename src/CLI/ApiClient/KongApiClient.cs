@@ -30,6 +30,9 @@ internal class KongApiClient
                     var request = call.Request;
                     var response = call.Response;
                     Console.WriteLine($"[HTTP ERROR {response.StatusCode}] {request.Verb} {request.Url}".Pastel(ConsoleColor.Red));
+                    Console.WriteLine("Request:");
+                    Console.WriteLine(call.RequestBody);
+                    Console.WriteLine("Response:");
                     Console.WriteLine(await response.GetStringAsync());
                 }
             });

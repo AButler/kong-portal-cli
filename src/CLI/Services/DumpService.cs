@@ -175,11 +175,11 @@ internal class DumpService(
                     )
                 ),
             new PortalCustomFontsMetadata(
-                portalAppearance.CustomFonts?.Base,
-                portalAppearance.CustomFonts?.Code,
-                portalAppearance.CustomFonts?.Headings
+                portalAppearance.CustomFonts?.Base ?? "Roboto",
+                portalAppearance.CustomFonts?.Code ?? "Roboto Mono",
+                portalAppearance.CustomFonts?.Headings ?? "Lato"
             ),
-            new PortalTextMetadata(portalAppearance.Text?.Catalog.WelcomeMessage, portalAppearance.Text?.Catalog.PrimaryHeader),
+            new PortalTextMetadata(portalAppearance.Text?.Catalog.WelcomeMessage ?? "", portalAppearance.Text?.Catalog.PrimaryHeader ?? ""),
             portalAppearance.Images == null
                 ? PortalImagesMetadata.NullValue
                 : new PortalImagesMetadata(
