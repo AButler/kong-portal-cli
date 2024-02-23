@@ -119,11 +119,26 @@ internal static class MetadataMappingExtensions
         );
     }
 
-    private static ApiVersionPublishStatus ToApiModel(this ApiProductVersionMetadataPublishStatus publishStatus) =>
+    public static ApiProductDocumentBody ToApiModel(this ApiProductDocumentMetadata metadata, string contents, string? id = null)
+    {
+        var parentSlug = GetParentSlug(metadata.FullSlug);
+
+        return new ApiProductDocumentBody(
+            id ?? $"resolve://api-product-document/{metadata.FullSlug}",
+            parentSlug == null ? null : $"resolve://api-product-document/{parentSlug}",
+            metadata.Slug,
+            metadata.FullSlug,
+            metadata.Status.ToApiModel(),
+            metadata.Title,
+            contents
+        );
+    }
+
+    private static ApiPublishStatus ToApiModel(this MetadataPublishStatus publishStatus) =>
         publishStatus switch
         {
-            ApiProductVersionMetadataPublishStatus.Published => ApiVersionPublishStatus.Published,
-            ApiProductVersionMetadataPublishStatus.Unpublished => ApiVersionPublishStatus.Unpublished,
+            MetadataPublishStatus.Published => ApiPublishStatus.Published,
+            MetadataPublishStatus.Unpublished => ApiPublishStatus.Unpublished,
             _ => throw new ArgumentOutOfRangeException(nameof(publishStatus))
         };
 
@@ -132,5 +147,12 @@ internal static class MetadataMappingExtensions
         var newLabels = labels.Clone();
         newLabels[Constants.SyncIdLabel] = syncId;
         return newLabels;
+    }
+
+    private static string? GetParentSlug(string slug)
+    {
+        var parentPath = Path.GetDirectoryName(slug)!.Replace(@"\", "/");
+
+        return string.IsNullOrEmpty(parentPath) ? null : parentPath;
     }
 }

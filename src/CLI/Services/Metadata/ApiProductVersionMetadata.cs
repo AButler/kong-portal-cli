@@ -3,13 +3,7 @@
 internal record ApiProductVersionMetadata(
     string SyncId,
     string Name,
-    ApiProductVersionMetadataPublishStatus PublishStatus,
+    MetadataPublishStatus PublishStatus,
     bool Deprecated,
     string? SpecificationFilename
 );
-
-internal enum ApiProductVersionMetadataPublishStatus
-{
-    Published,
-    Unpublished
-}

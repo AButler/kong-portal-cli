@@ -57,9 +57,14 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         return entity.Id;
     }
 
-    public void ApiProductVersionShouldHaveBeenCreated(string apiProductId, string versionName)
+    public void ApiProductVersionShouldHaveBeenCreated(string apiProductId)
     {
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}api-products/{apiProductId}/product-versions").WithVerb(HttpMethod.Post);
+    }
+
+    public void ApiProductDocumentShouldHaveBeenCreated(string apiProductId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}api-products/{apiProductId}/documents").WithVerb(HttpMethod.Post);
     }
 
     public void PortalShouldHaveBeenUpdated(string portalId)

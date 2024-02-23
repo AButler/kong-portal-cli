@@ -30,4 +30,25 @@ internal class ApiProductDocumentsClient(IFlurlClient flurlClient)
 
         return await response.GetJsonAsync<ApiProductDocumentBody>();
     }
+
+    public async Task<ApiProductDocumentBody> Create(string apiProductId, ApiProductDocumentBody apiProductDocument)
+    {
+        var response = await flurlClient.Request($"api-products/{apiProductId}/documents").PostJsonAsync(apiProductDocument.ToUpdateModel());
+
+        return await response.GetJsonAsync<ApiProductDocumentBody>();
+    }
+
+    public async Task<ApiProductDocumentBody> Update(string apiProductId, string documentId, ApiProductDocumentBody apiProductDocument)
+    {
+        var response = await flurlClient
+            .Request($"api-products/{apiProductId}/documents/{documentId}")
+            .PatchJsonAsync(apiProductDocument.ToUpdateModel());
+
+        return await response.GetJsonAsync<ApiProductDocumentBody>();
+    }
+
+    public async Task Delete(string apiProductId, string documentId)
+    {
+        await flurlClient.Request($"api-products/{apiProductId}/documents/{documentId}").DeleteAsync();
+    }
 }

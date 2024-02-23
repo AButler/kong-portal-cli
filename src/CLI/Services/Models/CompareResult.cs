@@ -8,6 +8,7 @@ internal class CompareResult
         List<Difference<ApiProduct>> apiProductDifferences,
         Dictionary<string, List<Difference<ApiProductVersion>>> apiProductVersionDifferences,
         Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> apiProductVersionSpecifications,
+        Dictionary<string, List<Difference<ApiProductDocumentBody>>> apiProductDocuments,
         List<Difference<DevPortal>> portals,
         Dictionary<string, Difference<DevPortalAppearance>> portalAppearances
     )
@@ -25,6 +26,10 @@ internal class CompareResult
                     (IReadOnlyDictionary<string, Difference<ApiProductSpecification>>)
                         kvp.Value.ToDictionary(kvp2 => kvp2.Key, kvp2 => kvp2.Value).AsReadOnly()
             )
+            .AsReadOnly();
+
+        ApiProductDocuments = apiProductDocuments
+            .ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyCollection<Difference<ApiProductDocumentBody>>)kvp.Value.ToList().AsReadOnly())
             .AsReadOnly();
 
         Portals = portals.AsReadOnly();
@@ -54,6 +59,8 @@ internal class CompareResult
     public IReadOnlyDictionary<string, IReadOnlyCollection<Difference<ApiProductVersion>>> ApiProductVersions { get; }
 
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, Difference<ApiProductSpecification>>> ApiProductVersionSpecifications { get; }
+
+    public IReadOnlyDictionary<string, IReadOnlyCollection<Difference<ApiProductDocumentBody>>> ApiProductDocuments { get; }
 
     public IReadOnlyCollection<Difference<DevPortal>> Portals { get; }
 

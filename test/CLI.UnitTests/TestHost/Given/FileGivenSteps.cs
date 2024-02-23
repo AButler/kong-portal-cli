@@ -52,9 +52,7 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         var metadata = new ApiProductVersionMetadata(
             versionSyncId,
             versionName,
-            publishStatus.GetValueOrDefault("published") == "published"
-                ? ApiProductVersionMetadataPublishStatus.Published
-                : ApiProductVersionMetadataPublishStatus.Unpublished,
+            publishStatus.GetValueOrDefault("published") == "published" ? MetadataPublishStatus.Published : MetadataPublishStatus.Unpublished,
             deprecated.GetValueOrDefault(false),
             specificationFilename.GetValueOrDefault(null)
         );
@@ -64,6 +62,35 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
 
         var metadataFilename = Path.Combine(apiProductVersionDirectory, "version.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+    }
+
+    public async Task AnExistingApiProductDocument(
+        string inputDirectory,
+        string apiProductSyncId,
+        Discretionary<string> title = default,
+        Discretionary<string> slug = default,
+        Discretionary<string> fullSlug = default,
+        Discretionary<string> status = default,
+        Discretionary<string> content = default
+    )
+    {
+        var metadata = new ApiProductDocumentMetadata(
+            title.GetValueOrDefault("Document Title"),
+            slug.GetValueOrDefault("/doc"),
+            fullSlug.GetValueOrDefault("/doc"),
+            status.GetValueOrDefault("published") == "published" ? MetadataPublishStatus.Published : MetadataPublishStatus.Unpublished
+        );
+
+        var markdownContent = content.GetValueOrDefault("# Document Title\n\nThis is a test document");
+
+        var documentsDirectory = Path.Combine(inputDirectory, "api-products", apiProductSyncId, "documents");
+        fileSystem.Directory.EnsureDirectory(documentsDirectory);
+
+        var metadataFilename = Path.Combine(documentsDirectory, $"{fullSlug}.json");
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+
+        var contentFilename = Path.Combine(documentsDirectory, $"{fullSlug}.md");
+        await fileSystem.File.WriteAllTextAsync(contentFilename, markdownContent);
     }
 
     public async Task AnExistingDevPortal(

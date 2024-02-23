@@ -122,7 +122,7 @@ internal class DumpService(
         var documentsDirectory = context.GetDocumentsDirectory(apiProductSyncId);
         var apiProductDocument = await context.ApiClient.ApiProductDocuments.GetBody(apiProduct.Id, documentId);
 
-        var metadata = new ApiProductDocumentMetadata(apiProductDocument.Title, apiProductDocument.Slug, fullSlug, apiProductDocument.Status);
+        var metadata = apiProductDocument.ToMetadata(fullSlug);
         var metadataFilename = Path.Combine(documentsDirectory, $"{fullSlug}.json");
         fileSystem.Directory.EnsureDirectory(Path.GetDirectoryName(metadataFilename)!);
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
@@ -142,62 +142,9 @@ internal class DumpService(
 
         var portalAppearance = await context.ApiClient.DevPortals.GetAppearance(devPortal.Id);
 
-        var appearanceMetadata = new PortalAppearanceMetadata(
-            portalAppearance.ThemeName,
-            portalAppearance.UseCustomFonts,
-            portalAppearance.CustomTheme == null
-                ? null
-                : new PortalCustomThemeMetadata(
-                    new PortalCustomThemeColorsMetadata(
-                        new PortalCustomThemeColorsSectionMetadata(
-                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Body.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Accent.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Tertiary.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Stroke.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Footer.Value
-                        ),
-                        new PortalCustomThemeColorsTextMetadata(
-                            portalAppearance.CustomTheme.Colors.Text.Header.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Hero.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Headings.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Primary.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Secondary.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Accent.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Link.Value,
-                            portalAppearance.CustomTheme.Colors.Text.Footer.Value
-                        ),
-                        new PortalCustomThemeColorsButtonMetadata(
-                            portalAppearance.CustomTheme.Colors.Button.PrimaryFill.Value,
-                            portalAppearance.CustomTheme.Colors.Button.PrimaryText.Value
-                        )
-                    )
-                ),
-            new PortalCustomFontsMetadata(
-                portalAppearance.CustomFonts?.Base ?? "Roboto",
-                portalAppearance.CustomFonts?.Code ?? "Roboto Mono",
-                portalAppearance.CustomFonts?.Headings ?? "Lato"
-            ),
-            new PortalTextMetadata(portalAppearance.Text?.Catalog.WelcomeMessage ?? "", portalAppearance.Text?.Catalog.PrimaryHeader ?? ""),
-            portalAppearance.Images == null
-                ? PortalImagesMetadata.NullValue
-                : new PortalImagesMetadata(
-                    portalAppearance.Images.Favicon?.Filename,
-                    portalAppearance.Images.Logo?.Filename,
-                    portalAppearance.Images.CatalogCover?.Filename
-                )
-        );
+        var appearanceMetadata = portalAppearance.ToMetadata();
 
-        var metadata = new PortalMetadata(
-            devPortal.Name,
-            devPortal.CustomDomain,
-            devPortal.CustomClientDomain,
-            devPortal.IsPublic,
-            devPortal.AutoApproveDevelopers,
-            devPortal.AutoApproveApplications,
-            devPortal.RbacEnabled
-        );
+        var metadata = devPortal.ToMetadata();
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);

@@ -272,6 +272,10 @@ internal class ApiGivenSteps
     private void SetupApiProductDocumentsApis(string apiProductId)
     {
         SetupPagedApi($"{_kongBaseUrl}api-products/{apiProductId}/documents", () => _apiProductDocuments[apiProductId]);
+        HttpTest
+            .Current.ForCallsTo($"{_kongBaseUrl}api-products/{apiProductId}/documents")
+            .WithVerb("POST")
+            .RespondWithDynamicJson(() => new { id = Guid.NewGuid().ToString() }, 201);
     }
 
     private void SetupApiProductVersionApis(string apiProductId)

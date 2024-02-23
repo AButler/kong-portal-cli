@@ -13,36 +13,24 @@ internal static class ApiModelExtensions
     public static ApiProductUpdate ToUpdateModel(this ApiProduct apiProduct) =>
         new(apiProduct.Name, apiProduct.Description, apiProduct.PortalIds, apiProduct.Labels);
 
-    public static ApiProductMetadata ToMetadata(this ApiProduct apiProduct, string syncId, IReadOnlyDictionary<string, string> portalMap)
-    {
-        var labels = apiProduct.Labels.Clone();
-        labels.Remove(Constants.SyncIdLabel);
-
-        var portals = new List<string>();
-        foreach (var portalId in apiProduct.PortalIds)
-        {
-            portals.Add(portalMap[portalId]);
-        }
-
-        return new ApiProductMetadata(syncId, apiProduct.Name, apiProduct.Description, portals, labels);
-    }
-
     public static ApiProductVersionUpdate ToUpdateModel(this ApiProductVersion apiProductVersion) =>
         new(apiProductVersion.Name, apiProductVersion.PublishStatus, apiProductVersion.Deprecated);
 
-    public static ApiProductVersionMetadata ToMetadata(this ApiProductVersion apiProductVersion, string syncId, string? specificationFilename)
-    {
-        return new ApiProductVersionMetadata(
-            syncId,
-            apiProductVersion.Name,
-            apiProductVersion.PublishStatus.ToMetadataPublishStatus(),
-            apiProductVersion.Deprecated,
-            specificationFilename
-        );
-    }
-
     public static ApiProductSpecificationUpdate ToUpdateModel(this ApiProductSpecification apiProductSpecification) =>
         new(apiProductSpecification.Name, Convert.ToBase64String(Encoding.UTF8.GetBytes(apiProductSpecification.Content)));
+
+    public static ApiProductDocumentUpdate ToUpdateModel(this ApiProductDocumentBody apiProductDocument)
+    {
+        var content = Convert.ToBase64String(Encoding.UTF8.GetBytes(apiProductDocument.MarkdownContent));
+
+        return new ApiProductDocumentUpdate(
+            apiProductDocument.ParentDocumentId,
+            apiProductDocument.Slug,
+            apiProductDocument.Status,
+            apiProductDocument.Title,
+            content
+        );
+    }
 
     public static DevPortalUpdate ToUpdateModel(this DevPortal devPortal) =>
         new(
@@ -54,11 +42,43 @@ internal static class ApiModelExtensions
             devPortal.RbacEnabled
         );
 
-    private static ApiProductVersionMetadataPublishStatus ToMetadataPublishStatus(this ApiVersionPublishStatus publishStatus) =>
-        publishStatus switch
+    public static ApiProductDocumentBody ResolveDocumentId(this ApiProductDocumentBody document, IReadOnlyDictionary<string, string> map)
+    {
+        if (!document.TryResolveDocumentId(map, out var result))
         {
-            ApiVersionPublishStatus.Published => ApiProductVersionMetadataPublishStatus.Published,
-            ApiVersionPublishStatus.Unpublished => ApiProductVersionMetadataPublishStatus.Unpublished,
-            _ => throw new ArgumentOutOfRangeException(nameof(publishStatus))
-        };
+            throw new Exception("Could not resolve: " + document.ParentDocumentId);
+        }
+
+        return result;
+    }
+
+    public static bool TryResolveDocumentId(
+        this ApiProductDocumentBody document,
+        IReadOnlyDictionary<string, string> map,
+        out ApiProductDocumentBody result
+    )
+    {
+        if (document.ParentDocumentId == null)
+        {
+            result = document;
+            return true;
+        }
+
+        if (!document.ParentDocumentId.StartsWith("resolve://api-product-document/"))
+        {
+            result = document;
+            return true;
+        }
+
+        var parentSlug = document.ParentDocumentId.Substring("resolve://api-product-document/".Length);
+
+        if (!map.TryGetValue(parentSlug, out var parentId))
+        {
+            result = document;
+            return false;
+        }
+
+        result = document with { ParentDocumentId = parentId };
+        return true;
+    }
 }

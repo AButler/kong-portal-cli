@@ -116,7 +116,7 @@ public class SyncServiceTests
         testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
 
         var apiProductId = await testHost.Then.Api.GetApiProductId("api-product-1");
-        testHost.Then.Api.ApiProductVersionShouldHaveBeenCreated(apiProductId, "1.0.0");
+        testHost.Then.Api.ApiProductVersionShouldHaveBeenCreated(apiProductId);
     }
 
     [Fact]
@@ -165,5 +165,28 @@ public class SyncServiceTests
         await syncService.Sync(@"c:\temp\input", true, testHost.ApiClientOptions);
 
         testHost.Then.Api.PortalAppearanceShouldHaveBeenUpdated(portalId);
+    }
+
+    [Fact]
+    public async Task NewApiDocumentAdded()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        await testHost.Given.File.AnExistingApiProduct(inputDirectory: @"c:\temp\input", syncId: "api-product-1");
+        await testHost.Given.File.AnExistingApiProductDocument(
+            inputDirectory: @"c:\temp\input",
+            apiProductSyncId: "api-product-1",
+            title: "New Document",
+            slug: "new-doc",
+            fullSlug: "new-doc",
+            status: "published"
+        );
+
+        var syncService = testHost.GetRequiredService<SyncService>();
+
+        await syncService.Sync(@"c:\temp\input", true, testHost.ApiClientOptions);
+
+        var apiProductId = await testHost.Then.Api.GetApiProductId("api-product-1");
+        testHost.Then.Api.ApiProductDocumentShouldHaveBeenCreated(apiProductId);
     }
 }

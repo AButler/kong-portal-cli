@@ -1,4 +1,5 @@
-﻿using Kong.Portal.CLI.ApiClient;
+﻿using System.Security.Cryptography;
+using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
 using Kong.Portal.CLI.Services.Models;
 using Pastel;
@@ -114,11 +115,13 @@ internal class SyncService(
                     var apiProduct = await context.ApiClient.ApiProducts.Create(difference.Entity);
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, apiProduct.Id);
                     context.ApiProductVersionSyncIdMap.Add(difference.SyncId!, []);
+                    context.ApiProductDocumentIdMap.Add(difference.SyncId!, []);
                     break;
                 case DifferenceType.Update:
                     await context.ApiClient.ApiProducts.Update(difference.Id!, difference.Entity);
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
                     context.ApiProductVersionSyncIdMap.Add(difference.SyncId!, []);
+                    context.ApiProductDocumentIdMap.Add(difference.SyncId!, []);
                     break;
                 case DifferenceType.Delete:
                     await context.ApiClient.ApiProducts.Delete(difference.Id!);
@@ -126,6 +129,7 @@ internal class SyncService(
                 case DifferenceType.NoChange:
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
                     context.ApiProductVersionSyncIdMap.Add(difference.SyncId!, []);
+                    context.ApiProductDocumentIdMap.Add(difference.SyncId!, []);
                     break;
             }
         }
@@ -135,6 +139,48 @@ internal class SyncService(
             foreach (var apiProductVersion in compareResult.ApiProductVersions[difference.SyncId])
             {
                 await SyncApiProductVersion(context, compareResult, difference.SyncId, apiProductVersion);
+            }
+
+            var orderedDocuments = compareResult.ApiProductDocuments[difference.SyncId].ToList().Order(new DocumentDifferenceComparer()).ToList();
+            foreach (var apiProductDocument in orderedDocuments)
+            {
+                await SyncApiProductDocument(context, compareResult, difference.SyncId, apiProductDocument);
+            }
+        }
+    }
+
+    private async Task SyncApiProductDocument(
+        SyncContext context,
+        CompareResult compareResult,
+        string apiProductSyncId,
+        Difference<ApiProductDocumentBody> difference
+    )
+    {
+        consoleOutput.WriteDifference(difference, "Document", difference.Entity.FullSlug, 1);
+
+        if (context.Apply)
+        {
+            var apiProductId = context.ApiProductSyncIdMap[apiProductSyncId];
+            var documentIdMap = context.ApiProductDocumentIdMap[apiProductSyncId];
+
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                    var createDocument = difference.Entity.ResolveDocumentId(documentIdMap);
+                    var document = await context.ApiClient.ApiProductDocuments.Create(apiProductId, createDocument);
+                    documentIdMap.Add(difference.Entity.FullSlug, document.Id);
+                    break;
+                case DifferenceType.Update:
+                    var updateDocument = difference.Entity.ResolveDocumentId(documentIdMap);
+                    await context.ApiClient.ApiProductDocuments.Update(apiProductId, difference.Id!, updateDocument);
+                    documentIdMap.Add(difference.Entity.FullSlug, difference.Id!);
+                    break;
+                case DifferenceType.Delete:
+                    await context.ApiClient.ApiProductDocuments.Delete(apiProductId, difference.Id!);
+                    break;
+                case DifferenceType.NoChange:
+                    documentIdMap.Add(difference.Entity.FullSlug, difference.Id!);
+                    break;
             }
         }
     }
@@ -218,5 +264,41 @@ internal class SyncService(
         public bool Apply { get; } = apply;
         public Dictionary<string, string> ApiProductSyncIdMap { get; } = new();
         public Dictionary<string, Dictionary<string, string>> ApiProductVersionSyncIdMap { get; } = new();
+        public Dictionary<string, Dictionary<string, string>> ApiProductDocumentIdMap { get; } = new();
+    }
+}
+
+internal class DocumentDifferenceComparer : IComparer<Difference<ApiProductDocumentBody>>
+{
+    public int Compare(Difference<ApiProductDocumentBody>? x, Difference<ApiProductDocumentBody>? y)
+    {
+        if (ReferenceEquals(x, y))
+        {
+            return 0;
+        }
+
+        if (ReferenceEquals(null, y))
+        {
+            return 1;
+        }
+
+        if (ReferenceEquals(null, x))
+        {
+            return -1;
+        }
+
+        // Sort first by DifferenceType.Delete (opposite of sort order so compare y to x)
+        var differenceTypeCompare = y.DifferenceType.CompareTo(x.DifferenceType);
+        if (differenceTypeCompare != 0)
+        {
+            return differenceTypeCompare;
+        }
+
+        if (x.DifferenceType == DifferenceType.Delete)
+        {
+            return string.Compare(y.Entity.FullSlug, x.Entity.FullSlug, StringComparison.InvariantCulture);
+        }
+
+        return string.Compare(x.Entity.FullSlug, y.Entity.FullSlug, StringComparison.InvariantCulture);
     }
 }

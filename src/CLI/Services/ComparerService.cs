@@ -18,6 +18,7 @@ internal class ComparerService
             context.ApiProducts,
             context.ApiProductVersions,
             context.ApiProductVersionSpecifications,
+            context.ApiProductDocuments,
             context.Portals,
             context.PortalAppearances
         );
@@ -97,6 +98,9 @@ internal class ComparerService
                 context.ApiProductVersionSpecifications.Add(sourceApiProduct.SyncId, []);
                 await CompareApiProductVersions(sourceData, context, sourceApiProduct.SyncId, apiProduct.Id);
 
+                context.ApiProductDocuments.Add(sourceApiProduct.SyncId, []);
+                await CompareApiProductDocuments(sourceData, context, sourceApiProduct.SyncId, apiProduct.Id);
+
                 continue;
             }
 
@@ -110,18 +114,80 @@ internal class ComparerService
             context.ApiProductVersions.Add(sourceApiProduct.SyncId, []);
             context.ApiProductVersionSpecifications.Add(sourceApiProduct.SyncId, []);
             await CompareApiProductVersions(sourceData, context, sourceApiProduct.SyncId);
+
+            context.ApiProductDocuments.Add(sourceApiProduct.SyncId, []);
+            await CompareApiProductDocuments(sourceData, context, sourceApiProduct.SyncId);
+        }
+    }
+
+    private async Task CompareApiProductDocuments(SourceData sourceData, CompareContext context, string apiProductSyncId, string? apiProductId = null)
+    {
+        var toMatch = sourceData.ApiProductDocuments[apiProductSyncId].OrderBy(d => d.FullSlug).ToList();
+
+        if (apiProductId == null)
+        {
+            foreach (var document in toMatch)
+            {
+                var contents = sourceData.ApiProductDocumentContents[apiProductSyncId][document.FullSlug];
+                context.ApiProductDocuments[apiProductSyncId].Add(Difference.Add(document.FullSlug, document.ToApiModel(contents)));
+            }
+
+            return;
+        }
+
+        var serverApiDocuments = await context.ApiClient.ApiProductDocuments.GetAll(apiProductId);
+        var documentDifferences = context.ApiProductDocuments[apiProductSyncId];
+
+        var serverApiDocumentIdMap = serverApiDocuments.ToDictionary(d => d.Slug, d => d.Id);
+
+        foreach (var serverApiDocument in serverApiDocuments)
+        {
+            var serverApiDocumentBody = await context.ApiClient.ApiProductDocuments.GetBody(apiProductId, serverApiDocument.Id) with
+            {
+                FullSlug = serverApiDocument.Slug
+            };
+
+            var sourceApiProductDocument = toMatch.FirstOrDefault(v => v.FullSlug == serverApiDocument.Slug);
+
+            if (sourceApiProductDocument != null)
+            {
+                toMatch.Remove(sourceApiProductDocument);
+
+                var sourceContents = sourceData.ApiProductDocumentContents[apiProductSyncId][sourceApiProductDocument.FullSlug];
+
+                var apiProductDocument = sourceApiProductDocument.ToApiModel(sourceContents, serverApiDocument.Id);
+                if (apiProductDocument.TryResolveDocumentId(serverApiDocumentIdMap, out var resolvedDocument))
+                {
+                    apiProductDocument = resolvedDocument;
+                }
+
+                documentDifferences.Add(
+                    Difference.UpdateOrNoChange(sourceApiProductDocument.FullSlug, serverApiDocument.Id, serverApiDocumentBody, apiProductDocument)
+                );
+
+                continue;
+            }
+
+            documentDifferences.Add(Difference.Delete(serverApiDocument.Id, serverApiDocumentBody));
+        }
+
+        foreach (var sourceApiProductDocument in toMatch)
+        {
+            var sourceContents = sourceData.ApiProductDocumentContents[apiProductSyncId][sourceApiProductDocument.FullSlug];
+            documentDifferences.Add(Difference.Add(sourceApiProductDocument.FullSlug, sourceApiProductDocument.ToApiModel(sourceContents)));
         }
     }
 
     private async Task CompareApiProductVersions(SourceData sourceData, CompareContext context, string apiProductSyncId, string? apiProductId = null)
     {
         var toMatch = sourceData.ApiProductVersions[apiProductSyncId].ToList();
+        var versionDifferences = context.ApiProductVersions[apiProductSyncId];
 
         if (apiProductId == null)
         {
             foreach (var versionMetadata in toMatch)
             {
-                context.ApiProductVersions[apiProductSyncId].Add(Difference.Add(versionMetadata.SyncId, versionMetadata.ToApiModel()));
+                versionDifferences.Add(Difference.Add(versionMetadata.SyncId, versionMetadata.ToApiModel()));
 
                 var sourceApiProductVersionSpecification = sourceData.ApiProductVersionSpecifications[apiProductSyncId][versionMetadata.SyncId];
                 if (sourceApiProductVersionSpecification != null)
@@ -146,8 +212,6 @@ internal class ComparerService
         }
 
         var serverApiProductVersions = await context.ApiClient.ApiProductVersions.GetAll(apiProductId);
-
-        var versionDifferences = context.ApiProductVersions[apiProductSyncId];
 
         foreach (var serverApiProductVersion in serverApiProductVersions)
         {
@@ -295,6 +359,7 @@ internal class ComparerService
         public List<Difference<ApiProduct>> ApiProducts { get; } = new();
         public Dictionary<string, List<Difference<ApiProductVersion>>> ApiProductVersions { get; } = new();
         public Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> ApiProductVersionSpecifications { get; } = new();
+        public Dictionary<string, List<Difference<ApiProductDocumentBody>>> ApiProductDocuments { get; } = new();
         public IReadOnlyDictionary<string, string> PortalNameMap =>
             Portals.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.SyncId!, kvp => kvp.Id!);
     }
