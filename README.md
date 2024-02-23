@@ -1,10 +1,8 @@
 # Kong Portal CLI
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/AButler/kong-portal-cli/main.yml)](https://github.com/AButler/kong-portal-cli/actions/workflows/main.yml)
-[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/AButler/kong-portal-cli?include_prereleases)](https://github.com/AButler/kong-portal-cli/releases)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/AButler/kong-portal-cli)](https://github.com/AButler/kong-portal-cli/releases)
 [![GitHub](https://img.shields.io/github/license/AButler/kong-portal-cli)](https://github.com/AButler/kong-portal-cli/blob/main/LICENSE)
-
-> 🚧 Note: this tool is currently under development
  
 A command line tool for dumping API Products and documentation from Kong Konnect and syncing them back.
 
@@ -32,7 +30,7 @@ Download the binary from the [release page](https://github.com/AButler/kong-port
 
 ```bash
 # Using bash
-export PORTAL_CLI_VERSION=0.0.1-alpha003
+export PORTAL_CLI_VERSION=1.0.0
 curl -sL "https://github.com/AButler/kong-portal-cli/releases/download/v${PORTAL_CLI_VERSION}/portal-cli-linux-x64.tar.gz" -o /tmp/portal-cli.tar.gz
 tar -zxf /tmp/portal-cli.tar.gz -C /tmp
 sudo cp /tmp/portal-cli /usr/local/bin/
@@ -44,7 +42,7 @@ Download the binary from the [release page](https://github.com/AButler/kong-port
 
 ```powershell
 # Using powershell
-$PORTAL_CLI_VERSION="0.0.1-alpha003"
+$PORTAL_CLI_VERSION="1.0.0"
 curl -sL "https://github.com/AButler/kong-portal-cli/releases/download/v$PORTAL_CLI_VERSION/portal-cli-win-x64.zip" -o $env:TEMP/portal-cli.zip
 Expand-Archive $env:TEMP/portal-cli.zip .
 ```
@@ -56,7 +54,7 @@ Expand-Archive $env:TEMP/portal-cli.zip .
 Use this snippet in your own `Dockerfile` to download
 
 ```dockerfile
-ARG PORTAL_CLI_VERSION=0.0.1-alpha003
+ARG PORTAL_CLI_VERSION=1.0.0
 
 RUN export CONTAINER_ARCH="$(uname -m)" \
     export MUSL="$(ldd /bin/ls | grep 'musl' | head -1 | cut -d ' ' -f1)" \
