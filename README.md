@@ -78,16 +78,16 @@ portal-cli --help
 
 The table below shows the list of Kong Konnect entities that are supported by the sync.
 
-| Entity                            | Supported | Notes                            |
-|-----------------------------------|-----------|----------------------------------|
-| API Product                       | ✅         |                                  |
-| API Product Document              | ❌         | Coming soon                      |
-| API Product Version               | ✅         |                                  |
-| API Product Version Specification | ✅         |                                  |
-| Portal                            | ✅*        | Cannot create or delete Portals  |
-| Portal Appearance                 | ✅         |                                  |
-| Portal Auth Settings              | ❌         |                                  |
-| Portal Teams                      | ❌         |                                  |
-| Portal Team Group Mappings        | ❌         |                                  |
-| Portal Team Roles                 | ❌         |                                  |
+| Entity                            | Supported | Notes                           |
+|-----------------------------------|-----------|---------------------------------|
+| API Product                       | ✅         |                                 |
+| API Product Document              | ✅         |                                 |
+| API Product Version               | ✅         |                                 |
+| API Product Version Specification | ✅         |                                 |
+| Portal                            | ✅*        | Cannot create or delete Portals |
+| Portal Appearance                 | ✅         |                                 |
+| Portal Auth Settings              | ❌         |                                 |
+| Portal Teams                      | ❌         |                                 |
+| Portal Team Group Mappings        | ❌         |                                 |
+| Portal Team Roles                 | ❌         |                                 |
 
