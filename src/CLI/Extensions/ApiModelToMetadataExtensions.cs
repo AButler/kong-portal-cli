@@ -103,6 +103,31 @@ internal static class ApiModelToMetadataExtensions
         );
     }
 
+    public static PortalAuthSettingsMetadata ToMetadata(this DevPortalAuthSettings authSettings)
+    {
+        var oidcConfig =
+            authSettings.OidcConfig == null
+                ? null
+                : new PortalOidcConfig(
+                    authSettings.OidcConfig.Issuer,
+                    authSettings.OidcConfig.ClientId,
+                    authSettings.OidcConfig.Scopes,
+                    new PortalClaimMappings(
+                        authSettings.OidcConfig.ClaimMappings.Name,
+                        authSettings.OidcConfig.ClaimMappings.Email,
+                        authSettings.OidcConfig.ClaimMappings.Groups
+                    )
+                );
+
+        return new PortalAuthSettingsMetadata(
+            authSettings.BasicAuthEnabled,
+            authSettings.OidcAuthEnabled,
+            authSettings.OidcTeamMappingEnabled,
+            authSettings.KonnectMappingEnabled,
+            oidcConfig
+        );
+    }
+
     private static MetadataPublishStatus ToMetadataPublishStatus(this ApiPublishStatus publishStatus) =>
         publishStatus switch
         {

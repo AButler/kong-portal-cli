@@ -215,6 +215,53 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         }
     }
 
+    public async Task ShouldHavePortalAuthSettings(
+        string outputDirectory,
+        string name,
+        bool basicAuthEnabled,
+        bool oidcAuthEnabled,
+        bool oidcTeamMappingEnabled,
+        bool konnectMappingEnabled,
+        OidcAuthSettings? oidcConfig
+    )
+    {
+        var portalDirectory = Path.Combine(outputDirectory, "portals", name);
+        DirectoryShouldExist(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "authentication-settings.json");
+        FileShouldExist(metadataFilename);
+
+        var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
+
+        json.ShouldHaveBooleanProperty("basic_auth_enabled", basicAuthEnabled);
+        json.ShouldHaveBooleanProperty("oidc_auth_enabled", oidcAuthEnabled);
+        json.ShouldHaveBooleanProperty("oidc_team_mapping_enabled", oidcTeamMappingEnabled);
+        json.ShouldHaveBooleanProperty("konnect_mapping_enabled", konnectMappingEnabled);
+
+        if (oidcConfig == null)
+        {
+            json.ShouldHaveNullProperty("oidc_config");
+        }
+        else
+        {
+            json.ShouldHaveObjectProperty("oidc_config");
+            var oidcJson = json!["oidc_config"];
+
+            oidcJson.ShouldHaveStringProperty("issuer", oidcConfig.Issuer);
+            oidcJson.ShouldHaveStringProperty("client_id", oidcConfig.ClientId);
+            oidcJson.ShouldHaveStringArrayProperty("scopes", oidcConfig.Scopes);
+            oidcJson.ShouldHaveMapProperty(
+                "claim_mappings",
+                new Dictionary<string, string?>
+                {
+                    ["name"] = oidcConfig.ClaimMappings.Name,
+                    ["email"] = oidcConfig.ClaimMappings.Email,
+                    ["groups"] = oidcConfig.ClaimMappings.Groups
+                }
+            );
+        }
+    }
+
     private void DirectoryShouldExist(string path)
     {
         fileSystem.Directory.Exists(path).Should().BeTrue($"directory does not exist: {path}");

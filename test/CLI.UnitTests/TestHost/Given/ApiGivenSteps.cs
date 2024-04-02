@@ -13,6 +13,7 @@ internal class ApiGivenSteps
     private readonly Dictionary<string, List<dynamic>> _apiProductDocuments = new();
     private readonly Dictionary<string, List<dynamic>> _apiProductVersions = new();
     private readonly Dictionary<string, dynamic> _devPortalAppearances = new();
+    private readonly Dictionary<string, dynamic> _devPortalAuthSettings = new();
 
     private int _pageSize = 100;
 
@@ -155,7 +156,8 @@ internal class ApiGivenSteps
         Discretionary<bool> autoApproveDevelopers = default,
         Discretionary<string?> customDomain = default,
         Discretionary<string?> customClientDomain = default,
-        Discretionary<AppearanceData> appearanceData = default
+        Discretionary<AppearanceData> appearanceData = default,
+        Discretionary<AuthSettings> authSettings = default
     )
     {
         var id = portalId.GetValueOrDefault(Guid.NewGuid().ToString());
@@ -174,12 +176,52 @@ internal class ApiGivenSteps
             }
         );
 
-        AnExistingDevPortalAppearance(id, appearanceData.GetValueOrDefault(new AppearanceData()));
+        SetupDevPortalAppearance(id, appearanceData.GetValueOrDefault(new AppearanceData()));
 
         HttpTest.Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/appearance").WithVerb("GET").RespondWithDynamicJson(() => _devPortalAppearances[id]);
+
+        SetupDevPortalAuthSettings(id, authSettings.GetValueOrDefault(new AuthSettings()));
+
+        HttpTest
+            .Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/authentication-settings")
+            .WithVerb("GET")
+            .RespondWithDynamicJson(() => _devPortalAuthSettings[id]);
     }
 
-    private void AnExistingDevPortalAppearance(string portalId, AppearanceData appearance)
+    private void SetupDevPortalAuthSettings(string id, AuthSettings authSettings)
+    {
+        var oidcConfig = authSettings.OidcConfig.GetValueOrDefault(null);
+
+        var oidcConfigObject =
+            oidcConfig == null
+                ? null
+                : new
+                {
+                    issuer = oidcConfig.Issuer,
+                    client_id = oidcConfig.ClientId,
+                    scopes = oidcConfig.Scopes,
+                    claim_mappings = new
+                    {
+                        name = oidcConfig.ClaimMappings.Name,
+                        email = oidcConfig.ClaimMappings.Email,
+                        groups = oidcConfig.ClaimMappings.Groups
+                    }
+                };
+
+        _devPortalAuthSettings.Add(
+            id,
+            new
+            {
+                basic_auth_enabled = authSettings.BasicAuthEnabled.GetValueOrDefault(false),
+                oidc_auth_enabled = authSettings.OidcAuthEnabled.GetValueOrDefault(false),
+                oidc_team_mapping_enabled = authSettings.OidcTeamMappingEnabled.GetValueOrDefault(false),
+                konnect_mapping_enabled = authSettings.KonnectMappingEnabled.GetValueOrDefault(false),
+                oidc_config = oidcConfigObject
+            }
+        );
+    }
+
+    private void SetupDevPortalAppearance(string portalId, AppearanceData appearance)
     {
         var customFontObject =
             !appearance.CustomFontBase.IsSpecified && !appearance.CustomFontCode.IsSpecified && !appearance.CustomFontHeadings.IsSpecified
