@@ -81,6 +81,28 @@ internal class SyncService(
         {
             var portalAppearance = compareResult.PortalAppearances[difference.SyncId];
             await SyncPortalAppearance(context, difference.SyncId, portalAppearance);
+
+            var portalAuthSettings = compareResult.PortalAuthSettings[difference.SyncId];
+            await SyncPortalAuthSettings(context, difference.SyncId, portalAuthSettings);
+        }
+    }
+
+    private async Task SyncPortalAuthSettings(SyncContext context, string portalName, Difference<DevPortalAuthSettings> difference)
+    {
+        consoleOutput.WriteDifference(difference, "Authentication Settings", 1);
+
+        if (context.Apply)
+        {
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                    throw new InvalidOperationException("Cannot create Portals");
+                case DifferenceType.Update:
+                    await context.ApiClient.DevPortals.UpdateAuthSettings(difference.Id!, difference.Entity);
+                    break;
+                case DifferenceType.Delete:
+                    throw new InvalidOperationException("Cannot delete Portals");
+            }
         }
     }
 

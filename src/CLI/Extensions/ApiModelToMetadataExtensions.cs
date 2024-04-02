@@ -65,7 +65,7 @@ internal static class ApiModelToMetadataExtensions
                         new PortalCustomThemeColorsSectionMetadata(
                             portalAppearance.CustomTheme.Colors.Section.Header.Value,
                             portalAppearance.CustomTheme.Colors.Section.Body.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Hero.Value,
                             portalAppearance.CustomTheme.Colors.Section.Accent.Value,
                             portalAppearance.CustomTheme.Colors.Section.Tertiary.Value,
                             portalAppearance.CustomTheme.Colors.Section.Stroke.Value,
