@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using Kong.Portal.CLI.ApiClient.Models;
-using Kong.Portal.CLI.Services;
 
 namespace Kong.Portal.CLI;
 
@@ -41,6 +40,20 @@ internal static class ApiModelExtensions
             devPortal.AutoApproveApplications,
             devPortal.RbacEnabled
         );
+
+    public static DevPortalAuthSettingsUpdate ToUpdateModel(this DevPortalAuthSettings authSettings)
+    {
+        return new DevPortalAuthSettingsUpdate(
+            authSettings.BasicAuthEnabled,
+            authSettings.OidcAuthEnabled,
+            authSettings.OidcTeamMappingEnabled,
+            authSettings.KonnectMappingEnabled,
+            authSettings.OidcConfig?.Issuer,
+            authSettings.OidcConfig?.ClientId,
+            authSettings.OidcConfig?.Scopes,
+            authSettings.OidcConfig?.ClaimMappings
+        );
+    }
 
     public static ApiProductDocumentBody ResolveDocumentId(this ApiProductDocumentBody document, IReadOnlyDictionary<string, string> map)
     {

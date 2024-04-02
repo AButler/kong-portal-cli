@@ -40,7 +40,29 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
             throw new SyncException($"Cannot read portal: {portalFile}");
         }
 
+        sourceData.Portals.Add(portalMetadata);
+
         var portalDirectory = Path.GetDirectoryName(portalFile)!;
+
+        await ReadPortalAppearance(sourceData, portalDirectory, portalMetadata.Name);
+        await ReadPortalAuthSettings(sourceData, portalDirectory, portalMetadata.Name);
+    }
+
+    private async Task ReadPortalAuthSettings(SourceData sourceData, string portalDirectory, string portalName)
+    {
+        var portalAuthSettingsFile = Path.Combine(portalDirectory, "authentication-settings.json");
+        var portalAuthSettingsMetadata = await metadataSerializer.DeserializeAsync<PortalAuthSettingsMetadata>(portalAuthSettingsFile);
+
+        if (portalAuthSettingsMetadata == null)
+        {
+            throw new SyncException($"Cannot read portal authentication settings: {portalAuthSettingsFile}");
+        }
+
+        sourceData.PortalAuthSettings.Add(portalName, portalAuthSettingsMetadata);
+    }
+
+    private async Task ReadPortalAppearance(SourceData sourceData, string portalDirectory, string portalName)
+    {
         var portalAppearanceFile = Path.Combine(portalDirectory, "appearance.json");
         var portalAppearanceMetadata = await metadataSerializer.DeserializeAsync<PortalAppearanceMetadata>(portalAppearanceFile);
 
@@ -49,8 +71,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
             throw new SyncException($"Cannot read portal appearance: {portalAppearanceFile}");
         }
 
-        sourceData.Portals.Add(portalMetadata);
-        sourceData.PortalAppearances.Add(portalMetadata.Name, portalAppearanceMetadata);
+        sourceData.PortalAppearances.Add(portalName, portalAppearanceMetadata);
 
         var imagesMetadata = portalAppearanceMetadata.Images;
         var faviconImage = await ReadPortalImage(portalDirectory, imagesMetadata.Favicon);
@@ -58,7 +79,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
         var catalogCoverImage = await ReadPortalImage(portalDirectory, imagesMetadata.CatalogCover);
 
         var imageData = new ImageData(faviconImage, logoImage, catalogCoverImage);
-        sourceData.PortalAppearanceImageData[portalMetadata.Name] = imageData;
+        sourceData.PortalAppearanceImageData[portalName] = imageData;
     }
 
     private async Task<string?> ReadPortalImage(string portalDirectory, string? filename)

@@ -65,7 +65,7 @@ internal static class ApiModelToMetadataExtensions
                         new PortalCustomThemeColorsSectionMetadata(
                             portalAppearance.CustomTheme.Colors.Section.Header.Value,
                             portalAppearance.CustomTheme.Colors.Section.Body.Value,
-                            portalAppearance.CustomTheme.Colors.Section.Header.Value,
+                            portalAppearance.CustomTheme.Colors.Section.Hero.Value,
                             portalAppearance.CustomTheme.Colors.Section.Accent.Value,
                             portalAppearance.CustomTheme.Colors.Section.Tertiary.Value,
                             portalAppearance.CustomTheme.Colors.Section.Stroke.Value,
@@ -100,6 +100,31 @@ internal static class ApiModelToMetadataExtensions
                     portalAppearance.Images.Logo?.Filename,
                     portalAppearance.Images.CatalogCover?.Filename
                 )
+        );
+    }
+
+    public static PortalAuthSettingsMetadata ToMetadata(this DevPortalAuthSettings authSettings)
+    {
+        var oidcConfig =
+            authSettings.OidcConfig == null
+                ? null
+                : new PortalOidcConfig(
+                    authSettings.OidcConfig.Issuer,
+                    authSettings.OidcConfig.ClientId,
+                    authSettings.OidcConfig.Scopes,
+                    new PortalClaimMappings(
+                        authSettings.OidcConfig.ClaimMappings.Name,
+                        authSettings.OidcConfig.ClaimMappings.Email,
+                        authSettings.OidcConfig.ClaimMappings.Groups
+                    )
+                );
+
+        return new PortalAuthSettingsMetadata(
+            authSettings.BasicAuthEnabled,
+            authSettings.OidcAuthEnabled,
+            authSettings.OidcTeamMappingEnabled,
+            authSettings.KonnectMappingEnabled,
+            oidcConfig
         );
     }
 

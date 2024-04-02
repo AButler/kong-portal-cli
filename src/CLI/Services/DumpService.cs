@@ -140,14 +140,33 @@ internal class DumpService(
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
-        var portalAppearance = await context.ApiClient.DevPortals.GetAppearance(devPortal.Id);
-
-        var appearanceMetadata = portalAppearance.ToMetadata();
-
         var metadata = devPortal.ToMetadata();
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+
+        await DumpPortalAppearance(context, devPortal);
+
+        await DumpPortalAuthSettings(context, devPortal);
+    }
+
+    private async Task DumpPortalAuthSettings(DumpContext context, DevPortal devPortal)
+    {
+        var portalDirectory = context.GetPortalDirectory(devPortal.Name);
+        var portalAuthSettings = await context.ApiClient.DevPortals.GetAuthSettings(devPortal.Id);
+
+        var authSettingsMetadata = portalAuthSettings.ToMetadata();
+
+        var authSettingsMetadataFilename = Path.Combine(portalDirectory, "authentication-settings.json");
+        await metadataSerializer.SerializeAsync(authSettingsMetadataFilename, authSettingsMetadata);
+    }
+
+    private async Task DumpPortalAppearance(DumpContext context, DevPortal devPortal)
+    {
+        var portalDirectory = context.GetPortalDirectory(devPortal.Name);
+        var portalAppearance = await context.ApiClient.DevPortals.GetAppearance(devPortal.Id);
+
+        var appearanceMetadata = portalAppearance.ToMetadata();
 
         var appearanceMetadataFilename = Path.Combine(portalDirectory, "appearance.json");
         await metadataSerializer.SerializeAsync(appearanceMetadataFilename, appearanceMetadata);

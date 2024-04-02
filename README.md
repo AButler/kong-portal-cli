@@ -84,7 +84,7 @@ The table below shows the list of Kong Konnect entities that are supported by th
 | API Product Version Specification | ✅         |                                 |
 | Portal                            | ✅*        | Cannot create or delete Portals |
 | Portal Appearance                 | ✅         |                                 |
-| Portal Auth Settings              | ❌         |                                 |
+| Portal Auth Settings              | ✅         |                                 |
 | Portal Teams                      | ❌         |                                 |
 | Portal Team Group Mappings        | ❌         |                                 |
 | Portal Team Roles                 | ❌         |                                 |

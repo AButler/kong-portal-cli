@@ -43,4 +43,18 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
 
         return await response.GetJsonAsync<DevPortalAppearance>();
     }
+
+    public async Task<DevPortalAuthSettings> GetAuthSettings(string portalId)
+    {
+        var response = await flurlClient.Request($"portals/{portalId}/authentication-settings").GetAsync();
+
+        return await response.GetJsonAsync<DevPortalAuthSettings>();
+    }
+
+    public async Task<DevPortalAuthSettings> UpdateAuthSettings(string portalId, DevPortalAuthSettings devPortalAuthSettings)
+    {
+        var response = await flurlClient.Request($"portals/{portalId}/authentication-settings").PatchJsonAsync(devPortalAuthSettings.ToUpdateModel());
+
+        return await response.GetJsonAsync<DevPortalAuthSettings>();
+    }
 }

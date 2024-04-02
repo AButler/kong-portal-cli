@@ -10,7 +10,8 @@ internal class CompareResult
         Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> apiProductVersionSpecifications,
         Dictionary<string, List<Difference<ApiProductDocumentBody>>> apiProductDocuments,
         List<Difference<DevPortal>> portals,
-        Dictionary<string, Difference<DevPortalAppearance>> portalAppearances
+        Dictionary<string, Difference<DevPortalAppearance>> portalAppearances,
+        Dictionary<string, Difference<DevPortalAuthSettings>> portalAuthSettings
     )
     {
         ApiProducts = apiProductDifferences.AsReadOnly();
@@ -35,6 +36,7 @@ internal class CompareResult
         Portals = portals.AsReadOnly();
 
         PortalAppearances = portalAppearances.ToDictionary(kvp => kvp.Key, kvp => kvp.Value).AsReadOnly();
+        PortalAuthSettings = portalAuthSettings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value).AsReadOnly();
     }
 
     public IReadOnlyCollection<string> GetValidationErrors()
@@ -65,4 +67,5 @@ internal class CompareResult
     public IReadOnlyCollection<Difference<DevPortal>> Portals { get; }
 
     public IReadOnlyDictionary<string, Difference<DevPortalAppearance>> PortalAppearances { get; }
+    public IReadOnlyDictionary<string, Difference<DevPortalAuthSettings>> PortalAuthSettings { get; }
 }

@@ -166,4 +166,46 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
             )
         );
     }
+
+    public async Task AnExistingDevPortalAuthSettings(
+        string inputDirectory,
+        Discretionary<string> name = default,
+        Discretionary<bool> basicAuthEnabled = default,
+        Discretionary<bool> oidcAuthEnabled = default,
+        Discretionary<bool> oidcTeamMappingEnabled = default,
+        Discretionary<bool> konnectMappingEnabled = default,
+        Discretionary<OidcAuthSettings?> oidcConfig = default
+    )
+    {
+        var portalName = name.GetValueOrDefault("default");
+
+        var oidcConfigValue = oidcConfig.GetValueOrDefault(null);
+        var oidcConfigMetadata =
+            oidcConfigValue == null
+                ? null
+                : new PortalOidcConfig(
+                    oidcConfigValue.Issuer,
+                    oidcConfigValue.ClientId,
+                    oidcConfigValue.Scopes,
+                    new PortalClaimMappings(
+                        oidcConfigValue.ClaimMappings.Name,
+                        oidcConfigValue.ClaimMappings.Email,
+                        oidcConfigValue.ClaimMappings.Groups
+                    )
+                );
+
+        var metadata = new PortalAuthSettingsMetadata(
+            basicAuthEnabled.GetValueOrDefault(false),
+            oidcAuthEnabled.GetValueOrDefault(false),
+            oidcTeamMappingEnabled.GetValueOrDefault(false),
+            konnectMappingEnabled.GetValueOrDefault(false),
+            oidcConfigMetadata
+        );
+
+        var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
+        fileSystem.Directory.EnsureDirectory(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "authentication-settings.json");
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+    }
 }

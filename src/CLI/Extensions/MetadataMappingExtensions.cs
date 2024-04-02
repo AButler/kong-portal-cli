@@ -19,6 +19,31 @@ internal static class MetadataMappingExtensions
         );
     }
 
+    public static DevPortalAuthSettings ToApiModel(this PortalAuthSettingsMetadata metadata)
+    {
+        var oidcConfig =
+            metadata.OidcConfig == null
+                ? null
+                : new DevPortalOidcConfig(
+                    metadata.OidcConfig.Issuer,
+                    metadata.OidcConfig.ClientId,
+                    metadata.OidcConfig.Scopes,
+                    new DevPortalClaimMappings(
+                        metadata.OidcConfig.ClaimMappings.Name,
+                        metadata.OidcConfig.ClaimMappings.Email,
+                        metadata.OidcConfig.ClaimMappings.Groups
+                    )
+                );
+
+        return new DevPortalAuthSettings(
+            metadata.BasicAuthEnabled,
+            metadata.OidcAuthEnabled,
+            metadata.OidcTeamMappingEnabled,
+            metadata.KonnectMappingEnabled,
+            oidcConfig
+        );
+    }
+
     public static DevPortalAppearance ToApiModel(this PortalAppearanceMetadata metadata, ImageData imageData)
     {
         return new DevPortalAppearance(
@@ -26,7 +51,7 @@ internal static class MetadataMappingExtensions
             metadata.UseCustomFonts,
             metadata.CustomTheme.ToApiModel(),
             new DevPortalAppearanceCustomFonts(metadata.CustomFonts.Base, metadata.CustomFonts.Code, metadata.CustomFonts.Headings),
-            new DevPortalAppearanceText(new DevPortalAppearanceTextCatalog(metadata.Text.PrimaryHeader, metadata.Text.WelcomeMessage)),
+            new DevPortalAppearanceText(new DevPortalAppearanceTextCatalog(metadata.Text.WelcomeMessage, metadata.Text.PrimaryHeader)),
             metadata.Images.ToApiModel(imageData)
         );
     }

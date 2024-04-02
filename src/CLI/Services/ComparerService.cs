@@ -20,7 +20,8 @@ internal class ComparerService
             context.ApiProductVersionSpecifications,
             context.ApiProductDocuments,
             context.Portals,
-            context.PortalAppearances
+            context.PortalAppearances,
+            context.PortalAuthSettings
         );
 
         return result;
@@ -44,6 +45,8 @@ internal class ComparerService
 
                 await ComparePortalAppearance(sourceData, context, sourcePortal.Name, serverPortal.Id);
 
+                await ComparePortalAuthSettings(sourceData, context, sourcePortal.Name, serverPortal.Id);
+
                 continue;
             }
 
@@ -55,7 +58,22 @@ internal class ComparerService
             context.Portals.Add(Difference.Add(sourcePortal.Name, sourcePortal.ToApiModel()));
 
             await ComparePortalAppearance(sourceData, context, sourcePortal.Name);
+            await ComparePortalAuthSettings(sourceData, context, sourcePortal.Name);
         }
+    }
+
+    private async Task ComparePortalAuthSettings(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
+    {
+        var toMatch = sourceData.PortalAuthSettings[portalName];
+
+        if (portalId == null)
+        {
+            context.PortalAuthSettings[portalName] = Difference.Add(portalName, toMatch.ToApiModel());
+            return;
+        }
+
+        var serverPortalAuthSettings = await context.ApiClient.DevPortals.GetAuthSettings(portalId);
+        context.PortalAuthSettings[portalName] = Difference.UpdateOrNoChange(portalName, portalId, serverPortalAuthSettings, toMatch.ToApiModel());
     }
 
     private async Task ComparePortalAppearance(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
@@ -356,10 +374,12 @@ internal class ComparerService
         public KongApiClient ApiClient { get; } = apiClient;
         public List<Difference<DevPortal>> Portals { get; } = new();
         public Dictionary<string, Difference<DevPortalAppearance>> PortalAppearances { get; } = new();
+        public Dictionary<string, Difference<DevPortalAuthSettings>> PortalAuthSettings { get; } = new();
         public List<Difference<ApiProduct>> ApiProducts { get; } = new();
         public Dictionary<string, List<Difference<ApiProductVersion>>> ApiProductVersions { get; } = new();
         public Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> ApiProductVersionSpecifications { get; } = new();
         public Dictionary<string, List<Difference<ApiProductDocumentBody>>> ApiProductDocuments { get; } = new();
+
         public IReadOnlyDictionary<string, string> PortalNameMap =>
             Portals.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.SyncId!, kvp => kvp.Id!);
     }

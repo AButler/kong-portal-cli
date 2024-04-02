@@ -77,6 +77,11 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/appearance").WithVerb(HttpMethod.Patch);
     }
 
+    public void PortalAuthSettingsShouldHaveBeenUpdated(string portalId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/authentication-settings").WithVerb(HttpMethod.Patch);
+    }
+
     private T? Deserialize<T>(string json)
     {
         return JsonSerializer.Deserialize<T>(json, MetadataSerializer.SerializerOptions);
