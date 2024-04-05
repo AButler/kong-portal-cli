@@ -2,10 +2,11 @@
 
 namespace Kong.Portal.CLI;
 
-internal static class VariableHelper
+internal class VariableHelper(IEnvironmentVariableReader environmentVariableReader)
 {
     private static readonly Regex VariableDefinitionRegex = new(@"^(?<Key>\w+)=(?<Value>.*)$");
     private static readonly Regex VariableReplaceRegex = new(@"\${{\s*var (?<VariableName>\w+)\s*}}");
+    private static readonly Regex EnvVariableReplaceRegex = new(@"\${{\s*env (?<VariableName>\w+)\s*}}");
 
     public static IReadOnlyDictionary<string, string> Parse(IEnumerable<string> variables)
     {
@@ -25,11 +26,18 @@ internal static class VariableHelper
         return dictionary.AsReadOnly();
     }
 
-    public static string Replace(string value, IReadOnlyDictionary<string, string> variables)
+    public string Replace(string value, IReadOnlyDictionary<string, string> variables)
     {
-        return VariableReplaceRegex.Replace(
+        var updatedValue = VariableReplaceRegex.Replace(
             value,
             match => !variables.TryGetValue(match.Groups["VariableName"].Value, out var variableValue) ? match.Value : variableValue
         );
+
+        updatedValue = EnvVariableReplaceRegex.Replace(
+            updatedValue,
+            match => environmentVariableReader.Get(match.Groups["VariableName"].Value) ?? match.Value
+        );
+
+        return updatedValue;
     }
 }

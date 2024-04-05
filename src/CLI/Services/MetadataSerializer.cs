@@ -1,12 +1,10 @@
 ﻿using System.IO.Abstractions;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 
 namespace Kong.Portal.CLI.Services;
 
-internal class MetadataSerializer(IFileSystem fileSystem)
+internal class MetadataSerializer(IFileSystem fileSystem, VariableHelper variableHelper)
 {
     internal static readonly JsonSerializerOptions SerializerOptions =
         new(JsonSerializerDefaults.Web)
@@ -26,7 +24,7 @@ internal class MetadataSerializer(IFileSystem fileSystem)
     public async Task<T?> DeserializeAsync<T>(string filename, IReadOnlyDictionary<string, string> variables)
     {
         var json = await fileSystem.File.ReadAllTextAsync(filename);
-        var replacedJson = VariableHelper.Replace(json, variables);
+        var replacedJson = variableHelper.Replace(json, variables);
         return JsonSerializer.Deserialize<T>(replacedJson, SerializerOptions);
     }
 }

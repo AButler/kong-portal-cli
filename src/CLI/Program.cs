@@ -1,24 +1,10 @@
 ﻿using System.CommandLine;
-using System.IO.Abstractions;
 using Kong.Portal.CLI;
-using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.Commands;
-using Kong.Portal.CLI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Pastel;
 
-var services = new ServiceCollection()
-    .AddSingleton<DumpCommand>()
-    .AddSingleton<SyncCommand>()
-    .AddSingleton<KongApiClientFactory>()
-    .AddSingleton<IFileSystem, FileSystem>()
-    .AddSingleton<IConsoleOutput, ConsoleOutput>()
-    .AddSingleton<MetadataSerializer>()
-    .AddSingleton<DumpService>()
-    .AddSingleton<SyncService>()
-    .AddSingleton<ComparerService>()
-    .AddSingleton<SourceDirectoryReader>()
-    .BuildServiceProvider();
+var services = new ServiceCollection().AddApplication().BuildServiceProvider();
 
 try
 {
