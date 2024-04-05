@@ -72,6 +72,64 @@ You can use `--help` flag once you've got the Portal CLI installed on your syste
 portal-cli --help
 ```
 
+## Variables
+
+You can use variables within the json files for defining entities when performing a sync.
+
+### Environment Variables
+
+Use the syntax `${{ env ENVIRONMENT_VARIABLE_NAME }}` to replace with an environment variable.
+
+### Argument Variables
+
+Use the syntax `${{ var VARIABLE_NAME }}` to replace with a variable passed on the command line.
+
+These can be entered on the command line using the following syntax:
+
+```bash
+portal-cli sync --var VARIABLE_NAME=variable_value
+```
+
+> Note: to include spaces in the value, surround both the key and value with quotes (`"`), e.g. `"VARIABLE_NAME=variable value"`
+
+### Example
+
+Environment Variables:
+
+`COMPANY_NAME=Acme`
+
+Argument Variables:
+
+```bash
+portal-cli sync --var VERSION=1.0 --var "VERSION_NAME=Interesting Otter"
+```
+
+Sample JSON:
+
+```json
+{
+  "sync_id": "sample-api",
+  "name": "Sample API",
+  "description": "${{ env COMPANY_NAME }} Sample API. Version ${{ var VERSION }} - ${{ var VERSION_NAME }}",
+  "portals": [
+    "default"
+  ],
+  "labels": {}
+}
+```
+
+Transformed JSON:
+```json
+{
+  "sync_id": "sample-api",
+  "name": "Sample API",
+  "description": "Acme Sample API. Version 1.0 - Interesting Otter",
+  "portals": [
+    "default"
+  ],
+  "labels": {}
+}
+```
 ## Supported Entities
 
 The table below shows the list of Kong Konnect entities that are supported by the sync.
