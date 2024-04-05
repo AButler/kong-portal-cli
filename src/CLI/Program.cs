@@ -5,7 +5,6 @@ using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.Commands;
 using Kong.Portal.CLI.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Pastel;
 
 var services = new ServiceCollection()

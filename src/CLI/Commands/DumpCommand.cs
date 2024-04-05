@@ -32,7 +32,7 @@ internal class DumpCommand : Command
         );
     }
 
-    private async Task<int> Handle(string outputDirectory, string token, string tokenFile, string konnectAddress, bool debug)
+    private async Task<int> Handle(string outputDirectory, string? token, FileInfo? tokenFile, string konnectAddress, bool debug)
     {
         try
         {

@@ -20,14 +20,20 @@ internal class SyncCommand : Command
     {
         var inputDirectoryOption = new Option<string>("--input", "Input directory containing data to sync from") { IsRequired = true };
         var applyOption = new Option<bool>("--apply", "Applies changes to Konnect (do not set to perform a dry-run)");
+        var variablesOptions = new Option<string[]>("--var", "Variables to replace within the data (e.g. URL=http://example.com)")
+        {
+            Arity = ArgumentArity.ZeroOrMore
+        };
 
         AddOption(inputDirectoryOption);
         AddOption(applyOption);
+        AddOption(variablesOptions);
 
         this.SetHandler(
             Handle,
             inputDirectoryOption,
             applyOption,
+            variablesOptions,
             GlobalOptions.TokenOption,
             GlobalOptions.TokenFileOption,
             GlobalOptions.KonnectAddressOption,
@@ -35,13 +41,28 @@ internal class SyncCommand : Command
         );
     }
 
-    private async Task<int> Handle(string inputDirectory, bool apply, string token, string tokenFile, string konnectAddress, bool debug)
+    private async Task<int> Handle(
+        string inputDirectory,
+        bool apply,
+        string[] variables,
+        string? token,
+        FileInfo? tokenFile,
+        string konnectAddress,
+        bool debug
+    )
     {
         try
         {
             var resolvedToken = TokenResolutionHelper.ResolveToken(token, tokenFile);
 
-            await _syncService.Sync(Path.GetFullPath(inputDirectory), apply, new KongApiClientOptions(resolvedToken, konnectAddress, debug));
+            var variablesDictionary = VariableHelper.Parse(variables);
+
+            await _syncService.Sync(
+                Path.GetFullPath(inputDirectory),
+                variablesDictionary,
+                apply,
+                new KongApiClientOptions(resolvedToken, konnectAddress, debug)
+            );
 
             return 0;
         }
