@@ -4,9 +4,9 @@ namespace Kong.Portal.CLI.Services;
 
 internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFileSystem fileSystem)
 {
-    public async Task<SourceData> Read(string inputDirectory)
+    public async Task<SourceData> Read(string inputDirectory, IReadOnlyDictionary<string, string> variables)
     {
-        var sourceData = new SourceData(inputDirectory);
+        var sourceData = new SourceData(inputDirectory, variables);
 
         await ReadApiProducts(sourceData);
 
@@ -33,7 +33,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
     private async Task ReadPortal(SourceData sourceData, string portalFile)
     {
-        var portalMetadata = await metadataSerializer.DeserializeAsync<PortalMetadata>(portalFile);
+        var portalMetadata = await metadataSerializer.DeserializeAsync<PortalMetadata>(portalFile, sourceData.Variables);
 
         if (portalMetadata == null)
         {
@@ -51,7 +51,10 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
     private async Task ReadPortalAuthSettings(SourceData sourceData, string portalDirectory, string portalName)
     {
         var portalAuthSettingsFile = Path.Combine(portalDirectory, "authentication-settings.json");
-        var portalAuthSettingsMetadata = await metadataSerializer.DeserializeAsync<PortalAuthSettingsMetadata>(portalAuthSettingsFile);
+        var portalAuthSettingsMetadata = await metadataSerializer.DeserializeAsync<PortalAuthSettingsMetadata>(
+            portalAuthSettingsFile,
+            sourceData.Variables
+        );
 
         if (portalAuthSettingsMetadata == null)
         {
@@ -64,7 +67,10 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
     private async Task ReadPortalAppearance(SourceData sourceData, string portalDirectory, string portalName)
     {
         var portalAppearanceFile = Path.Combine(portalDirectory, "appearance.json");
-        var portalAppearanceMetadata = await metadataSerializer.DeserializeAsync<PortalAppearanceMetadata>(portalAppearanceFile);
+        var portalAppearanceMetadata = await metadataSerializer.DeserializeAsync<PortalAppearanceMetadata>(
+            portalAppearanceFile,
+            sourceData.Variables
+        );
 
         if (portalAppearanceMetadata == null)
         {
@@ -113,7 +119,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
     private async Task ReadApiProduct(SourceData sourceData, string apiProductFile)
     {
-        var apiProductMetadata = await metadataSerializer.DeserializeAsync<ApiProductMetadata>(apiProductFile);
+        var apiProductMetadata = await metadataSerializer.DeserializeAsync<ApiProductMetadata>(apiProductFile, sourceData.Variables);
 
         if (apiProductMetadata == null)
         {
@@ -151,7 +157,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
     private async Task ReadDocument(SourceData sourceData, ApiProductMetadata apiProductMetadata, string documentFile)
     {
-        var apiProductDocumentMetadata = await metadataSerializer.DeserializeAsync<ApiProductDocumentMetadata>(documentFile);
+        var apiProductDocumentMetadata = await metadataSerializer.DeserializeAsync<ApiProductDocumentMetadata>(documentFile, sourceData.Variables);
 
         if (apiProductDocumentMetadata == null)
         {
@@ -168,7 +174,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
     private async Task ReadApiProductVersion(SourceData sourceData, ApiProductMetadata apiProductMetadata, string versionFile)
     {
-        var apiProductVersionMetadata = await metadataSerializer.DeserializeAsync<ApiProductVersionMetadata>(versionFile);
+        var apiProductVersionMetadata = await metadataSerializer.DeserializeAsync<ApiProductVersionMetadata>(versionFile, sourceData.Variables);
 
         if (apiProductVersionMetadata == null)
         {

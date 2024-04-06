@@ -1,8 +1,9 @@
 ﻿namespace Kong.Portal.CLI.Services;
 
-internal class SourceData(string inputDirectory)
+internal class SourceData(string inputDirectory, IReadOnlyDictionary<string, string> variables)
 {
     public string InputDirectory { get; } = inputDirectory;
+    public IReadOnlyDictionary<string, string> Variables { get; } = variables;
 
     public List<ApiProductMetadata> ApiProducts { get; } = new();
     public Dictionary<string, List<ApiProductVersionMetadata>> ApiProductVersions { get; } = new();

@@ -6,6 +6,7 @@ using Kong.Portal.CLI;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CLI.UnitTests.TestHost;
 
@@ -40,13 +41,13 @@ internal class TestHost : IDisposable
         var mockFileSystem = new MockFileSystem();
 
         var services = new ServiceCollection()
-            .AddSingleton<KongApiClientFactory>()
+            .AddCoreApplication()
+            .RemoveAll<IFileSystem>()
+            .RemoveAll<IConsoleOutput>()
+            .RemoveAll<IEnvironmentVariableReader>()
             .AddSingleton<IFileSystem>(mockFileSystem)
             .AddSingleton<IConsoleOutput, NullConsoleOutput>()
-            .AddSingleton<MetadataSerializer>()
-            .AddSingleton<SyncService>()
-            .AddSingleton<ComparerService>()
-            .AddSingleton<SourceDirectoryReader>();
+            .AddSingleton<IEnvironmentVariableReader, MockEnvironmentVariableReader>();
 
         ConfigureTestServices(services);
 

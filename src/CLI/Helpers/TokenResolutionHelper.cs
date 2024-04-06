@@ -2,16 +2,16 @@
 
 internal static class TokenResolutionHelper
 {
-    public static string ResolveToken(string token, string tokenFile)
+    public static string ResolveToken(string? token, FileInfo? tokenFile)
     {
         if (!string.IsNullOrWhiteSpace(token))
         {
             return token;
         }
 
-        if (!string.IsNullOrWhiteSpace(tokenFile) && File.Exists(tokenFile))
+        if (tokenFile != null && tokenFile.Exists)
         {
-            return File.ReadAllText(tokenFile);
+            return File.ReadAllText(tokenFile.FullName);
         }
 
         throw new TokenNotFoundException();

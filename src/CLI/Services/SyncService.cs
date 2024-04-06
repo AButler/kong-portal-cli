@@ -13,7 +13,7 @@ internal class SyncService(
     IConsoleOutput consoleOutput
 )
 {
-    public async Task Sync(string inputDirectory, bool apply, KongApiClientOptions apiClientOptions)
+    public async Task Sync(string inputDirectory, IReadOnlyDictionary<string, string> variables, bool apply, KongApiClientOptions apiClientOptions)
     {
         var apiClient = apiClientFactory.CreateClient(apiClientOptions);
 
@@ -24,7 +24,7 @@ internal class SyncService(
         }
 
         consoleOutput.WriteLine("Reading input directory...");
-        var sourceData = await sourceDirectoryReader.Read(inputDirectory);
+        var sourceData = await sourceDirectoryReader.Read(inputDirectory, variables);
 
         consoleOutput.WriteLine("Comparing...");
         var compareResult = await comparerService.Compare(sourceData, apiClient);
