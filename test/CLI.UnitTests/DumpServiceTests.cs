@@ -568,6 +568,7 @@ public class DumpServiceTests
                 OidcConfig: new OidcAuthSettings(
                     "http://my-auth",
                     "MyClientId",
+                    "MyClientSecret",
                     ["openid", "profile", "email"],
                     new OidcClaimMappings("name", "email", "groups")
                 )
@@ -588,6 +589,7 @@ public class DumpServiceTests
             oidcConfig: new OidcAuthSettings(
                 "http://my-auth",
                 "MyClientId",
+                "MyClientSecret",
                 ["openid", "profile", "email"],
                 new OidcClaimMappings("name", "email", "groups")
             )

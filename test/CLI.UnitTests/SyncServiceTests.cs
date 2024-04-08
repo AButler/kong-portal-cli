@@ -211,6 +211,7 @@ public class SyncServiceTests
             oidcConfig: new OidcAuthSettings(
                 "MyIssuer",
                 "MyClientId",
+                "MyClientSecret",
                 ["openid", "profile", "email"],
                 new OidcClaimMappings("name", "email", "groups")
             )
