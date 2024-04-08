@@ -27,6 +27,7 @@ internal static class MetadataMappingExtensions
                 : new DevPortalOidcConfig(
                     metadata.OidcConfig.Issuer,
                     metadata.OidcConfig.ClientId,
+                    metadata.OidcConfig.ClientSecret,
                     metadata.OidcConfig.Scopes,
                     new DevPortalClaimMappings(
                         metadata.OidcConfig.ClaimMappings.Name,

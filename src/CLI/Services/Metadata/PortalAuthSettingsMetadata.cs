@@ -8,6 +8,12 @@ internal record PortalAuthSettingsMetadata(
     PortalOidcConfig? OidcConfig
 );
 
-internal record PortalOidcConfig(string Issuer, string ClientId, IReadOnlyCollection<string> Scopes, PortalClaimMappings ClaimMappings);
+internal record PortalOidcConfig(
+    string Issuer,
+    string ClientId,
+    string ClientSecret,
+    IReadOnlyCollection<string> Scopes,
+    PortalClaimMappings ClaimMappings
+);
 
 internal record PortalClaimMappings(string Name, string Email, string Groups);
