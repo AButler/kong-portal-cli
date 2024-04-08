@@ -186,6 +186,7 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
                 : new PortalOidcConfig(
                     oidcConfigValue.Issuer,
                     oidcConfigValue.ClientId,
+                    oidcConfigValue.ClientSecret,
                     oidcConfigValue.Scopes,
                     new PortalClaimMappings(
                         oidcConfigValue.ClaimMappings.Name,

@@ -1,4 +1,6 @@
-﻿namespace Kong.Portal.CLI.ApiClient.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace Kong.Portal.CLI.ApiClient.Models;
 
 internal record DevPortalAuthSettings(
     bool BasicAuthEnabled,
@@ -8,7 +10,13 @@ internal record DevPortalAuthSettings(
     DevPortalOidcConfig? OidcConfig
 );
 
-internal record DevPortalOidcConfig(string Issuer, string ClientId, IReadOnlyCollection<string> Scopes, DevPortalClaimMappings ClaimMappings)
+internal record DevPortalOidcConfig(
+    string Issuer,
+    string ClientId,
+    [property: JsonIgnore] string? ClientSecret,
+    IReadOnlyCollection<string> Scopes,
+    DevPortalClaimMappings ClaimMappings
+)
 {
     public virtual bool Equals(DevPortalOidcConfig? other)
     {
@@ -26,6 +34,8 @@ internal record DevPortalOidcConfig(string Issuer, string ClientId, IReadOnlyCol
         {
             return false;
         }
+
+        //Note: purposely ignore ClientSecret
 
         if (!Scopes.OrderBy(s => s).SequenceEqual(other.Scopes.OrderBy(s => s)))
         {

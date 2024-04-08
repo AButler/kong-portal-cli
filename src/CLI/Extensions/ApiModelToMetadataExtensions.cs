@@ -111,6 +111,7 @@ internal static class ApiModelToMetadataExtensions
                 : new PortalOidcConfig(
                     authSettings.OidcConfig.Issuer,
                     authSettings.OidcConfig.ClientId,
+                    authSettings.OidcConfig.ClientSecret ?? "",
                     authSettings.OidcConfig.Scopes,
                     new PortalClaimMappings(
                         authSettings.OidcConfig.ClaimMappings.Name,

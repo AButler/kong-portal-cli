@@ -50,6 +50,7 @@ internal static class ApiModelExtensions
             authSettings.KonnectMappingEnabled,
             authSettings.OidcConfig?.Issuer,
             authSettings.OidcConfig?.ClientId,
+            authSettings.OidcConfig?.ClientSecret,
             authSettings.OidcConfig?.Scopes,
             authSettings.OidcConfig?.ClaimMappings
         );

@@ -7,6 +7,7 @@ internal record DevPortalAuthSettingsUpdate(
     bool KonnectMappingEnabled,
     string? OidcIssuer,
     string? OidcClientId,
+    string? OidcClientSecret,
     IReadOnlyCollection<string>? OidcScopes,
     DevPortalClaimMappings? OidcClaimMappings
 );
