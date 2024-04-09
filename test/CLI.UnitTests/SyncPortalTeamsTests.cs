@@ -14,6 +14,7 @@ public class SyncPortalTeamsTests
         await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
         await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
         await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
+        await testHost.Given.File.ExistingDevPortalTeams(inputDirectory: @"c:\temp\input", portalName: "default");
 
         testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
 

@@ -76,4 +76,23 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
 
         return allTeams;
     }
+
+    public async Task<DevPortalTeam> CreateTeam(string portalId, DevPortalTeam team)
+    {
+        var response = await flurlClient.Request($"/portals/{portalId}/teams").PostJsonAsync(team.ToUpdateModel());
+
+        return await response.GetJsonAsync<DevPortalTeam>();
+    }
+
+    public async Task<DevPortalTeam> UpdateTeam(string portalId, DevPortalTeam team)
+    {
+        var response = await flurlClient.Request($"/portals/{portalId}/teams/{team.Id}").PatchJsonAsync(team.ToUpdateModel());
+
+        return await response.GetJsonAsync<DevPortalTeam>();
+    }
+
+    public async Task DeleteTeam(string portalId, string teamId)
+    {
+        await flurlClient.Request($"/portals/{portalId}/teams/{teamId}").DeleteAsync();
+    }
 }
