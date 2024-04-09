@@ -33,7 +33,12 @@ internal class ApiProductsClient(IFlurlClient flurlClient)
         if (apiProduct.PortalIds.Count > 0)
         {
             // Cannot publish API products in the same call as create so have to do a subsequent update
-            return await Update(apiProduct);
+            var updatedApiProduct = apiProduct with
+            {
+                Id = createdApiProduct.Id
+            };
+
+            return await Update(updatedApiProduct);
         }
 
         return createdApiProduct;
