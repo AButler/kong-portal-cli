@@ -39,7 +39,7 @@ public class DumpPortalAppearanceTests
 
         await testHost.Then.DumpedFile.ShouldHavePortalAppearance(
             outputDirectory: outputDirectory,
-            name: "default",
+            portalName: "default",
             themeName: "custom",
             useCustomFonts: true,
             customFontBase: "Inter",

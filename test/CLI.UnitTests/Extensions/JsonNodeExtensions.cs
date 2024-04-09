@@ -118,4 +118,32 @@ public static class JsonNodeExtensions
 
         actual.Should().BeEquivalentTo(expected);
     }
+
+    public static void ShouldHaveArrayProperty(this JsonNode? json, string propertyName)
+    {
+        json.Should().NotBeNull();
+        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+
+        var jObject = json.AsObject();
+
+        var propertyNode = jObject[propertyName];
+        propertyNode.Should().NotBeNull($"{propertyName} should be present");
+        propertyNode!.GetValueKind().Should().Be(JsonValueKind.Array);
+    }
+
+    public static void ShouldHaveArrayPropertyWithLength(this JsonNode? json, string propertyName, int expectedLength)
+    {
+        json.Should().NotBeNull();
+        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+
+        var jObject = json.AsObject();
+
+        var propertyNode = jObject[propertyName];
+        propertyNode.Should().NotBeNull($"{propertyName} should be present");
+        propertyNode!.GetValueKind().Should().Be(JsonValueKind.Array);
+
+        var arrayNode = propertyNode.AsArray();
+
+        arrayNode.Count.Should().Be(expectedLength);
+    }
 }

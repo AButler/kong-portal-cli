@@ -148,6 +148,19 @@ internal class DumpService(
         await DumpPortalAppearance(context, devPortal);
 
         await DumpPortalAuthSettings(context, devPortal);
+
+        await DumpPortalTeams(context, devPortal);
+    }
+
+    private async Task DumpPortalTeams(DumpContext context, DevPortal devPortal)
+    {
+        var portalDirectory = context.GetPortalDirectory(devPortal.Name);
+        var teams = await context.ApiClient.DevPortals.GetTeams(devPortal.Id);
+
+        var teamsMetadata = teams.ToMetadata();
+
+        var teamsMetadataFilename = Path.Combine(portalDirectory, "teams.json");
+        await metadataSerializer.SerializeAsync(teamsMetadataFilename, teamsMetadata);
     }
 
     private async Task DumpPortalAuthSettings(DumpContext context, DevPortal devPortal)

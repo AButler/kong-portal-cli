@@ -57,4 +57,23 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
 
         return await response.GetJsonAsync<DevPortalAuthSettings>();
     }
+
+    public async Task<IReadOnlyList<DevPortalTeam>> GetTeams(string portalId)
+    {
+        var allTeams = new List<DevPortalTeam>();
+
+        PagedResponse<DevPortalTeam> teamsResponse;
+        var pageNumber = 1;
+
+        do
+        {
+            var response = await flurlClient.Request($"/portals/{portalId}/teams").SetQueryParam("page[number]", pageNumber++).GetAsync();
+
+            teamsResponse = await response.GetJsonAsync<PagedResponse<DevPortalTeam>>();
+
+            allTeams.AddRange(teamsResponse.Data);
+        } while (teamsResponse.Meta.Page.HasMore());
+
+        return allTeams;
+    }
 }

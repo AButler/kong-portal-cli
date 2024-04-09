@@ -1,4 +1,5 @@
 ﻿using System.IO.Abstractions;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Kong.Portal.CLI;
 
@@ -96,7 +97,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
 
     public async Task ShouldHavePortal(
         string outputDirectory,
-        string name,
+        string portalName,
         bool isPublic,
         bool rbacEnabled,
         bool autoApproveApplications,
@@ -105,7 +106,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         string? customClientDomain
     )
     {
-        var portalDirectory = Path.Combine(outputDirectory, "portals", name);
+        var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
 
         DirectoryShouldExist(portalDirectory);
 
@@ -114,7 +115,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
 
         var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
 
-        json.ShouldHaveStringProperty("name", name);
+        json.ShouldHaveStringProperty("name", portalName);
         json.ShouldHaveBooleanProperty("is_public", isPublic);
         json.ShouldHaveBooleanProperty("rbac_enabled", rbacEnabled);
         json.ShouldHaveBooleanProperty("auto_approve_developers", autoApproveDevelopers);
@@ -141,7 +142,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
 
     public async Task ShouldHavePortalAppearance(
         string outputDirectory,
-        string name,
+        string portalName,
         string themeName,
         bool useCustomFonts,
         string? customFontBase,
@@ -157,7 +158,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         string? catalogCoverImageName
     )
     {
-        var portalDirectory = Path.Combine(outputDirectory, "portals", name);
+        var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
         DirectoryShouldExist(portalDirectory);
 
         var metadataFilename = Path.Combine(portalDirectory, "appearance.json");
@@ -217,7 +218,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
 
     public async Task ShouldHavePortalAuthSettings(
         string outputDirectory,
-        string name,
+        string portalName,
         bool basicAuthEnabled,
         bool oidcAuthEnabled,
         bool oidcTeamMappingEnabled,
@@ -225,7 +226,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         OidcAuthSettings? oidcConfig
     )
     {
-        var portalDirectory = Path.Combine(outputDirectory, "portals", name);
+        var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
         DirectoryShouldExist(portalDirectory);
 
         var metadataFilename = Path.Combine(portalDirectory, "authentication-settings.json");
@@ -260,6 +261,53 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
                 }
             );
         }
+    }
+
+    public async Task ShouldHaveNoPortalTeams(string outputDirectory, string portalName)
+    {
+        var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
+        DirectoryShouldExist(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "teams.json");
+        FileShouldExist(metadataFilename);
+
+        var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
+
+        json.ShouldHaveArrayPropertyWithLength("teams", 0);
+    }
+
+    public async Task ShouldHavePortalTeam(string outputDirectory, string portalName, string teamName, string teamDescription)
+    {
+        var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
+        DirectoryShouldExist(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "teams.json");
+        FileShouldExist(metadataFilename);
+
+        var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
+
+        json.ShouldHaveArrayProperty("teams");
+
+        var teams = (JsonArray)json!["teams"]!;
+
+        foreach (var node in teams)
+        {
+            if (node == null || node.GetValueKind() != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var nameNode = node["name"];
+            if (nameNode == null || nameNode.GetValueKind() != JsonValueKind.String || nameNode.GetValue<string>() != teamName)
+            {
+                continue;
+            }
+
+            node.ShouldHaveStringProperty("description", teamDescription);
+            return;
+        }
+
+        Assert.Fail("Team not found");
     }
 
     private void DirectoryShouldExist(string path)

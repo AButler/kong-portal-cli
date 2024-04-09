@@ -27,7 +27,7 @@ public class DumpPortalSettingsTests
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
             outputDirectory: outputDirectory,
-            name: "default",
+            portalName: "default",
             isPublic: true,
             rbacEnabled: false,
             autoApproveApplications: false,
@@ -67,7 +67,7 @@ public class DumpPortalSettingsTests
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
             outputDirectory: outputDirectory,
-            name: "default",
+            portalName: "default",
             isPublic: true,
             rbacEnabled: false,
             autoApproveApplications: false,
@@ -109,7 +109,7 @@ public class DumpPortalSettingsTests
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
             outputDirectory: outputDirectory,
-            name: "default",
+            portalName: "default",
             isPublic: true,
             rbacEnabled: false,
             autoApproveApplications: false,

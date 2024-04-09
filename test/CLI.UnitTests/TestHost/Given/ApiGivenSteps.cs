@@ -14,6 +14,7 @@ internal class ApiGivenSteps
     private readonly Dictionary<string, List<dynamic>> _apiProductVersions = new();
     private readonly Dictionary<string, dynamic> _devPortalAppearances = new();
     private readonly Dictionary<string, dynamic> _devPortalAuthSettings = new();
+    private readonly Dictionary<string, List<dynamic>> _devPortalTeams = new();
 
     private int _pageSize = 100;
 
@@ -176,6 +177,8 @@ internal class ApiGivenSteps
             }
         );
 
+        _devPortalTeams.Add(id, []);
+
         SetupDevPortalAppearance(id, appearanceData.GetValueOrDefault(new AppearanceData()));
 
         HttpTest.Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/appearance").WithVerb("GET").RespondWithDynamicJson(() => _devPortalAppearances[id]);
@@ -186,6 +189,22 @@ internal class ApiGivenSteps
             .Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/authentication-settings")
             .WithVerb("GET")
             .RespondWithDynamicJson(() => _devPortalAuthSettings[id]);
+
+        SetupPagedApi($"{_kongBaseUrl}portals/{id}/teams", () => _devPortalTeams[id]);
+    }
+
+    public void AnExistingDevPortalTeam(string portalId, string name, string description)
+    {
+        var id = Guid.NewGuid().ToString();
+
+        var team = new
+        {
+            id = id,
+            name = name,
+            description = description
+        };
+
+        _devPortalTeams[portalId].Add(team);
     }
 
     private void SetupDevPortalAuthSettings(string id, AuthSettings authSettings)

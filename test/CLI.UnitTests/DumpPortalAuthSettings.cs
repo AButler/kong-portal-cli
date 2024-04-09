@@ -31,7 +31,7 @@ public class DumpPortalAuthSettings
 
         await testHost.Then.DumpedFile.ShouldHavePortalAuthSettings(
             outputDirectory: outputDirectory,
-            name: "default",
+            portalName: "default",
             basicAuthEnabled: true,
             oidcAuthEnabled: false,
             oidcTeamMappingEnabled: false,
@@ -73,7 +73,7 @@ public class DumpPortalAuthSettings
 
         await testHost.Then.DumpedFile.ShouldHavePortalAuthSettings(
             outputDirectory: outputDirectory,
-            name: "default",
+            portalName: "default",
             basicAuthEnabled: false,
             oidcAuthEnabled: true,
             oidcTeamMappingEnabled: true,

@@ -129,6 +129,11 @@ internal static class ApiModelToMetadataExtensions
         );
     }
 
+    public static PortalTeamsMetadata ToMetadata(this IReadOnlyList<DevPortalTeam> teams)
+    {
+        return new PortalTeamsMetadata(teams.Select(t => new PortalTeamMetadata(t.Name, t.Description)).ToList());
+    }
+
     private static MetadataPublishStatus ToMetadataPublishStatus(this ApiPublishStatus publishStatus) =>
         publishStatus switch
         {
