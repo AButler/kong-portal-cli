@@ -1,6 +1,5 @@
 ﻿using System.IO.Abstractions;
 using Kong.Portal.CLI;
-using Kong.Portal.CLI.Services;
 
 namespace CLI.UnitTests.TestHost;
 

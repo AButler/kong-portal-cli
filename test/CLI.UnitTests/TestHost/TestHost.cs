@@ -4,7 +4,6 @@ using CLI.UnitTests.Services;
 using Flurl.Http.Testing;
 using Kong.Portal.CLI;
 using Kong.Portal.CLI.ApiClient;
-using Kong.Portal.CLI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

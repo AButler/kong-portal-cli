@@ -3,7 +3,6 @@ using Flurl.Http.Testing;
 using Kong.Portal.CLI;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
-using Kong.Portal.CLI.Services;
 
 namespace CLI.UnitTests.TestHost;
 

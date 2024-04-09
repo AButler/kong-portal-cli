@@ -1,9 +1,4 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=b868fd26_002D628f_002D4ed0_002Dba1d_002D0a288928e3b0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::EFD1EA28-9B21-4755-88DD-BF9982099890::net8.0::CLI.UnitTests.DumpServiceTests&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::EFD1EA28-9B21-4755-88DD-BF9982099890::net8.0::CLI.UnitTests.SyncServiceTests.NoSourceDataAndNothingDeployDoesNothing&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::EFD1EA28-9B21-4755-88DD-BF9982099890::net8.0::CLI.UnitTests.SyncServiceTests.NameChangeUpdatesCorrectly&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;xUnit::EFD1EA28-9B21-4755-88DD-BF9982099890::net8.0::CLI.UnitTests.SyncServiceTests&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+  &lt;Project Location="D:\dev\kong-portal-cli\test\CLI.UnitTests" Presentation="&amp;lt;CLI.UnitTests&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
