@@ -34,10 +34,10 @@ internal class ApiProductVersionsClient(IFlurlClient flurlClient)
         return await response.GetJsonAsync<ApiProductVersion>();
     }
 
-    public async Task<ApiProductVersion> Update(string apiProductId, string apiProductVersionId, ApiProductVersion apiProductVersion)
+    public async Task<ApiProductVersion> Update(string apiProductId, ApiProductVersion apiProductVersion)
     {
         var response = await flurlClient
-            .Request($"api-products/{apiProductId}/product-versions/{apiProductVersionId}")
+            .Request($"api-products/{apiProductId}/product-versions/{apiProductVersion.Id}")
             .PatchJsonAsync(apiProductVersion.ToUpdateModel());
 
         return await response.GetJsonAsync<ApiProductVersion>();

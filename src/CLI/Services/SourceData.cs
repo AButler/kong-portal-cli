@@ -13,5 +13,6 @@ internal class SourceData(string inputDirectory, IReadOnlyDictionary<string, str
     public List<PortalMetadata> Portals { get; } = new();
     public Dictionary<string, PortalAppearanceMetadata> PortalAppearances { get; } = new();
     public Dictionary<string, PortalAuthSettingsMetadata> PortalAuthSettings { get; } = new();
+    public Dictionary<string, List<PortalTeamMetadata>> PortalTeams { get; } = new();
     public Dictionary<string, ImageData> PortalAppearanceImageData { get; } = new();
 }

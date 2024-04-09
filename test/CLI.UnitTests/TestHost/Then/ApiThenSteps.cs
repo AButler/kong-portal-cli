@@ -3,7 +3,6 @@ using Flurl.Http.Testing;
 using Kong.Portal.CLI;
 using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
-using Kong.Portal.CLI.Services;
 
 namespace CLI.UnitTests.TestHost;
 
@@ -80,6 +79,34 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
     public void PortalAuthSettingsShouldHaveBeenUpdated(string portalId)
     {
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/authentication-settings").WithVerb(HttpMethod.Patch);
+    }
+
+    public void PortalTeamShouldHaveBeenCreated(string portalId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/teams").WithVerb(HttpMethod.Post);
+    }
+
+    public void PortalTeamShouldHaveBeenUpdated(string portalId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/teams/*").WithVerb(HttpMethod.Patch);
+    }
+
+    public void NoPortalTeamsShouldHaveBeenCreated(string portalId)
+    {
+        var call = HttpTest.Current.CallLog.FirstOrDefault(c =>
+            c.Request.Url.ToString() == $"{_kongBaseUri}portals/{portalId}/teams" && c.Request.Verb == HttpMethod.Post
+        );
+
+        call.Should().BeNull();
+    }
+
+    public void NoPortalTeamsShouldHaveBeenUpdated(string portalId)
+    {
+        var call = HttpTest.Current.CallLog.FirstOrDefault(c =>
+            c.Request.Url.ToString() == $"{_kongBaseUri}portals/{portalId}/teams" && c.Request.Verb == HttpMethod.Patch
+        );
+
+        call.Should().BeNull();
     }
 
     private T? Deserialize<T>(string json)

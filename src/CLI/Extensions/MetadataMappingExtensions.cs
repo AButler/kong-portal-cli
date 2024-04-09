@@ -95,6 +95,11 @@ internal static class MetadataMappingExtensions
         return new DevPortalAppearanceCustomTheme(colors);
     }
 
+    public static DevPortalTeam ToApiModel(this PortalTeamMetadata metadata, string? id = null)
+    {
+        return new DevPortalTeam(id ?? $"resolve://portal-team/{metadata.Name}", metadata.Name, metadata.Description);
+    }
+
     private static DevPortalAppearanceImages ToApiModel(this PortalImagesMetadata metadata, ImageData imageData)
     {
         var favicon = imageData.Favicon == null ? null : new DevPortalAppearanceImage(imageData.Favicon, metadata.Favicon!);

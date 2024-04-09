@@ -38,10 +38,10 @@ internal class ApiProductDocumentsClient(IFlurlClient flurlClient)
         return await response.GetJsonAsync<ApiProductDocumentBody>();
     }
 
-    public async Task<ApiProductDocumentBody> Update(string apiProductId, string documentId, ApiProductDocumentBody apiProductDocument)
+    public async Task<ApiProductDocumentBody> Update(string apiProductId, ApiProductDocumentBody apiProductDocument)
     {
         var response = await flurlClient
-            .Request($"api-products/{apiProductId}/documents/{documentId}")
+            .Request($"api-products/{apiProductId}/documents/{apiProductDocument.Id}")
             .PatchJsonAsync(apiProductDocument.ToUpdateModel());
 
         return await response.GetJsonAsync<ApiProductDocumentBody>();

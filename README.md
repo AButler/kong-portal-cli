@@ -143,7 +143,7 @@ The table below shows the list of Kong Konnect entities that are supported by th
 | Portal                            | ✅*        | Cannot create or delete Portals |
 | Portal Appearance                 | ✅         |                                 |
 | Portal Auth Settings              | ✅         |                                 |
-| Portal Teams                      | ❌         |                                 |
+| Portal Teams                      | ✅         |                                 |
 | Portal Team Group Mappings        | ❌         |                                 |
 | Portal Team Roles                 | ❌         |                                 |
 

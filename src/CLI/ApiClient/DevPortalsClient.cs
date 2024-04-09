@@ -57,4 +57,42 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
 
         return await response.GetJsonAsync<DevPortalAuthSettings>();
     }
+
+    public async Task<IReadOnlyList<DevPortalTeam>> GetTeams(string portalId)
+    {
+        var allTeams = new List<DevPortalTeam>();
+
+        PagedResponse<DevPortalTeam> teamsResponse;
+        var pageNumber = 1;
+
+        do
+        {
+            var response = await flurlClient.Request($"/portals/{portalId}/teams").SetQueryParam("page[number]", pageNumber++).GetAsync();
+
+            teamsResponse = await response.GetJsonAsync<PagedResponse<DevPortalTeam>>();
+
+            allTeams.AddRange(teamsResponse.Data);
+        } while (teamsResponse.Meta.Page.HasMore());
+
+        return allTeams;
+    }
+
+    public async Task<DevPortalTeam> CreateTeam(string portalId, DevPortalTeam team)
+    {
+        var response = await flurlClient.Request($"/portals/{portalId}/teams").PostJsonAsync(team.ToUpdateModel());
+
+        return await response.GetJsonAsync<DevPortalTeam>();
+    }
+
+    public async Task<DevPortalTeam> UpdateTeam(string portalId, DevPortalTeam team)
+    {
+        var response = await flurlClient.Request($"/portals/{portalId}/teams/{team.Id}").PatchJsonAsync(team.ToUpdateModel());
+
+        return await response.GetJsonAsync<DevPortalTeam>();
+    }
+
+    public async Task DeleteTeam(string portalId, string teamId)
+    {
+        await flurlClient.Request($"/portals/{portalId}/teams/{teamId}").DeleteAsync();
+    }
 }

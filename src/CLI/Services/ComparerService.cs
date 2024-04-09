@@ -21,7 +21,8 @@ internal class ComparerService
             context.ApiProductDocuments,
             context.Portals,
             context.PortalAppearances,
-            context.PortalAuthSettings
+            context.PortalAuthSettings,
+            context.PortalTeams
         );
 
         return result;
@@ -42,10 +43,13 @@ internal class ComparerService
 
                 var portal = sourcePortal.ToApiModel(serverPortal.Id);
                 context.Portals.Add(Difference.UpdateOrNoChange(sourcePortal.Name, serverPortal.Id, serverPortal, portal));
+                context.PortalTeams.Add(sourcePortal.Name, []);
 
                 await ComparePortalAppearance(sourceData, context, sourcePortal.Name, serverPortal.Id);
 
                 await ComparePortalAuthSettings(sourceData, context, sourcePortal.Name, serverPortal.Id);
+
+                await ComparePortalTeams(sourceData, context, sourcePortal.Name, serverPortal.Id);
 
                 continue;
             }
@@ -56,9 +60,52 @@ internal class ComparerService
         foreach (var sourcePortal in toMatch)
         {
             context.Portals.Add(Difference.Add(sourcePortal.Name, sourcePortal.ToApiModel()));
+            context.PortalTeams.Add(sourcePortal.Name, []);
 
             await ComparePortalAppearance(sourceData, context, sourcePortal.Name);
             await ComparePortalAuthSettings(sourceData, context, sourcePortal.Name);
+            await ComparePortalTeams(sourceData, context, sourcePortal.Name);
+        }
+    }
+
+    private async Task ComparePortalTeams(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
+    {
+        var toMatch = sourceData.PortalTeams[portalName];
+        var differences = context.PortalTeams[portalName];
+
+        if (portalId == null)
+        {
+            foreach (var sourcePortalTeam in toMatch)
+            {
+                differences.Add(Difference.Add(sourcePortalTeam.Name, sourcePortalTeam.ToApiModel()));
+            }
+
+            return;
+        }
+
+        var serverPortalTeams = await context.ApiClient.DevPortals.GetTeams(portalId);
+
+        foreach (var serverPortalTeam in serverPortalTeams)
+        {
+            var sourcePortalTeam = toMatch.FirstOrDefault(t => t.Name == serverPortalTeam.Name);
+
+            if (sourcePortalTeam != null)
+            {
+                toMatch.Remove(sourcePortalTeam);
+
+                var team = sourcePortalTeam.ToApiModel(serverPortalTeam.Id);
+
+                differences.Add(Difference.UpdateOrNoChange(sourcePortalTeam.Name, serverPortalTeam.Id, serverPortalTeam, team));
+
+                continue;
+            }
+
+            differences.Add(Difference.Delete(serverPortalTeam.Id, serverPortalTeam));
+        }
+
+        foreach (var sourcePortalTeam in toMatch)
+        {
+            differences.Add(Difference.Add(sourcePortalTeam.Name, sourcePortalTeam.ToApiModel()));
         }
     }
 
@@ -375,6 +422,7 @@ internal class ComparerService
         public List<Difference<DevPortal>> Portals { get; } = new();
         public Dictionary<string, Difference<DevPortalAppearance>> PortalAppearances { get; } = new();
         public Dictionary<string, Difference<DevPortalAuthSettings>> PortalAuthSettings { get; } = new();
+        public Dictionary<string, List<Difference<DevPortalTeam>>> PortalTeams { get; } = new();
         public List<Difference<ApiProduct>> ApiProducts { get; } = new();
         public Dictionary<string, List<Difference<ApiProductVersion>>> ApiProductVersions { get; } = new();
         public Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> ApiProductVersionSpecifications { get; } = new();

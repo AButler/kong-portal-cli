@@ -56,6 +56,11 @@ internal static class ApiModelExtensions
         );
     }
 
+    public static DevPortalTeamUpdate ToUpdateModel(this DevPortalTeam team)
+    {
+        return new DevPortalTeamUpdate(team.Name, team.Description);
+    }
+
     public static ApiProductDocumentBody ResolveDocumentId(this ApiProductDocumentBody document, IReadOnlyDictionary<string, string> map)
     {
         if (!document.TryResolveDocumentId(map, out var result))

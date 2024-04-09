@@ -1,10 +1,8 @@
-﻿using CLI.UnitTests.TestHost;
-using Kong.Portal.CLI;
-using Kong.Portal.CLI.Services;
+﻿using Kong.Portal.CLI;
 
 namespace CLI.UnitTests;
 
-public class SyncServiceTests
+public class SyncApiProductTests
 {
     [Fact]
     public async Task NoSourceDataAndNoServerDataDoesNothing()
@@ -19,7 +17,7 @@ public class SyncServiceTests
     }
 
     [Fact]
-    public async Task DescriptionChangeUpdates()
+    public async Task ApiProductDescriptionChangeUpdates()
     {
         using var testHost = new TestHost.TestHost();
 
@@ -66,7 +64,7 @@ public class SyncServiceTests
     }
 
     [Fact]
-    public async Task NameChangeUpdates()
+    public async Task ApiProductNameChangeUpdates()
     {
         using var testHost = new TestHost.TestHost();
 
@@ -121,56 +119,6 @@ public class SyncServiceTests
     }
 
     [Fact]
-    public async Task PortalSettingsAreSynced()
-    {
-        using var testHost = new TestHost.TestHost();
-
-        var portalId = Guid.NewGuid().ToString();
-
-        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
-
-        await testHost.Given.File.AnExistingDevPortal(
-            inputDirectory: @"c:\temp\input",
-            name: "default",
-            customDomain: "dev-portal.com",
-            customClientDomain: "client.dev-portal.com",
-            isPublic: true,
-            rbacEnabled: true,
-            autoApproveDevelopers: true,
-            autoApproveApplications: true
-        );
-
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", name: "default");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", name: "default");
-
-        var syncService = testHost.GetRequiredService<SyncService>();
-
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
-
-        testHost.Then.Api.PortalShouldHaveBeenUpdated(portalId);
-    }
-
-    [Fact]
-    public async Task PortalAppearanceIsSynced()
-    {
-        using var testHost = new TestHost.TestHost();
-
-        var portalId = Guid.NewGuid().ToString();
-
-        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
-
-        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", name: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", name: "default", themeName: "custom");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", name: "default");
-
-        var syncService = testHost.GetRequiredService<SyncService>();
-
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
-
-        testHost.Then.Api.PortalAppearanceShouldHaveBeenUpdated(portalId);
-    }
-
-    [Fact]
     public async Task NewApiDocumentAdded()
     {
         using var testHost = new TestHost.TestHost();
@@ -191,36 +139,5 @@ public class SyncServiceTests
 
         var apiProductId = await testHost.Then.Api.GetApiProductId("api-product-1");
         testHost.Then.Api.ApiProductDocumentShouldHaveBeenCreated(apiProductId);
-    }
-
-    [Fact]
-    public async Task PortalAuthSettingsAreSynced()
-    {
-        using var testHost = new TestHost.TestHost();
-
-        var portalId = Guid.NewGuid().ToString();
-
-        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
-
-        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", name: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", name: "default");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(
-            inputDirectory: @"c:\temp\input",
-            name: "default",
-            oidcAuthEnabled: true,
-            oidcConfig: new OidcAuthSettings(
-                "MyIssuer",
-                "MyClientId",
-                "MyClientSecret",
-                ["openid", "profile", "email"],
-                new OidcClaimMappings("name", "email", "groups")
-            )
-        );
-
-        var syncService = testHost.GetRequiredService<SyncService>();
-
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
-
-        testHost.Then.Api.PortalAuthSettingsShouldHaveBeenUpdated(portalId);
     }
 }

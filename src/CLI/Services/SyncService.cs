@@ -71,9 +71,13 @@ internal class SyncService(
                     throw new InvalidOperationException("Cannot create Portals");
                 case DifferenceType.Update:
                     await context.ApiClient.DevPortals.Update(difference.Id!, difference.Entity);
+                    context.PortalSyncIdMap.Add(difference.SyncId!, difference.Id!);
                     break;
                 case DifferenceType.Delete:
                     throw new InvalidOperationException("Cannot delete Portals");
+                case DifferenceType.NoChange:
+                    context.PortalSyncIdMap.Add(difference.SyncId!, difference.Id!);
+                    break;
             }
         }
 
@@ -84,6 +88,35 @@ internal class SyncService(
 
             var portalAuthSettings = compareResult.PortalAuthSettings[difference.SyncId];
             await SyncPortalAuthSettings(context, difference.SyncId, portalAuthSettings);
+
+            var portalTeams = compareResult.PortalTeams[difference.SyncId];
+            foreach (var portalTeam in portalTeams)
+            {
+                await SyncPortalTeams(context, difference.SyncId, portalTeam);
+            }
+        }
+    }
+
+    private async Task SyncPortalTeams(SyncContext context, string portalName, Difference<DevPortalTeam> difference)
+    {
+        consoleOutput.WriteDifference(difference, "Team", difference.Entity.Name, 1);
+
+        if (context.Apply)
+        {
+            var portalId = context.PortalSyncIdMap[portalName];
+
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                    await context.ApiClient.DevPortals.CreateTeam(portalId, difference.Entity);
+                    break;
+                case DifferenceType.Update:
+                    await context.ApiClient.DevPortals.UpdateTeam(portalId, difference.Entity);
+                    break;
+                case DifferenceType.Delete:
+                    await context.ApiClient.DevPortals.DeleteTeam(portalId, difference.Id!);
+                    break;
+            }
         }
     }
 
@@ -140,7 +173,7 @@ internal class SyncService(
                     context.ApiProductDocumentIdMap.Add(difference.SyncId!, []);
                     break;
                 case DifferenceType.Update:
-                    await context.ApiClient.ApiProducts.Update(difference.Id!, difference.Entity);
+                    await context.ApiClient.ApiProducts.Update(difference.Entity);
                     context.ApiProductSyncIdMap.Add(difference.SyncId!, difference.Id!);
                     context.ApiProductVersionSyncIdMap.Add(difference.SyncId!, []);
                     context.ApiProductDocumentIdMap.Add(difference.SyncId!, []);
@@ -194,7 +227,7 @@ internal class SyncService(
                     break;
                 case DifferenceType.Update:
                     var updateDocument = difference.Entity.ResolveDocumentId(documentIdMap);
-                    await context.ApiClient.ApiProductDocuments.Update(apiProductId, difference.Id!, updateDocument);
+                    await context.ApiClient.ApiProductDocuments.Update(apiProductId, updateDocument);
                     documentIdMap.Add(difference.Entity.FullSlug, difference.Id!);
                     break;
                 case DifferenceType.Delete:
@@ -226,7 +259,7 @@ internal class SyncService(
                     context.ApiProductVersionSyncIdMap[apiProductSyncId].Add(difference.SyncId!, apiProductVersion.Id);
                     break;
                 case DifferenceType.Update:
-                    await context.ApiClient.ApiProductVersions.Update(apiProductId, difference.Id!, difference.Entity);
+                    await context.ApiClient.ApiProductVersions.Update(apiProductId, difference.Entity);
                     context.ApiProductVersionSyncIdMap[apiProductSyncId].Add(difference.SyncId!, difference.Id!);
                     break;
                 case DifferenceType.Delete:
@@ -287,6 +320,7 @@ internal class SyncService(
         public Dictionary<string, string> ApiProductSyncIdMap { get; } = new();
         public Dictionary<string, Dictionary<string, string>> ApiProductVersionSyncIdMap { get; } = new();
         public Dictionary<string, Dictionary<string, string>> ApiProductDocumentIdMap { get; } = new();
+        public Dictionary<string, string> PortalSyncIdMap { get; } = new();
     }
 }
 

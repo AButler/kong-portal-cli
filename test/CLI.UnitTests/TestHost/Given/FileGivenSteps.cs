@@ -1,6 +1,5 @@
 ﻿using System.IO.Abstractions;
 using Kong.Portal.CLI;
-using Kong.Portal.CLI.Services;
 
 namespace CLI.UnitTests.TestHost;
 
@@ -95,7 +94,7 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
 
     public async Task AnExistingDevPortal(
         string inputDirectory,
-        Discretionary<string> name = default,
+        Discretionary<string> portalName = default,
         Discretionary<string?> customDomain = default,
         Discretionary<string?> customClientDomain = default,
         Discretionary<bool> isPublic = default,
@@ -104,10 +103,10 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         Discretionary<bool> autoApproveApplications = default
     )
     {
-        var portalName = name.GetValueOrDefault("default");
+        var name = portalName.GetValueOrDefault("default");
 
         var metadata = new PortalMetadata(
-            portalName,
+            name,
             customDomain.GetValueOrDefault(null),
             customClientDomain.GetValueOrDefault(null),
             isPublic.GetValueOrDefault(false),
@@ -116,7 +115,7 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
             rbacEnabled.GetValueOrDefault(false)
         );
 
-        var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
+        var portalDirectory = Path.Combine(inputDirectory, "portals", name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
@@ -125,11 +124,11 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
 
     public async Task AnExistingDevPortalAppearance(
         string inputDirectory,
-        Discretionary<string> name = default,
+        Discretionary<string> portalName = default,
         Discretionary<string> themeName = default
     )
     {
-        var portalName = name.GetValueOrDefault("default");
+        var name = portalName.GetValueOrDefault("default");
 
         var metadata = new PortalAppearanceMetadata(
             themeName.GetValueOrDefault("mint_rocket"),
@@ -140,7 +139,7 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
             PortalImagesMetadata.NullValue
         );
 
-        var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
+        var portalDirectory = Path.Combine(inputDirectory, "portals", name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
         var metadataFilename = Path.Combine(portalDirectory, "appearance.json");
@@ -169,7 +168,7 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
 
     public async Task AnExistingDevPortalAuthSettings(
         string inputDirectory,
-        Discretionary<string> name = default,
+        Discretionary<string> portalName = default,
         Discretionary<bool> basicAuthEnabled = default,
         Discretionary<bool> oidcAuthEnabled = default,
         Discretionary<bool> oidcTeamMappingEnabled = default,
@@ -177,7 +176,7 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         Discretionary<OidcAuthSettings?> oidcConfig = default
     )
     {
-        var portalName = name.GetValueOrDefault("default");
+        var name = portalName.GetValueOrDefault("default");
 
         var oidcConfigValue = oidcConfig.GetValueOrDefault(null);
         var oidcConfigMetadata =
@@ -203,10 +202,21 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
             oidcConfigMetadata
         );
 
-        var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
+        var portalDirectory = Path.Combine(inputDirectory, "portals", name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
         var metadataFilename = Path.Combine(portalDirectory, "authentication-settings.json");
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+    }
+
+    public async Task ExistingDevPortalTeams(string inputDirectory, string portalName, params Team[] teams)
+    {
+        var metadata = new PortalTeamsMetadata(teams.Select(t => new PortalTeamMetadata(t.Name, t.Description)).ToList());
+
+        var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
+        fileSystem.Directory.EnsureDirectory(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "teams.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
     }
 }

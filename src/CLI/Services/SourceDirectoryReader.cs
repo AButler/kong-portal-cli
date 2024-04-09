@@ -46,6 +46,20 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
         await ReadPortalAppearance(sourceData, portalDirectory, portalMetadata.Name);
         await ReadPortalAuthSettings(sourceData, portalDirectory, portalMetadata.Name);
+        await ReadPortalTeams(sourceData, portalDirectory, portalMetadata.Name);
+    }
+
+    private async Task ReadPortalTeams(SourceData sourceData, string portalDirectory, string portalName)
+    {
+        var portalTeamsFile = Path.Combine(portalDirectory, "teams.json");
+        var portalTeamsMetadata = await metadataSerializer.DeserializeAsync<PortalTeamsMetadata>(portalTeamsFile, sourceData.Variables);
+
+        if (portalTeamsMetadata == null)
+        {
+            throw new SyncException($"Cannot read portal teams: {portalTeamsFile}");
+        }
+
+        sourceData.PortalTeams.Add(portalName, portalTeamsMetadata.Teams.ToList());
     }
 
     private async Task ReadPortalAuthSettings(SourceData sourceData, string portalDirectory, string portalName)
