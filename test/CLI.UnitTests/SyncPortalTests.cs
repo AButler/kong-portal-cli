@@ -15,7 +15,7 @@ public class SyncPortalTests
 
         await testHost.Given.File.AnExistingDevPortal(
             inputDirectory: @"c:\temp\input",
-            name: "default",
+            portalName: "default",
             customDomain: "dev-portal.com",
             customClientDomain: "client.dev-portal.com",
             isPublic: true,
@@ -24,8 +24,8 @@ public class SyncPortalTests
             autoApproveApplications: true
         );
 
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", name: "default");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", name: "default");
+        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
+        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
@@ -43,9 +43,9 @@ public class SyncPortalTests
 
         testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
 
-        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", name: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", name: "default", themeName: "custom");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", name: "default");
+        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
+        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default", themeName: "custom");
+        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
@@ -63,11 +63,11 @@ public class SyncPortalTests
 
         testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
 
-        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", name: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", name: "default");
+        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
+        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
         await testHost.Given.File.AnExistingDevPortalAuthSettings(
             inputDirectory: @"c:\temp\input",
-            name: "default",
+            portalName: "default",
             oidcAuthEnabled: true,
             oidcConfig: new OidcAuthSettings(
                 "MyIssuer",

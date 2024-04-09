@@ -81,6 +81,34 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/authentication-settings").WithVerb(HttpMethod.Patch);
     }
 
+    public void PortalTeamShouldHaveBeenCreated(string portalId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/teams").WithVerb(HttpMethod.Post);
+    }
+
+    public void PortalTeamShouldHaveBeenUpdated(string portalId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/teams/*").WithVerb(HttpMethod.Patch);
+    }
+
+    public void NoPortalTeamsShouldHaveBeenCreated(string portalId)
+    {
+        var call = HttpTest.Current.CallLog.FirstOrDefault(c =>
+            c.Request.Url.ToString() == $"{_kongBaseUri}portals/{portalId}/teams" && c.Request.Verb == HttpMethod.Post
+        );
+
+        call.Should().BeNull();
+    }
+
+    public void NoPortalTeamsShouldHaveBeenUpdated(string portalId)
+    {
+        var call = HttpTest.Current.CallLog.FirstOrDefault(c =>
+            c.Request.Url.ToString() == $"{_kongBaseUri}portals/{portalId}/teams" && c.Request.Verb == HttpMethod.Patch
+        );
+
+        call.Should().BeNull();
+    }
+
     private T? Deserialize<T>(string json)
     {
         return JsonSerializer.Deserialize<T>(json, MetadataSerializer.SerializerOptions);
