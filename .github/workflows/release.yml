@@ -53,9 +53,6 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Restore dependencies
-        run: dotnet restore
-
       - name: Publish (win-x64)
         run: ./build/Build-Release.ps1 -Runtime win-x64 -Version "${{ needs.version.outputs.version_3 }}" -VersionSuffix "${{ needs.version.outputs.version_suffix }}"
         shell: pwsh
