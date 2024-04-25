@@ -9,8 +9,7 @@ internal static class ApiModelExtensions
 
     public static ApiProductCreate ToCreateModel(this ApiProduct apiProduct) => new(apiProduct.Name, apiProduct.Description, apiProduct.Labels);
 
-    public static ApiProductUpdate ToUpdateModel(this ApiProduct apiProduct) =>
-        new(apiProduct.Name, apiProduct.Description, apiProduct.PortalIds, apiProduct.Labels);
+    public static ApiProductUpdate ToUpdateModel(this ApiProduct apiProduct) => new(apiProduct.Name, apiProduct.Description, apiProduct.Labels);
 
     public static ApiProductVersionUpdate ToUpdateModel(this ApiProductVersion apiProductVersion) =>
         new(apiProductVersion.Name, apiProductVersion.PublishStatus, apiProductVersion.Deprecated);

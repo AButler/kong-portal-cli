@@ -28,20 +28,7 @@ internal class ApiProductsClient(IFlurlClient flurlClient)
     {
         var response = await flurlClient.Request("api-products").PostJsonAsync(apiProduct.ToCreateModel());
 
-        var createdApiProduct = await response.GetJsonAsync<ApiProduct>();
-
-        if (apiProduct.PortalIds.Count > 0)
-        {
-            // Cannot publish API products in the same call as create so have to do a subsequent update
-            var updatedApiProduct = apiProduct with
-            {
-                Id = createdApiProduct.Id
-            };
-
-            return await Update(updatedApiProduct);
-        }
-
-        return createdApiProduct;
+        return await response.GetJsonAsync<ApiProduct>();
     }
 
     public async Task<ApiProduct> Update(ApiProduct apiProduct)
@@ -54,5 +41,11 @@ internal class ApiProductsClient(IFlurlClient flurlClient)
     public async Task Delete(string apiProductId)
     {
         await flurlClient.Request($"api-products/{apiProductId}").DeleteAsync();
+    }
+
+    public async Task UpdateAssociations(string apiProductId, IReadOnlyCollection<string> portalIds)
+    {
+        var body = new ApiProductAssociationUpdate(portalIds);
+        await flurlClient.Request($"api-products/{apiProductId}").PatchJsonAsync(body);
     }
 }

@@ -7,14 +7,7 @@ namespace CLI.UnitTests.TestHost;
 
 internal class DumpedFileThenSteps(IFileSystem fileSystem)
 {
-    public async Task ShouldHaveApiProduct(
-        string outputDirectory,
-        string syncId,
-        string name,
-        string description,
-        IReadOnlyCollection<string> portals,
-        Dictionary<string, string> labels
-    )
+    public async Task ShouldHaveApiProduct(string outputDirectory, string syncId, string name, string description, Dictionary<string, string> labels)
     {
         var apiProductDirectory = Path.Combine(outputDirectory, "api-products", syncId);
         var apiProductMetadataFile = Path.Combine(apiProductDirectory, "api-product.json");
@@ -27,7 +20,6 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         json.ShouldHaveStringProperty("sync_id", syncId);
         json.ShouldHaveStringProperty("name", name);
         json.ShouldHaveStringProperty("description", description);
-        json.ShouldHaveStringArrayProperty("portals", portals);
         json.ShouldHaveMapProperty("labels", labels.ToNullableValueDictionary());
     }
 
@@ -261,6 +253,25 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
                 }
             );
         }
+    }
+
+    public async Task ShouldHavePortalProduct(string outputDirectory, string portalName, string apiProductSyncId)
+    {
+        var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
+        DirectoryShouldExist(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "api-products.json");
+        FileShouldExist(metadataFilename);
+
+        var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
+
+        json.ShouldHaveArrayProperty("api_products");
+
+        var apiProductsJson = (JsonArray)json!["api_products"]!;
+
+        var apiProducts = apiProductsJson.GetValues<string>();
+
+        apiProducts.Should().Contain(apiProductSyncId);
     }
 
     public async Task ShouldHaveNoPortalTeams(string outputDirectory, string portalName)

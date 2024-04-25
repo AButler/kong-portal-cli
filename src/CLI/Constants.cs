@@ -1,6 +1,6 @@
 ﻿namespace Kong.Portal.CLI;
 
-internal static class Constants
+public static class Constants
 {
     public const string SyncIdLabel = "PortalCLI-SyncId";
 }

@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using Kong.Portal.CLI.ApiClient;
+﻿using Kong.Portal.CLI.ApiClient;
 using Kong.Portal.CLI.ApiClient.Models;
 using Kong.Portal.CLI.Services.Models;
 using Pastel;
@@ -191,6 +190,8 @@ internal class SyncService(
 
         if (difference.SyncId != null)
         {
+            await SyncApiProductAssociation(context, compareResult, difference.SyncId);
+
             foreach (var apiProductVersion in compareResult.ApiProductVersions[difference.SyncId])
             {
                 await SyncApiProductVersion(context, compareResult, difference.SyncId, apiProductVersion);
@@ -200,6 +201,26 @@ internal class SyncService(
             foreach (var apiProductDocument in orderedDocuments)
             {
                 await SyncApiProductDocument(context, compareResult, difference.SyncId, apiProductDocument);
+            }
+        }
+    }
+
+    private async Task SyncApiProductAssociation(SyncContext context, CompareResult compareResult, string apiProductSyncId)
+    {
+        var difference = compareResult.ApiProductAssociations[apiProductSyncId];
+
+        consoleOutput.WriteDifference(difference, "Portal Associations", 1);
+
+        if (context.Apply)
+        {
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                case DifferenceType.Update:
+                    var apiProductId = context.ApiProductSyncIdMap[apiProductSyncId];
+                    var portalIds = difference.Entity.Portals.Select(p => context.PortalSyncIdMap[p]).ToList();
+                    await context.ApiClient.ApiProducts.UpdateAssociations(apiProductId, portalIds);
+                    break;
             }
         }
     }

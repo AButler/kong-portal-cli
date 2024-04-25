@@ -24,10 +24,6 @@ public class SyncPortalTests
             autoApproveApplications: true
         );
 
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.ExistingDevPortalTeams(inputDirectory: @"c:\temp\input", portalName: "default");
-
         var syncService = testHost.GetRequiredService<SyncService>();
 
         await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
@@ -46,8 +42,6 @@ public class SyncPortalTests
 
         await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
         await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default", themeName: "custom");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.ExistingDevPortalTeams(inputDirectory: @"c:\temp\input", portalName: "default");
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
@@ -66,7 +60,6 @@ public class SyncPortalTests
         testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
 
         await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
         await testHost.Given.File.AnExistingDevPortalAuthSettings(
             inputDirectory: @"c:\temp\input",
             portalName: "default",
@@ -79,7 +72,6 @@ public class SyncPortalTests
                 new OidcClaimMappings("name", "email", "groups")
             )
         );
-        await testHost.Given.File.ExistingDevPortalTeams(inputDirectory: @"c:\temp\input", portalName: "default");
 
         var syncService = testHost.GetRequiredService<SyncService>();
 

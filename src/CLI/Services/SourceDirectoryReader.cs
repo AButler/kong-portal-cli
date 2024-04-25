@@ -47,53 +47,61 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
         await ReadPortalAppearance(sourceData, portalDirectory, portalMetadata.Name);
         await ReadPortalAuthSettings(sourceData, portalDirectory, portalMetadata.Name);
         await ReadPortalTeams(sourceData, portalDirectory, portalMetadata.Name);
+        await ReadPortalApiProducts(sourceData, portalDirectory, portalMetadata.Name);
+    }
+
+    private async Task ReadPortalApiProducts(SourceData sourceData, string portalDirectory, string portalName)
+    {
+        var filename = Path.Combine(portalDirectory, "api-products.json");
+        var metadata = await metadataSerializer.DeserializeAsync<PortalApiProductsMetadata>(filename, sourceData.Variables);
+
+        if (metadata == null)
+        {
+            throw new SyncException($"Cannot read portal api products: {filename}");
+        }
+
+        sourceData.PortalApiProducts.Add(portalName, metadata);
     }
 
     private async Task ReadPortalTeams(SourceData sourceData, string portalDirectory, string portalName)
     {
-        var portalTeamsFile = Path.Combine(portalDirectory, "teams.json");
-        var portalTeamsMetadata = await metadataSerializer.DeserializeAsync<PortalTeamsMetadata>(portalTeamsFile, sourceData.Variables);
+        var filename = Path.Combine(portalDirectory, "teams.json");
+        var metadata = await metadataSerializer.DeserializeAsync<PortalTeamsMetadata>(filename, sourceData.Variables);
 
-        if (portalTeamsMetadata == null)
+        if (metadata == null)
         {
-            throw new SyncException($"Cannot read portal teams: {portalTeamsFile}");
+            throw new SyncException($"Cannot read portal teams: {filename}");
         }
 
-        sourceData.PortalTeams.Add(portalName, portalTeamsMetadata.Teams.ToList());
+        sourceData.PortalTeams.Add(portalName, metadata.Teams.ToList());
     }
 
     private async Task ReadPortalAuthSettings(SourceData sourceData, string portalDirectory, string portalName)
     {
-        var portalAuthSettingsFile = Path.Combine(portalDirectory, "authentication-settings.json");
-        var portalAuthSettingsMetadata = await metadataSerializer.DeserializeAsync<PortalAuthSettingsMetadata>(
-            portalAuthSettingsFile,
-            sourceData.Variables
-        );
+        var filename = Path.Combine(portalDirectory, "authentication-settings.json");
+        var metadata = await metadataSerializer.DeserializeAsync<PortalAuthSettingsMetadata>(filename, sourceData.Variables);
 
-        if (portalAuthSettingsMetadata == null)
+        if (metadata == null)
         {
-            throw new SyncException($"Cannot read portal authentication settings: {portalAuthSettingsFile}");
+            throw new SyncException($"Cannot read portal authentication settings: {filename}");
         }
 
-        sourceData.PortalAuthSettings.Add(portalName, portalAuthSettingsMetadata);
+        sourceData.PortalAuthSettings.Add(portalName, metadata);
     }
 
     private async Task ReadPortalAppearance(SourceData sourceData, string portalDirectory, string portalName)
     {
-        var portalAppearanceFile = Path.Combine(portalDirectory, "appearance.json");
-        var portalAppearanceMetadata = await metadataSerializer.DeserializeAsync<PortalAppearanceMetadata>(
-            portalAppearanceFile,
-            sourceData.Variables
-        );
+        var filename = Path.Combine(portalDirectory, "appearance.json");
+        var metadata = await metadataSerializer.DeserializeAsync<PortalAppearanceMetadata>(filename, sourceData.Variables);
 
-        if (portalAppearanceMetadata == null)
+        if (metadata == null)
         {
-            throw new SyncException($"Cannot read portal appearance: {portalAppearanceFile}");
+            throw new SyncException($"Cannot read portal appearance: {filename}");
         }
 
-        sourceData.PortalAppearances.Add(portalName, portalAppearanceMetadata);
+        sourceData.PortalAppearances.Add(portalName, metadata);
 
-        var imagesMetadata = portalAppearanceMetadata.Images;
+        var imagesMetadata = metadata.Images;
         var faviconImage = await ReadPortalImage(portalDirectory, imagesMetadata.Favicon);
         var logoImage = await ReadPortalImage(portalDirectory, imagesMetadata.Logo);
         var catalogCoverImage = await ReadPortalImage(portalDirectory, imagesMetadata.CatalogCover);
@@ -133,18 +141,18 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
     private async Task ReadApiProduct(SourceData sourceData, string apiProductFile)
     {
-        var apiProductMetadata = await metadataSerializer.DeserializeAsync<ApiProductMetadata>(apiProductFile, sourceData.Variables);
+        var metadata = await metadataSerializer.DeserializeAsync<ApiProductMetadata>(apiProductFile, sourceData.Variables);
 
-        if (apiProductMetadata == null)
+        if (metadata == null)
         {
             throw new SyncException($"Cannot read API Product: {apiProductFile}");
         }
 
-        sourceData.ApiProducts.Add(apiProductMetadata);
-        sourceData.ApiProductDocuments.Add(apiProductMetadata.SyncId, []);
-        sourceData.ApiProductDocumentContents.Add(apiProductMetadata.SyncId, []);
-        sourceData.ApiProductVersions.Add(apiProductMetadata.SyncId, []);
-        sourceData.ApiProductVersionSpecifications.Add(apiProductMetadata.SyncId, []);
+        sourceData.ApiProducts.Add(metadata);
+        sourceData.ApiProductDocuments.Add(metadata.SyncId, []);
+        sourceData.ApiProductDocumentContents.Add(metadata.SyncId, []);
+        sourceData.ApiProductVersions.Add(metadata.SyncId, []);
+        sourceData.ApiProductVersionSpecifications.Add(metadata.SyncId, []);
 
         var versionsDirectory = Path.Combine(Path.GetDirectoryName(apiProductFile)!, "versions");
         if (fileSystem.Directory.Exists(versionsDirectory))
@@ -153,7 +161,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
             foreach (var versionFile in versionFiles)
             {
-                await ReadApiProductVersion(sourceData, apiProductMetadata, versionFile);
+                await ReadApiProductVersion(sourceData, metadata, versionFile);
             }
         }
 
@@ -164,52 +172,49 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
             foreach (var documentFile in documentFiles)
             {
-                await ReadDocument(sourceData, apiProductMetadata, documentFile);
+                await ReadDocument(sourceData, metadata, documentFile);
             }
         }
     }
 
     private async Task ReadDocument(SourceData sourceData, ApiProductMetadata apiProductMetadata, string documentFile)
     {
-        var apiProductDocumentMetadata = await metadataSerializer.DeserializeAsync<ApiProductDocumentMetadata>(documentFile, sourceData.Variables);
+        var metadata = await metadataSerializer.DeserializeAsync<ApiProductDocumentMetadata>(documentFile, sourceData.Variables);
 
-        if (apiProductDocumentMetadata == null)
+        if (metadata == null)
         {
             throw new SyncException($"Cannot read API Product Document: {documentFile}");
         }
 
-        sourceData.ApiProductDocuments[apiProductMetadata.SyncId].Add(apiProductDocumentMetadata);
+        sourceData.ApiProductDocuments[apiProductMetadata.SyncId].Add(metadata);
 
         var documentContentsFilename = Path.ChangeExtension(documentFile, ".md");
         var documentContents = await fileSystem.File.ReadAllTextAsync(documentContentsFilename);
 
-        sourceData.ApiProductDocumentContents[apiProductMetadata.SyncId].Add(apiProductDocumentMetadata.FullSlug, documentContents);
+        sourceData.ApiProductDocumentContents[apiProductMetadata.SyncId].Add(metadata.FullSlug, documentContents);
     }
 
     private async Task ReadApiProductVersion(SourceData sourceData, ApiProductMetadata apiProductMetadata, string versionFile)
     {
-        var apiProductVersionMetadata = await metadataSerializer.DeserializeAsync<ApiProductVersionMetadata>(versionFile, sourceData.Variables);
+        var metadata = await metadataSerializer.DeserializeAsync<ApiProductVersionMetadata>(versionFile, sourceData.Variables);
 
-        if (apiProductVersionMetadata == null)
+        if (metadata == null)
         {
             throw new SyncException($"Cannot read API Product Version: {versionFile}");
         }
 
-        sourceData.ApiProductVersions[apiProductMetadata.SyncId].Add(apiProductVersionMetadata);
+        sourceData.ApiProductVersions[apiProductMetadata.SyncId].Add(metadata);
 
-        if (apiProductVersionMetadata.SpecificationFilename != null)
+        if (metadata.SpecificationFilename != null)
         {
-            var specificationFilename = Path.Combine(
-                Path.GetDirectoryName(versionFile)!,
-                apiProductVersionMetadata.SpecificationFilename.TrimStart('/')
-            );
+            var specificationFilename = Path.Combine(Path.GetDirectoryName(versionFile)!, metadata.SpecificationFilename.TrimStart('/'));
             var specificationContents = await fileSystem.File.ReadAllTextAsync(specificationFilename);
 
-            sourceData.ApiProductVersionSpecifications[apiProductMetadata.SyncId].Add(apiProductVersionMetadata.SyncId, specificationContents);
+            sourceData.ApiProductVersionSpecifications[apiProductMetadata.SyncId].Add(metadata.SyncId, specificationContents);
         }
         else
         {
-            sourceData.ApiProductVersionSpecifications[apiProductMetadata.SyncId].Add(apiProductVersionMetadata.SyncId, null);
+            sourceData.ApiProductVersionSpecifications[apiProductMetadata.SyncId].Add(metadata.SyncId, null);
         }
     }
 }

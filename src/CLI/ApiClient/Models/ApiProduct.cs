@@ -24,10 +24,7 @@ internal record ApiProduct(string Id, string Name, string Description, IReadOnly
             return false;
         }
 
-        if (!PortalIds.OrderBy(s => s).SequenceEqual(other.PortalIds.OrderBy(s => s)))
-        {
-            return false;
-        }
+        //Note: purposefully ignore PortalIds
 
         if (!Labels.Equals(other.Labels))
         {
@@ -39,6 +36,6 @@ internal record ApiProduct(string Id, string Name, string Description, IReadOnly
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Id, Name, Description, PortalIds, Labels);
+        return HashCode.Combine(Id, Name, Description, Labels);
     }
 }

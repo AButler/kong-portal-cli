@@ -27,6 +27,15 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}api-products/{productId}").WithVerb(HttpMethod.Patch);
     }
 
+    public void ApiProductShouldNotHaveBeenUpdated(string productId)
+    {
+        var log = HttpTest.Current.CallLog.FirstOrDefault(l =>
+            l.Request.Url == $"{_kongBaseUri}api-products/{productId}" && l.Request.Verb == HttpMethod.Patch
+        );
+
+        log.Should().BeNull();
+    }
+
     public void ApiProductShouldHaveBeenDeleted(string productId)
     {
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}api-products/{productId}").WithVerb(HttpMethod.Delete);

@@ -20,6 +20,7 @@ internal class ComparerService
             context.ApiProductVersionSpecifications,
             context.ApiProductDocuments,
             context.Portals,
+            context.ApiProductAssociations,
             context.PortalAppearances,
             context.PortalAuthSettings,
             context.PortalTeams
@@ -156,8 +157,26 @@ internal class ComparerService
             {
                 toMatch.Remove(sourceApiProduct);
 
-                var apiProduct = sourceApiProduct.ToApiModel(context.PortalNameMap, serverApiProduct.Id);
+                var apiProduct = sourceApiProduct.ToApiModel(serverApiProduct.Id);
                 context.ApiProducts.Add(Difference.UpdateOrNoChange(sourceApiProduct.SyncId, serverApiProduct.Id, serverApiProduct, apiProduct));
+
+                var serverApiProductAssociation = new ApiProductAssociation(
+                    serverApiProduct.PortalIds.Select(id => context.PortalIdMap[id]).ToList()
+                );
+
+                var sourceApiProductAssociation = new ApiProductAssociation(
+                    sourceData.PortalApiProducts.Where(p => p.Value.ApiProducts.Contains(sourceApiProduct.SyncId)).Select(p => p.Key).ToList()
+                );
+
+                context.ApiProductAssociations.Add(
+                    sourceApiProduct.SyncId,
+                    Difference.UpdateOrNoChange(
+                        sourceApiProduct.SyncId,
+                        serverApiProduct.Id,
+                        serverApiProductAssociation,
+                        sourceApiProductAssociation
+                    )
+                );
 
                 context.ApiProductVersions.Add(sourceApiProduct.SyncId, []);
                 context.ApiProductVersionSpecifications.Add(sourceApiProduct.SyncId, []);
@@ -174,7 +193,13 @@ internal class ComparerService
 
         foreach (var sourceApiProduct in toMatch)
         {
-            context.ApiProducts.Add(Difference.Add(sourceApiProduct.SyncId, sourceApiProduct.ToApiModel(context.PortalNameMap)));
+            context.ApiProducts.Add(Difference.Add(sourceApiProduct.SyncId, sourceApiProduct.ToApiModel()));
+
+            var sourceApiProductAssociation = new ApiProductAssociation(
+                sourceData.PortalApiProducts.Where(p => p.Value.ApiProducts.Contains(sourceApiProduct.SyncId)).Select(p => p.Key).ToList()
+            );
+
+            context.ApiProductAssociations.Add(sourceApiProduct.SyncId, Difference.Add(sourceApiProduct.SyncId, sourceApiProductAssociation));
 
             context.ApiProductVersions.Add(sourceApiProduct.SyncId, []);
             context.ApiProductVersionSpecifications.Add(sourceApiProduct.SyncId, []);
@@ -420,6 +445,7 @@ internal class ComparerService
     {
         public KongApiClient ApiClient { get; } = apiClient;
         public List<Difference<DevPortal>> Portals { get; } = new();
+        public Dictionary<string, Difference<ApiProductAssociation>> ApiProductAssociations { get; } = new();
         public Dictionary<string, Difference<DevPortalAppearance>> PortalAppearances { get; } = new();
         public Dictionary<string, Difference<DevPortalAuthSettings>> PortalAuthSettings { get; } = new();
         public Dictionary<string, List<Difference<DevPortalTeam>>> PortalTeams { get; } = new();
@@ -430,5 +456,8 @@ internal class ComparerService
 
         public IReadOnlyDictionary<string, string> PortalNameMap =>
             Portals.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.SyncId!, kvp => kvp.Id!);
+
+        public IReadOnlyDictionary<string, string> PortalIdMap =>
+            Portals.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.Id!, kvp => kvp.SyncId!);
     }
 }
