@@ -11,6 +11,7 @@ internal class SourceData(string inputDirectory, IReadOnlyDictionary<string, str
     public Dictionary<string, List<ApiProductDocumentMetadata>> ApiProductDocuments { get; } = new();
     public Dictionary<string, Dictionary<string, string>> ApiProductDocumentContents { get; } = new();
     public List<PortalMetadata> Portals { get; } = new();
+    public Dictionary<string, PortalApiProductsMetadata> PortalApiProducts { get; } = new();
     public Dictionary<string, PortalAppearanceMetadata> PortalAppearances { get; } = new();
     public Dictionary<string, PortalAuthSettingsMetadata> PortalAuthSettings { get; } = new();
     public Dictionary<string, List<PortalTeamMetadata>> PortalTeams { get; } = new();

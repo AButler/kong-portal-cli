@@ -42,4 +42,10 @@ internal class ApiProductsClient(IFlurlClient flurlClient)
     {
         await flurlClient.Request($"api-products/{apiProductId}").DeleteAsync();
     }
+
+    public async Task UpdateAssociations(string apiProductId, IReadOnlyCollection<string> portalIds)
+    {
+        var body = new ApiProductAssociationUpdate(portalIds);
+        await flurlClient.Request($"api-products/{apiProductId}").PatchJsonAsync(body);
+    }
 }

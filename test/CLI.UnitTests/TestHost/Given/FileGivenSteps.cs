@@ -118,6 +118,35 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+
+        var apiProductsMetadataFilename = Path.Combine(portalDirectory, "api-products.json");
+        await metadataSerializer.SerializeAsync(apiProductsMetadataFilename, new PortalApiProductsMetadata([]));
+
+        await AnExistingDevPortalAppearance(inputDirectory, name);
+        await AnExistingDevPortalAuthSettings(inputDirectory, name);
+        await ExistingDevPortalTeams(inputDirectory, name);
+    }
+
+    public async Task AnExistingDevPortalApiProduct(string inputDirectory, string portalName, string apiProductSyncId)
+    {
+        var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
+        fileSystem.Directory.EnsureDirectory(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "api-products.json");
+
+        var apiProducts = new List<string>();
+        if (fileSystem.File.Exists(metadataFilename))
+        {
+            var existingMetadata = await metadataSerializer.DeserializeAsync<PortalApiProductsMetadata>(
+                metadataFilename,
+                new Dictionary<string, string>()
+            );
+            apiProducts.AddRange(existingMetadata!.ApiProducts);
+        }
+        apiProducts.Add(apiProductSyncId);
+
+        var metadata = new PortalApiProductsMetadata(apiProducts);
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
     }
 
     public async Task AnExistingDevPortalAppearance(

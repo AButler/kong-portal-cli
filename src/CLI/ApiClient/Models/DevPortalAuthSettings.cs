@@ -35,7 +35,7 @@ internal record DevPortalOidcConfig(
             return false;
         }
 
-        //Note: purposely ignore ClientSecret
+        //Note: purposefully ignore ClientSecret
 
         if (!Scopes.OrderBy(s => s).SequenceEqual(other.Scopes.OrderBy(s => s)))
         {

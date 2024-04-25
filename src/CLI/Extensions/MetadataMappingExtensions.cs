@@ -109,12 +109,13 @@ internal static class MetadataMappingExtensions
         return new DevPortalAppearanceImages(favicon, logo, catalogCover);
     }
 
-    public static ApiProduct ToApiModel(this ApiProductMetadata metadata, IReadOnlyDictionary<string, string> portalNameMap, string? id = null)
+    public static ApiProduct ToApiModel(this ApiProductMetadata metadata, string? id = null)
     {
         return new ApiProduct(
             id ?? $"resolve://api-product/{metadata.SyncId}",
             metadata.Name,
             metadata.Description,
+            [],
             metadata.Labels.WithSyncId(metadata.SyncId)
         );
     }

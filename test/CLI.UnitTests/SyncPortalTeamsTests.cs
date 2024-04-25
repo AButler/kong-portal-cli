@@ -12,9 +12,6 @@ public class SyncPortalTeamsTests
         var portalId = Guid.NewGuid().ToString();
 
         await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.ExistingDevPortalTeams(inputDirectory: @"c:\temp\input", portalName: "default");
 
         testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
 
@@ -33,8 +30,6 @@ public class SyncPortalTeamsTests
         var portalId = Guid.NewGuid().ToString();
 
         await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
         await testHost.Given.File.ExistingDevPortalTeams(inputDirectory: @"c:\temp\input", portalName: "default", new Team("Team1", "Team One"));
 
         testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
@@ -54,8 +49,6 @@ public class SyncPortalTeamsTests
         var portalId = Guid.NewGuid().ToString();
 
         await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
         await testHost.Given.File.ExistingDevPortalTeams(
             inputDirectory: @"c:\temp\input",
             portalName: "default",
@@ -80,8 +73,6 @@ public class SyncPortalTeamsTests
         var portalId = Guid.NewGuid().ToString();
 
         await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
         await testHost.Given.File.ExistingDevPortalTeams(
             inputDirectory: @"c:\temp\input",
             portalName: "default",
@@ -109,8 +100,6 @@ public class SyncPortalTeamsTests
         var portalId = Guid.NewGuid().ToString();
 
         await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAppearance(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalAuthSettings(inputDirectory: @"c:\temp\input", portalName: "default");
         await testHost.Given.File.ExistingDevPortalTeams(
             inputDirectory: @"c:\temp\input",
             portalName: "default",
