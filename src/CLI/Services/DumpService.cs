@@ -36,6 +36,11 @@ internal class DumpService(
             await DumpApiProduct(context, apiProduct);
         }
 
+        foreach (var portal in portals)
+        {
+            await DumpPortalProducts(context, portal);
+        }
+
         consoleOutput.WriteLine("Done!");
     }
 
@@ -53,6 +58,8 @@ internal class DumpService(
         {
             apiProductSyncId = context.ApiProductSyncIdGenerator.Generate(apiProduct.Name);
         }
+
+        context.StoreApiProductId(apiProduct.Id, apiProductSyncId);
 
         consoleOutput.WriteLine($"  - {apiProductSyncId}");
 
@@ -145,8 +152,6 @@ internal class DumpService(
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
 
-        await DumpPortalProducts(context, devPortal);
-
         await DumpPortalAppearance(context, devPortal);
 
         await DumpPortalAuthSettings(context, devPortal);
@@ -159,9 +164,9 @@ internal class DumpService(
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         var apiProducts = await context.ApiClient.DevPortals.GetApiProducts(devPortal.Id);
 
-        var apiProductVersionSyncIds = context.ApiProductVersionSyncIdGenerator.GenerateBulk(apiProducts.Select(p => p.Name));
+        var apiProductVersionSyncIds = apiProducts.Select(p => context.ApiProductIdMap[p.Id]);
 
-        var apiProductsMetadata = new PortalApiProductsMetadata(apiProductVersionSyncIds.Values.ToList());
+        var apiProductsMetadata = new PortalApiProductsMetadata(apiProductVersionSyncIds.ToList());
 
         var apiProductsMetadataFilename = Path.Combine(portalDirectory, "api-products.json");
         await metadataSerializer.SerializeAsync(apiProductsMetadataFilename, apiProductsMetadata);
@@ -233,12 +238,14 @@ internal class DumpService(
     private class DumpContext(KongApiClient apiClient, string outputDirectory)
     {
         private readonly Dictionary<string, string> _portalIdMap = new();
+        private readonly Dictionary<string, string> _apiProductIdMap = new();
 
         public KongApiClient ApiClient { get; } = apiClient;
         public string OutputDirectory { get; } = outputDirectory;
         public SyncIdGenerator ApiProductSyncIdGenerator { get; } = new();
         public SyncIdGenerator ApiProductVersionSyncIdGenerator { get; } = new();
         public IReadOnlyDictionary<string, string> PortalIdMap => _portalIdMap;
+        public IReadOnlyDictionary<string, string> ApiProductIdMap => _apiProductIdMap;
 
         public string GetApiProductDirectory(string syncId) => Path.Combine(OutputDirectory, "api-products", syncId);
 
@@ -251,6 +258,11 @@ internal class DumpService(
         public void StorePortalId(string portalId, string portalName)
         {
             _portalIdMap[portalId] = portalName;
+        }
+
+        public void StoreApiProductId(string apiProductId, string apiProductSyncId)
+        {
+            _apiProductIdMap[apiProductId] = apiProductSyncId;
         }
     }
 }

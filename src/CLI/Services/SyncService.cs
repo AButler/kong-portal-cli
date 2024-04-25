@@ -207,16 +207,21 @@ internal class SyncService(
 
     private async Task SyncApiProductAssociation(SyncContext context, CompareResult compareResult, string apiProductSyncId)
     {
-        var association = compareResult.ApiProductAssociations[apiProductSyncId];
+        var difference = compareResult.ApiProductAssociations[apiProductSyncId];
 
-        switch (association.DifferenceType)
+        consoleOutput.WriteDifference(difference, "Portal Associations", 1);
+
+        if (context.Apply)
         {
-            case DifferenceType.Add:
-            case DifferenceType.Update:
-                var apiProductId = context.ApiProductSyncIdMap[apiProductSyncId];
-                var portalIds = association.Entity.Portals.Select(p => context.PortalSyncIdMap[p]).ToList();
-                await context.ApiClient.ApiProducts.UpdateAssociations(apiProductId, portalIds);
-                break;
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                case DifferenceType.Update:
+                    var apiProductId = context.ApiProductSyncIdMap[apiProductSyncId];
+                    var portalIds = difference.Entity.Portals.Select(p => context.PortalSyncIdMap[p]).ToList();
+                    await context.ApiClient.ApiProducts.UpdateAssociations(apiProductId, portalIds);
+                    break;
+            }
         }
     }
 
