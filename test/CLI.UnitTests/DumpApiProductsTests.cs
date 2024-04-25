@@ -26,7 +26,6 @@ public class DumpApiProductsTests
             syncId: "api-product-1",
             name: "API Product 1",
             description: "This is API Product 1",
-            portals: [],
             labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
         );
     }
@@ -58,7 +57,6 @@ public class DumpApiProductsTests
             syncId: "api-product-1",
             name: "API Product 1",
             description: "This is API Product 1",
-            portals: ["default"],
             labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
         );
     }
@@ -90,7 +88,6 @@ public class DumpApiProductsTests
             syncId: "different-sync-id",
             name: "API Product 1",
             description: "This is API Product 1",
-            portals: [],
             labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
         );
     }
@@ -123,7 +120,6 @@ public class DumpApiProductsTests
             "api-product",
             "API Product",
             "This is API Product 1",
-            [],
             new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "eCommerce" }
         );
 
@@ -132,7 +128,6 @@ public class DumpApiProductsTests
             syncId: "api-product-1",
             name: "API Product",
             description: "This is API Product 2",
-            portals: [],
             labels: new Dictionary<string, string> { ["Author"] = "Bob Bobertson", ["Tag"] = "Frontend" }
         );
     }
@@ -162,7 +157,6 @@ public class DumpApiProductsTests
                 syncId: $"api-product-{i}",
                 name: $"API Product {i}",
                 description: $"This is API Product {i}",
-                portals: [],
                 labels: new Dictionary<string, string>()
             );
         }

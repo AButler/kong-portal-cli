@@ -10,13 +10,7 @@ internal static class ApiModelToMetadataExtensions
         var labels = apiProduct.Labels.Clone();
         labels.Remove(Constants.SyncIdLabel);
 
-        var portals = new List<string>();
-        foreach (var portalId in apiProduct.PortalIds)
-        {
-            portals.Add(portalMap[portalId]);
-        }
-
-        return new ApiProductMetadata(syncId, apiProduct.Name, apiProduct.Description, portals, labels);
+        return new ApiProductMetadata(syncId, apiProduct.Name, apiProduct.Description, labels);
     }
 
     public static ApiProductVersionMetadata ToMetadata(this ApiProductVersion apiProductVersion, string syncId, string? specificationFilename)

@@ -7,14 +7,7 @@ namespace CLI.UnitTests.TestHost;
 
 internal class DumpedFileThenSteps(IFileSystem fileSystem)
 {
-    public async Task ShouldHaveApiProduct(
-        string outputDirectory,
-        string syncId,
-        string name,
-        string description,
-        IReadOnlyCollection<string> portals,
-        Dictionary<string, string> labels
-    )
+    public async Task ShouldHaveApiProduct(string outputDirectory, string syncId, string name, string description, Dictionary<string, string> labels)
     {
         var apiProductDirectory = Path.Combine(outputDirectory, "api-products", syncId);
         var apiProductMetadataFile = Path.Combine(apiProductDirectory, "api-product.json");
@@ -27,7 +20,6 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         json.ShouldHaveStringProperty("sync_id", syncId);
         json.ShouldHaveStringProperty("name", name);
         json.ShouldHaveStringProperty("description", description);
-        json.ShouldHaveStringArrayProperty("portals", portals);
         json.ShouldHaveMapProperty("labels", labels.ToNullableValueDictionary());
     }
 

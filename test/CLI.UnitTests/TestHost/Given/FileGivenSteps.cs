@@ -13,7 +13,6 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         Discretionary<string> name = default,
         Discretionary<string> syncId = default,
         Discretionary<string> description = default,
-        Discretionary<IReadOnlyCollection<string>> portals = default,
         IDictionary<string, string>? labels = null
     )
     {
@@ -24,7 +23,6 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
             productSyncId,
             productName,
             description.GetValueOrDefault(Guid.NewGuid().ToString()),
-            portals.GetValueOrDefault([]),
             labels.ToLabelDictionary()
         );
 

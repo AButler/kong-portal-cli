@@ -111,18 +111,10 @@ internal static class MetadataMappingExtensions
 
     public static ApiProduct ToApiModel(this ApiProductMetadata metadata, IReadOnlyDictionary<string, string> portalNameMap, string? id = null)
     {
-        var portalIds = new List<string>();
-
-        foreach (var portalName in metadata.Portals)
-        {
-            portalIds.Add(portalNameMap[portalName]);
-        }
-
         return new ApiProduct(
             id ?? $"resolve://api-product/{metadata.SyncId}",
             metadata.Name,
             metadata.Description,
-            portalIds,
             metadata.Labels.WithSyncId(metadata.SyncId)
         );
     }
