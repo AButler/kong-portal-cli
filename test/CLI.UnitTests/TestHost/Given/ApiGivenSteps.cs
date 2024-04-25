@@ -15,6 +15,7 @@ internal class ApiGivenSteps
     private readonly Dictionary<string, dynamic> _devPortalAppearances = new();
     private readonly Dictionary<string, dynamic> _devPortalAuthSettings = new();
     private readonly Dictionary<string, List<dynamic>> _devPortalTeams = new();
+    private readonly Dictionary<string, List<dynamic>> _devPortalProducts = new();
 
     private int _pageSize = 100;
 
@@ -43,19 +44,27 @@ internal class ApiGivenSteps
     {
         var id = productId.GetValueOrDefault(Guid.NewGuid().ToString());
 
-        _apiProducts.Add(
-            new
-            {
-                id,
-                labels = labels ?? new Dictionary<string, string>(),
-                name = name.GetValueOrDefault($"API Product {id}"),
-                portal_ids = portalIds.GetValueOrDefault([]),
-                description = description.GetValueOrDefault($"Description for API Product {id}")
-            }
-        );
+        var apiProduct = new
+        {
+            id,
+            labels = labels ?? new Dictionary<string, string>(),
+            name = name.GetValueOrDefault($"API Product {id}"),
+            portal_ids = portalIds.GetValueOrDefault([]),
+            description = description.GetValueOrDefault($"Description for API Product {id}")
+        };
 
+        _apiProducts.Add(apiProduct);
         _apiProductDocuments[id] = [];
         _apiProductVersions[id] = [];
+
+        foreach (var portalId in apiProduct.portal_ids)
+        {
+            if (!_devPortalProducts.ContainsKey(portalId))
+            {
+                _devPortalProducts.Add(portalId, new List<dynamic>());
+            }
+            _devPortalProducts[portalId].Add(apiProduct);
+        }
 
         HttpTest.Current.ForCallsTo($"{_kongBaseUrl}api-products/{id}").WithVerb("PATCH").RespondWithJson(_apiProducts.Single(p => p.id == id));
         SetupApiProductDocumentsApis(id);
@@ -178,6 +187,10 @@ internal class ApiGivenSteps
         );
 
         _devPortalTeams.Add(id, []);
+        if (!_devPortalProducts.ContainsKey(id))
+        {
+            _devPortalProducts.Add(id, new List<dynamic>());
+        }
 
         SetupDevPortalAppearance(id, appearanceData.GetValueOrDefault(new AppearanceData()));
 
@@ -189,6 +202,8 @@ internal class ApiGivenSteps
             .Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/authentication-settings")
             .WithVerb("GET")
             .RespondWithDynamicJson(() => _devPortalAuthSettings[id]);
+
+        SetupPagedApi($"{_kongBaseUrl}portals/{id}/products", () => _devPortalProducts[id]);
 
         SetupPagedApi($"{_kongBaseUrl}portals/{id}/teams", () => _devPortalTeams[id]);
     }

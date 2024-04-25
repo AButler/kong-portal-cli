@@ -46,4 +46,16 @@ internal class SyncIdGenerator
         _existingIds.Add(newSyncId);
         return newSyncId;
     }
+
+    public IDictionary<string, string> GenerateBulk(IEnumerable<string> names)
+    {
+        var map = new Dictionary<string, string>();
+
+        foreach (var name in names)
+        {
+            map[name] = Generate(name);
+        }
+
+        return map;
+    }
 }

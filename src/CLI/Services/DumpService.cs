@@ -145,11 +145,26 @@ internal class DumpService(
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
 
+        await DumpPortalProducts(context, devPortal);
+
         await DumpPortalAppearance(context, devPortal);
 
         await DumpPortalAuthSettings(context, devPortal);
 
         await DumpPortalTeams(context, devPortal);
+    }
+
+    private async Task DumpPortalProducts(DumpContext context, DevPortal devPortal)
+    {
+        var portalDirectory = context.GetPortalDirectory(devPortal.Name);
+        var apiProducts = await context.ApiClient.DevPortals.GetApiProducts(devPortal.Id);
+
+        var apiProductVersionSyncIds = context.ApiProductVersionSyncIdGenerator.GenerateBulk(apiProducts.Select(p => p.Name));
+
+        var apiProductsMetadata = new PortalApiProductsMetadata(apiProductVersionSyncIds.Values.ToList());
+
+        var apiProductsMetadataFilename = Path.Combine(portalDirectory, "api-products.json");
+        await metadataSerializer.SerializeAsync(apiProductsMetadataFilename, apiProductsMetadata);
     }
 
     private async Task DumpPortalTeams(DumpContext context, DevPortal devPortal)

@@ -95,4 +95,23 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
     {
         await flurlClient.Request($"/portals/{portalId}/teams/{teamId}").DeleteAsync();
     }
+
+    public async Task<List<ApiProduct>> GetApiProducts(string portalId)
+    {
+        var allApiProducts = new List<ApiProduct>();
+
+        PagedResponse<ApiProduct> apiProductsResponse;
+        var pageNumber = 1;
+
+        do
+        {
+            var response = await flurlClient.Request($"portals/{portalId}/products").SetQueryParam("page[number]", pageNumber++).GetAsync();
+
+            apiProductsResponse = await response.GetJsonAsync<PagedResponse<ApiProduct>>();
+
+            allApiProducts.AddRange(apiProductsResponse.Data);
+        } while (apiProductsResponse.Meta.Page.HasMore());
+
+        return allApiProducts;
+    }
 }

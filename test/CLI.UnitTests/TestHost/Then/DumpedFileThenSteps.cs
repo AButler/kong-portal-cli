@@ -255,6 +255,25 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         }
     }
 
+    public async Task ShouldHavePortalProduct(string outputDirectory, string portalName, string apiProductSyncId)
+    {
+        var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
+        DirectoryShouldExist(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "api-products.json");
+        FileShouldExist(metadataFilename);
+
+        var json = await JsonNode.ParseAsync(fileSystem.File.OpenRead(metadataFilename));
+
+        json.ShouldHaveArrayProperty("api_products");
+
+        var apiProductsJson = (JsonArray)json!["api_products"]!;
+
+        var apiProducts = apiProductsJson.GetValues<string>();
+
+        apiProducts.Should().Contain(apiProductSyncId);
+    }
+
     public async Task ShouldHaveNoPortalTeams(string outputDirectory, string portalName)
     {
         var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
