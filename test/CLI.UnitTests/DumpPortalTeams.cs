@@ -108,4 +108,77 @@ public class DumpPortalTeams
             );
         }
     }
+
+    [Fact]
+    public async Task TeamIsDumpedWithRole()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var apiProductId = Guid.NewGuid().ToString();
+        var portalId = Guid.NewGuid().ToString();
+        var teamId = Guid.NewGuid().ToString();
+
+        testHost.Given.Api.AnExistingApiProduct(productId: apiProductId, name: "API Product 1");
+        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
+        testHost.Given.Api.AnExistingDevPortalTeam(portalId: portalId, name: "Team1", description: "Team One", teamId: teamId);
+        testHost.Given.Api.AnExistingDevPortalTeamRole(portalId: portalId, teamId: teamId, roleName: "API Viewer", entityId: apiProductId);
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+
+        await testHost.Then.DumpedFile.ShouldHavePortalTeam(
+            outputDirectory: outputDirectory,
+            portalName: "default",
+            teamName: "Team1",
+            teamDescription: "Team One"
+        );
+
+        await testHost.Then.DumpedFile.ShouldHavePortalTeamRole(
+            outputDirectory: outputDirectory,
+            portalName: "default",
+            teamName: "Team1",
+            apiProduct: "api-product-1",
+            roleNames: ["API Viewer"]
+        );
+    }
+
+    [Fact]
+    public async Task TeamIsDumpedWithRoles()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var dumpService = testHost.GetRequiredService<DumpService>();
+
+        var apiProductId = Guid.NewGuid().ToString();
+        var portalId = Guid.NewGuid().ToString();
+        var teamId = Guid.NewGuid().ToString();
+
+        testHost.Given.Api.AnExistingApiProduct(productId: apiProductId, name: "API Product 1");
+        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
+        testHost.Given.Api.AnExistingDevPortalTeam(portalId: portalId, name: "Team1", description: "Team One", teamId: teamId);
+        testHost.Given.Api.AnExistingDevPortalTeamRole(portalId: portalId, teamId: teamId, roleName: "API Viewer", entityId: apiProductId);
+        testHost.Given.Api.AnExistingDevPortalTeamRole(portalId: portalId, teamId: teamId, roleName: "API Consumer", entityId: apiProductId);
+
+        var outputDirectory = @"c:\temp\output";
+
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+
+        await testHost.Then.DumpedFile.ShouldHavePortalTeam(
+            outputDirectory: outputDirectory,
+            portalName: "default",
+            teamName: "Team1",
+            teamDescription: "Team One"
+        );
+
+        await testHost.Then.DumpedFile.ShouldHavePortalTeamRole(
+            outputDirectory: outputDirectory,
+            portalName: "default",
+            teamName: "Team1",
+            apiProduct: "api-product-1",
+            roleNames: ["API Viewer", "API Consumer"]
+        );
+    }
 }

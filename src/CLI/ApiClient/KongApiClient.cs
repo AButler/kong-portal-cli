@@ -29,11 +29,26 @@ internal class KongApiClient
                 {
                     var request = call.Request;
                     var response = call.Response;
-                    Console.WriteLine($"[HTTP ERROR {response.StatusCode}] {request.Verb} {request.Url}".Pastel(ConsoleColor.Red));
+                    Console.WriteLine(
+                        response == null
+                            ? "[HTTP ERROR: NO RESPONSE]".Pastel(ConsoleColor.Red)
+                            : $"[HTTP ERROR {response.StatusCode}] {request.Verb} {request.Url}".Pastel(ConsoleColor.Red)
+                    );
+
                     Console.WriteLine("Request:");
                     Console.WriteLine(call.RequestBody);
-                    Console.WriteLine("Response:");
-                    Console.WriteLine(await response.GetStringAsync());
+
+                    if (response != null)
+                    {
+                        Console.WriteLine("Response:");
+                        Console.WriteLine(await response.GetStringAsync());
+                    }
+
+                    if (call.Exception != null)
+                    {
+                        Console.WriteLine("Exception:");
+                        Console.WriteLine(call.Exception);
+                    }
                 }
             });
 

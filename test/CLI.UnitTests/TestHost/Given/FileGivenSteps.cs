@@ -238,7 +238,7 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
 
     public async Task ExistingDevPortalTeams(string inputDirectory, string portalName, params Team[] teams)
     {
-        var metadata = new PortalTeamsMetadata(teams.Select(t => new PortalTeamMetadata(t.Name, t.Description)).ToList());
+        var metadata = new PortalTeamsMetadata(teams.Select(t => new PortalTeamMetadata(t.Name, t.Description, [])).ToList());
 
         var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
         fileSystem.Directory.EnsureDirectory(portalDirectory);

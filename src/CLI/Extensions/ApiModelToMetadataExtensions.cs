@@ -123,9 +123,28 @@ internal static class ApiModelToMetadataExtensions
         );
     }
 
-    public static PortalTeamsMetadata ToMetadata(this IReadOnlyList<DevPortalTeam> teams)
+    public static PortalTeamsMetadata ToMetadata(
+        this IReadOnlyList<DevPortalTeam> teams,
+        Dictionary<string, IReadOnlyCollection<DevPortalTeamRole>> teamRolesMap,
+        IReadOnlyDictionary<string, string> apiProductIdMap
+    )
     {
-        return new PortalTeamsMetadata(teams.Select(t => new PortalTeamMetadata(t.Name, t.Description)).ToList());
+        var teamsMetadata = new List<PortalTeamMetadata>();
+
+        foreach (var team in teams)
+        {
+            var roles = teamRolesMap[team.Id];
+            var products = roles
+                .Where(r => r.EntityTypeName == "Services")
+                .GroupBy(r => r.EntityId)
+                .Select(r => new PortalTeamApiProduct(apiProductIdMap[r.Key], r.Select(v => v.RoleName).ToList()))
+                .ToList();
+
+            var teamMetadata = new PortalTeamMetadata(team.Name, team.Description, products);
+            teamsMetadata.Add(teamMetadata);
+        }
+
+        return new PortalTeamsMetadata(teamsMetadata);
     }
 
     private static MetadataPublishStatus ToMetadataPublishStatus(this ApiPublishStatus publishStatus) =>
