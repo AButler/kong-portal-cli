@@ -227,9 +227,9 @@ internal class ApiGivenSteps
         SetupPagedApi($"{_kongBaseUrl}portals/{portalId}/teams/{id}/assigned-roles", () => _devPortalTeamRoles[portalId][id]);
     }
 
-    public void AnExistingDevPortalTeamRole(string portalId, string teamId, string roleName, string entityId)
+    public void AnExistingDevPortalTeamRole(string portalId, string teamId, string roleName, string entityId, string? roleId = null)
     {
-        var id = Guid.NewGuid().ToString();
+        var id = roleId ?? Guid.NewGuid().ToString();
 
         var teamRole = new
         {

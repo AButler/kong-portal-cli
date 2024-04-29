@@ -11,7 +11,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.ShouldNotHaveReceivedAnyUpdates();
     }
@@ -39,7 +39,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
     }
@@ -58,7 +58,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
     }
@@ -87,7 +87,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
     }
@@ -110,7 +110,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
 
@@ -135,7 +135,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         var apiProductId = await testHost.Then.Api.GetApiProductId("api-product-1");
         testHost.Then.Api.ApiProductDocumentShouldHaveBeenCreated(apiProductId);

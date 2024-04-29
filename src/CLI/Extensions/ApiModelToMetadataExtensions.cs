@@ -133,9 +133,8 @@ internal static class ApiModelToMetadataExtensions
 
         foreach (var team in teams)
         {
-            var roles = teamRolesMap[team.Id];
-            var products = roles
-                .Where(r => r.EntityTypeName == "Services")
+            var products = teamRolesMap[team.Id]
+                .Where(r => r.EntityTypeName == Constants.ServicesRoleEntityTypeName)
                 .GroupBy(r => r.EntityId)
                 .Select(r => new PortalTeamApiProduct(apiProductIdMap[r.Key], r.Select(v => v.RoleName).ToList()))
                 .ToList();

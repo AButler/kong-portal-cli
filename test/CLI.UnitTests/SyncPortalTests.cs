@@ -26,7 +26,7 @@ public class SyncPortalTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.PortalShouldHaveBeenUpdated(portalId);
     }
@@ -45,7 +45,7 @@ public class SyncPortalTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.PortalAppearanceShouldHaveBeenUpdated(portalId);
     }
@@ -75,7 +75,7 @@ public class SyncPortalTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.PortalAuthSettingsShouldHaveBeenUpdated(portalId);
     }

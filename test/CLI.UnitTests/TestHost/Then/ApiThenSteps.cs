@@ -118,6 +118,16 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         call.Should().BeNull();
     }
 
+    public void PortalTeamRoleShouldHaveBeenAssigned(string portalId, string teamId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/teams/{teamId}/assigned-roles").WithVerb(HttpMethod.Post);
+    }
+
+    public void PortalTeamRoleShouldHaveBeenRemoved(string portalId, string teamId, string roleId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/teams/{teamId}/assigned-roles/{roleId}").WithVerb(HttpMethod.Delete);
+    }
+
     private T? Deserialize<T>(string json)
     {
         return JsonSerializer.Deserialize<T>(json, MetadataSerializer.SerializerOptions);

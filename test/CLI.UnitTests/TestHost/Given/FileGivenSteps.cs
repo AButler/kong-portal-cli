@@ -122,9 +122,11 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         var apiProductsMetadataFilename = Path.Combine(portalDirectory, "api-products.json");
         await metadataSerializer.SerializeAsync(apiProductsMetadataFilename, new PortalApiProductsMetadata([]));
 
+        var teamsMetadataFilename = Path.Combine(portalDirectory, "teams.json");
+        await metadataSerializer.SerializeAsync(teamsMetadataFilename, new PortalTeamsMetadata([]));
+
         await AnExistingDevPortalAppearance(inputDirectory, name);
         await AnExistingDevPortalAuthSettings(inputDirectory, name);
-        await ExistingDevPortalTeams(inputDirectory, name);
     }
 
     public async Task AnExistingDevPortalApiProduct(string inputDirectory, string portalName, string apiProductSyncId)
@@ -236,14 +238,63 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
     }
 
-    public async Task ExistingDevPortalTeams(string inputDirectory, string portalName, params Team[] teams)
+    public async Task AnExistingDevPortalTeam(string inputDirectory, string portalName, string name, string description)
     {
-        var metadata = new PortalTeamsMetadata(teams.Select(t => new PortalTeamMetadata(t.Name, t.Description, [])).ToList());
-
         var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
 
         var metadataFilename = Path.Combine(portalDirectory, "teams.json");
+
+        var teams = new List<PortalTeamMetadata>();
+
+        if (fileSystem.File.Exists(metadataFilename))
+        {
+            var existingMetadata = await metadataSerializer.DeserializeAsync<PortalTeamsMetadata>(metadataFilename, new Dictionary<string, string>());
+            teams.AddRange(existingMetadata!.Teams);
+        }
+
+        teams.Add(new PortalTeamMetadata(name, description, []));
+
+        var metadata = new PortalTeamsMetadata(teams);
+
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+    }
+
+    public async Task AnExistingDevPortalTeamRole(string inputDirectory, string portalName, string teamName, string apiProduct, string role)
+    {
+        var portalDirectory = Path.Combine(inputDirectory, "portals", portalName);
+        fileSystem.Directory.EnsureDirectory(portalDirectory);
+
+        var metadataFilename = Path.Combine(portalDirectory, "teams.json");
+
+        var teams = new List<PortalTeamMetadata>();
+
+        if (fileSystem.File.Exists(metadataFilename))
+        {
+            var existingMetadata = await metadataSerializer.DeserializeAsync<PortalTeamsMetadata>(metadataFilename, new Dictionary<string, string>());
+            teams.AddRange(existingMetadata!.Teams);
+        }
+
+        var team = teams.SingleOrDefault(t => t.Name == teamName);
+        team.Should().NotBeNull("Team not found");
+        teams.Remove(team!);
+
+        var apiProducts = team!.ApiProducts.ToList();
+        var existingApiProduct = apiProducts.SingleOrDefault(p => p.ApiProduct == apiProduct);
+        if (existingApiProduct == null)
+        {
+            apiProducts.Add(new PortalTeamApiProduct(apiProduct, [role]));
+        }
+        else
+        {
+            apiProducts.Remove(existingApiProduct);
+            apiProducts.Add(new PortalTeamApiProduct(apiProduct, existingApiProduct.Roles.Concat([role]).ToList()));
+        }
+
+        teams.Add(team with { ApiProducts = apiProducts });
+
+        var metadata = new PortalTeamsMetadata(teams);
+
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
     }
 }
