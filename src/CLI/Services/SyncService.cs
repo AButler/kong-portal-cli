@@ -55,6 +55,13 @@ internal class SyncService(
             await SyncApiProduct(context, compareResult, difference);
         }
 
+        await SyncPortalsPhase2(compareResult, context);
+
+        consoleOutput.WriteLine("Done!");
+    }
+
+    private async Task SyncPortalsPhase2(CompareResult compareResult, SyncContext context)
+    {
         foreach (var portal in compareResult.PortalTeamRoles)
         {
             var portalName = portal.Key;
@@ -69,8 +76,6 @@ internal class SyncService(
                 }
             }
         }
-
-        consoleOutput.WriteLine("Done!");
     }
 
     private async Task SyncPortal(SyncContext context, CompareResult compareResult, Difference<DevPortal> difference)
