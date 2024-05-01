@@ -45,9 +45,9 @@
       },
       "Pastel": {
         "type": "Direct",
-        "requested": "[5.0.0, )",
-        "resolved": "5.0.0",
-        "contentHash": "678i15lh+oAKZs2ihgiDVmDbiprEbji2L/w+jIcTkZpkdJ+UgrhToQTQN3Mw0bfM+Yx3cIBA3BS7iKT2poqBQg=="
+        "requested": "[5.1.0, )",
+        "resolved": "5.1.0",
+        "contentHash": "jQ0fTkHZvgQsmbr5qU0IdCP1PWuUfmEmekIsTwysWK/iIwmT9Mbm0x5GpjYSTEwHTNVEpjYhBhyKVdzESgRCpg=="
       },
       "System.CommandLine": {
         "type": "Direct",
