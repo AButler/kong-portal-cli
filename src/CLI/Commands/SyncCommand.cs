@@ -24,10 +24,12 @@ internal class SyncCommand : Command
         {
             Arity = ArgumentArity.ZeroOrMore
         };
+        var konnectRegion = new Option<string>("--konnect-region", "Overrides the region when assigning Roles. Defaults based on --konnect-addr");
 
         AddOption(inputDirectoryOption);
         AddOption(applyOption);
         AddOption(variablesOptions);
+        AddOption(konnectRegion);
 
         this.SetHandler(
             Handle,
@@ -37,6 +39,7 @@ internal class SyncCommand : Command
             GlobalOptions.TokenOption,
             GlobalOptions.TokenFileOption,
             GlobalOptions.KonnectAddressOption,
+            konnectRegion,
             GlobalOptions.Debug
         );
     }
@@ -48,6 +51,7 @@ internal class SyncCommand : Command
         string? token,
         FileInfo? tokenFile,
         string konnectAddress,
+        string? konnectRegion,
         bool debug
     )
     {
@@ -57,11 +61,13 @@ internal class SyncCommand : Command
 
             var variablesDictionary = VariableHelper.Parse(variables);
 
+            var region = string.IsNullOrEmpty(konnectRegion) ? KonnectRegionHelpers.FromAddress(konnectAddress) : konnectRegion;
+
             await _syncService.Sync(
                 Path.GetFullPath(inputDirectory),
                 variablesDictionary,
                 apply,
-                new KongApiClientOptions(resolvedToken, konnectAddress, debug)
+                new KongApiClientOptions(resolvedToken, konnectAddress, region, debug)
             );
 
             return 0;

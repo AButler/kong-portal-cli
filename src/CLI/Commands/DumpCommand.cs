@@ -38,7 +38,10 @@ internal class DumpCommand : Command
         {
             var resolvedToken = TokenResolutionHelper.ResolveToken(token, tokenFile);
 
-            await _dumpService.Dump(Path.GetFullPath(outputDirectory), new KongApiClientOptions(resolvedToken, konnectAddress, debug));
+            await _dumpService.Dump(
+                Path.GetFullPath(outputDirectory),
+                new KongApiClientOptions(resolvedToken, konnectAddress, DebugLoggingEnabled: debug)
+            );
 
             return 0;
         }

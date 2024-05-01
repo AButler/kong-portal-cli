@@ -63,7 +63,7 @@ internal class TestHost : IDisposable
             .AddSingleton<FileGivenSteps>()
             .AddSingleton<DumpedFileThenSteps>()
             .AddSingleton<ApiThenSteps>()
-            .AddSingleton<KongApiClientOptions>(_ => new KongApiClientOptions("KONG-API-TOKEN", KongRegions.EuRegion));
+            .AddSingleton<KongApiClientOptions>(_ => new KongApiClientOptions("KONG-API-TOKEN", KongRegions.EuRegionAddress, KongRegions.EuRegion));
     }
 
     public void Dispose()
