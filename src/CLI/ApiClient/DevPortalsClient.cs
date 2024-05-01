@@ -89,4 +89,9 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
     {
         await flurlClient.Request($"/portals/{portalId}/teams/{teamId}/assigned-roles/{roleId}").DeleteAsync();
     }
+
+    public async Task<IReadOnlyCollection<DevPortalTeamMapping>> GetAuthTeamMappings(string portalId)
+    {
+        return await flurlClient.GetKongPagedResults<DevPortalTeamMapping>($"portals/{portalId}/identity-provider/team-group-mappings");
+    }
 }

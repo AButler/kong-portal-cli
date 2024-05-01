@@ -215,7 +215,8 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         bool oidcAuthEnabled,
         bool oidcTeamMappingEnabled,
         bool konnectMappingEnabled,
-        OidcAuthSettings? oidcConfig
+        OidcAuthSettings? oidcConfig,
+        IReadOnlyCollection<OidcTeamMapping>? oidcTeamMappings = null
     )
     {
         var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
@@ -252,6 +253,35 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
                     ["groups"] = oidcConfig.ClaimMappings.Groups
                 }
             );
+        }
+
+        if (oidcTeamMappings == null)
+        {
+            json.ShouldHaveNullProperty("oidc_team_mappings");
+        }
+        else
+        {
+            json.ShouldHaveArrayPropertyWithLength("oidc_team_mappings", oidcTeamMappings.Count);
+
+            var jsonTeamMappings = (JsonArray)json!["oidc_team_mappings"]!;
+
+            foreach (var oidcTeamMapping in oidcTeamMappings)
+            {
+                var jsonTeamMapping = jsonTeamMappings.FirstOrDefault(j =>
+                    j != null
+                    && j.GetValueKind() == JsonValueKind.Object
+                    && j["team"] != null
+                    && j["team"]!.GetValueKind() == JsonValueKind.String
+                    && j["team"]!.GetValue<string>() == oidcTeamMapping.TeamName
+                );
+
+                jsonTeamMapping.Should().NotBeNull();
+
+                jsonTeamMapping.ShouldHaveArrayPropertyWithLength("oidc_groups", oidcTeamMapping.GroupNames.Count);
+                var groupNames = ((JsonArray)jsonTeamMapping!["oidc_groups"]!).GetValues<string>();
+
+                groupNames.Should().BeEquivalentTo(oidcTeamMapping.GroupNames);
+            }
         }
     }
 

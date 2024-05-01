@@ -14,6 +14,7 @@ internal class ApiGivenSteps
     private readonly Dictionary<string, List<dynamic>> _apiProductVersions = new();
     private readonly Dictionary<string, dynamic> _devPortalAppearances = new();
     private readonly Dictionary<string, dynamic> _devPortalAuthSettings = new();
+    private readonly Dictionary<string, List<dynamic>> _devPortalTeamGroupMappings = new();
     private readonly Dictionary<string, List<dynamic>> _devPortalTeams = new();
     private readonly Dictionary<string, List<dynamic>> _devPortalProducts = new();
     private readonly Dictionary<string, Dictionary<string, List<dynamic>>> _devPortalTeamRoles = new();
@@ -189,6 +190,8 @@ internal class ApiGivenSteps
 
         _devPortalTeams.Add(id, []);
         _devPortalTeamRoles.Add(id, new Dictionary<string, List<dynamic>>());
+        _devPortalTeamGroupMappings.Add(id, []);
+
         if (!_devPortalProducts.ContainsKey(id))
         {
             _devPortalProducts.Add(id, new List<dynamic>());
@@ -213,6 +216,8 @@ internal class ApiGivenSteps
             .RespondWithDynamicJson(() => new { id = Guid.NewGuid().ToString() }, 201);
 
         SetupPagedApi($"{_kongBaseUrl}portals/{id}/teams", () => _devPortalTeams[id]);
+
+        SetupPagedApi($"{_kongBaseUrl}portals/{id}/identity-provider/team-group-mappings", () => _devPortalTeamGroupMappings[id]);
     }
 
     public void AnExistingDevPortalTeam(string portalId, string name, string description, string? teamId = null)
@@ -228,6 +233,7 @@ internal class ApiGivenSteps
 
         _devPortalTeams[portalId].Add(team);
         _devPortalTeamRoles[portalId][id] = [];
+        _devPortalTeamGroupMappings[portalId] = [];
 
         SetupPagedApi($"{_kongBaseUrl}portals/{portalId}/teams/{id}/assigned-roles", () => _devPortalTeamRoles[portalId][id]);
     }
@@ -246,6 +252,13 @@ internal class ApiGivenSteps
         };
 
         _devPortalTeamRoles[portalId][teamId].Add(teamRole);
+    }
+
+    public void AnExistingDevPortalTeamGroupMapping(string portalId, string teamId, params string[] groupNames)
+    {
+        var mapping = new { team_id = teamId, groups = groupNames };
+
+        _devPortalTeamGroupMappings[portalId].Add(mapping);
     }
 
     private void SetupDevPortalAuthSettings(string id, AuthSettings authSettings)

@@ -5,7 +5,8 @@ internal record PortalAuthSettingsMetadata(
     bool OidcAuthEnabled,
     bool OidcTeamMappingEnabled,
     bool KonnectMappingEnabled,
-    PortalOidcConfig? OidcConfig
+    PortalOidcConfig? OidcConfig,
+    IReadOnlyCollection<PortalAuthTeamMapping>? OidcTeamMappings
 );
 
 internal record PortalOidcConfig(
@@ -17,3 +18,5 @@ internal record PortalOidcConfig(
 );
 
 internal record PortalClaimMappings(string Name, string Email, string Groups);
+
+internal record PortalAuthTeamMapping(string Team, IReadOnlyCollection<string> OidcGroups);
