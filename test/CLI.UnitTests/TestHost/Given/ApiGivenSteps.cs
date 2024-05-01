@@ -16,6 +16,7 @@ internal class ApiGivenSteps
     private readonly Dictionary<string, dynamic> _devPortalAuthSettings = new();
     private readonly Dictionary<string, List<dynamic>> _devPortalTeams = new();
     private readonly Dictionary<string, List<dynamic>> _devPortalProducts = new();
+    private readonly Dictionary<string, Dictionary<string, List<dynamic>>> _devPortalTeamRoles = new();
 
     private int _pageSize = 100;
 
@@ -187,6 +188,7 @@ internal class ApiGivenSteps
         );
 
         _devPortalTeams.Add(id, []);
+        _devPortalTeamRoles.Add(id, new Dictionary<string, List<dynamic>>());
         if (!_devPortalProducts.ContainsKey(id))
         {
             _devPortalProducts.Add(id, new List<dynamic>());
@@ -205,12 +207,17 @@ internal class ApiGivenSteps
 
         SetupPagedApi($"{_kongBaseUrl}portals/{id}/products", () => _devPortalProducts[id]);
 
+        HttpTest
+            .Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/teams")
+            .WithVerb("POST")
+            .RespondWithDynamicJson(() => new { id = Guid.NewGuid().ToString() }, 201);
+
         SetupPagedApi($"{_kongBaseUrl}portals/{id}/teams", () => _devPortalTeams[id]);
     }
 
-    public void AnExistingDevPortalTeam(string portalId, string name, string description)
+    public void AnExistingDevPortalTeam(string portalId, string name, string description, string? teamId = null)
     {
-        var id = Guid.NewGuid().ToString();
+        var id = teamId ?? Guid.NewGuid().ToString();
 
         var team = new
         {
@@ -220,6 +227,25 @@ internal class ApiGivenSteps
         };
 
         _devPortalTeams[portalId].Add(team);
+        _devPortalTeamRoles[portalId][id] = [];
+
+        SetupPagedApi($"{_kongBaseUrl}portals/{portalId}/teams/{id}/assigned-roles", () => _devPortalTeamRoles[portalId][id]);
+    }
+
+    public void AnExistingDevPortalTeamRole(string portalId, string teamId, string roleName, string entityId, string? roleId = null)
+    {
+        var id = roleId ?? Guid.NewGuid().ToString();
+
+        var teamRole = new
+        {
+            id = id,
+            role_name = roleName,
+            entity_id = entityId,
+            entity_type_name = "Services",
+            entity_region = "eu"
+        };
+
+        _devPortalTeamRoles[portalId][teamId].Add(teamRole);
     }
 
     private void SetupDevPortalAuthSettings(string id, AuthSettings authSettings)

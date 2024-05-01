@@ -5,23 +5,9 @@ namespace Kong.Portal.CLI.ApiClient;
 
 internal class DevPortalsClient(IFlurlClient flurlClient)
 {
-    public async Task<List<DevPortal>> GetAll()
+    public async Task<IReadOnlyCollection<DevPortal>> GetAll()
     {
-        var allPortals = new List<DevPortal>();
-
-        PagedResponse<DevPortal> portalsResponse;
-        var pageNumber = 1;
-
-        do
-        {
-            var response = await flurlClient.Request("portals").SetQueryParam("page[number]", pageNumber++).GetAsync();
-
-            portalsResponse = await response.GetJsonAsync<PagedResponse<DevPortal>>();
-
-            allPortals.AddRange(portalsResponse.Data);
-        } while (portalsResponse.Meta.Page.HasMore());
-
-        return allPortals;
+        return await flurlClient.GetKongPagedResults<DevPortal>("portals");
     }
 
     public async Task<DevPortal> Update(string portalId, DevPortal devPortal)
@@ -60,21 +46,7 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
 
     public async Task<IReadOnlyList<DevPortalTeam>> GetTeams(string portalId)
     {
-        var allTeams = new List<DevPortalTeam>();
-
-        PagedResponse<DevPortalTeam> teamsResponse;
-        var pageNumber = 1;
-
-        do
-        {
-            var response = await flurlClient.Request($"/portals/{portalId}/teams").SetQueryParam("page[number]", pageNumber++).GetAsync();
-
-            teamsResponse = await response.GetJsonAsync<PagedResponse<DevPortalTeam>>();
-
-            allTeams.AddRange(teamsResponse.Data);
-        } while (teamsResponse.Meta.Page.HasMore());
-
-        return allTeams;
+        return await flurlClient.GetKongPagedResults<DevPortalTeam>($"/portals/{portalId}/teams");
     }
 
     public async Task<DevPortalTeam> CreateTeam(string portalId, DevPortalTeam team)
@@ -96,22 +68,25 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
         await flurlClient.Request($"/portals/{portalId}/teams/{teamId}").DeleteAsync();
     }
 
-    public async Task<List<ApiProduct>> GetApiProducts(string portalId)
+    public async Task<IReadOnlyCollection<ApiProduct>> GetApiProducts(string portalId)
     {
-        var allApiProducts = new List<ApiProduct>();
+        return await flurlClient.GetKongPagedResults<ApiProduct>($"portals/{portalId}/products");
+    }
 
-        PagedResponse<ApiProduct> apiProductsResponse;
-        var pageNumber = 1;
+    public async Task<IReadOnlyCollection<DevPortalTeamRole>> GetTeamRoles(string portalId, string teamId)
+    {
+        return await flurlClient.GetKongPagedResults<DevPortalTeamRole>($"portals/{portalId}/teams/{teamId}/assigned-roles");
+    }
 
-        do
-        {
-            var response = await flurlClient.Request($"portals/{portalId}/products").SetQueryParam("page[number]", pageNumber++).GetAsync();
+    public async Task<DevPortalTeamRole> CreateTeamRole(string portalId, string teamId, DevPortalTeamRole role)
+    {
+        var response = await flurlClient.Request($"/portals/{portalId}/teams/{teamId}/assigned-roles").PostJsonAsync(role.ToCreateModel());
 
-            apiProductsResponse = await response.GetJsonAsync<PagedResponse<ApiProduct>>();
+        return await response.GetJsonAsync<DevPortalTeamRole>();
+    }
 
-            allApiProducts.AddRange(apiProductsResponse.Data);
-        } while (apiProductsResponse.Meta.Page.HasMore());
-
-        return allApiProducts;
+    public async Task DeleteTeamRole(string portalId, string teamId, string roleId)
+    {
+        await flurlClient.Request($"/portals/{portalId}/teams/{teamId}/assigned-roles/{roleId}").DeleteAsync();
     }
 }

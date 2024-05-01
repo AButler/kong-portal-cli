@@ -21,13 +21,6 @@ internal class DumpService(
         var apiClient = apiClientFactory.CreateClient(apiClientOptions);
         var context = new DumpContext(apiClient, outputDirectory);
 
-        consoleOutput.WriteLine("- Portals");
-        var portals = await apiClient.DevPortals.GetAll();
-        foreach (var portal in portals)
-        {
-            await DumpPortal(context, portal);
-        }
-
         consoleOutput.WriteLine("- API Products");
 
         var apiProducts = await apiClient.ApiProducts.GetAll();
@@ -36,9 +29,11 @@ internal class DumpService(
             await DumpApiProduct(context, apiProduct);
         }
 
+        consoleOutput.WriteLine("- Portals");
+        var portals = await apiClient.DevPortals.GetAll();
         foreach (var portal in portals)
         {
-            await DumpPortalProducts(context, portal);
+            await DumpPortal(context, portal);
         }
 
         consoleOutput.WriteLine("Done!");
@@ -157,6 +152,8 @@ internal class DumpService(
         await DumpPortalAuthSettings(context, devPortal);
 
         await DumpPortalTeams(context, devPortal);
+
+        await DumpPortalProducts(context, devPortal);
     }
 
     private async Task DumpPortalProducts(DumpContext context, DevPortal devPortal)
@@ -177,7 +174,14 @@ internal class DumpService(
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         var teams = await context.ApiClient.DevPortals.GetTeams(devPortal.Id);
 
-        var teamsMetadata = teams.ToMetadata();
+        var teamRolesMap = new Dictionary<string, IReadOnlyCollection<DevPortalTeamRole>>();
+        foreach (var team in teams)
+        {
+            var teamRoles = await context.ApiClient.DevPortals.GetTeamRoles(devPortal.Id, team.Id);
+            teamRolesMap[team.Id] = teamRoles;
+        }
+
+        var teamsMetadata = teams.ToMetadata(teamRolesMap, context.ApiProductIdMap);
 
         var teamsMetadataFilename = Path.Combine(portalDirectory, "teams.json");
         await metadataSerializer.SerializeAsync(teamsMetadataFilename, teamsMetadata);

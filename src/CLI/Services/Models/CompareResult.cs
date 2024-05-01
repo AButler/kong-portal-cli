@@ -13,7 +13,8 @@ internal class CompareResult
         Dictionary<string, Difference<ApiProductAssociation>> apiProductAssociations,
         Dictionary<string, Difference<DevPortalAppearance>> portalAppearances,
         Dictionary<string, Difference<DevPortalAuthSettings>> portalAuthSettings,
-        Dictionary<string, List<Difference<DevPortalTeam>>> portalTeams
+        Dictionary<string, List<Difference<DevPortalTeam>>> portalTeams,
+        Dictionary<string, Dictionary<string, List<Difference<DevPortalTeamRole>>>> portalTeamRoles
     )
     {
         ApiProducts = apiProductDifferences.AsReadOnly();
@@ -46,6 +47,8 @@ internal class CompareResult
         PortalTeams = portalTeams
             .ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyCollection<Difference<DevPortalTeam>>)kvp.Value.ToList().AsReadOnly())
             .AsReadOnly();
+
+        PortalTeamRoles = portalTeamRoles;
     }
 
     public IReadOnlyCollection<string> GetValidationErrors()
@@ -62,6 +65,11 @@ internal class CompareResult
             errors.Add("Cannot delete Portals");
         }
 
+        if (PortalTeamRoles.Values.Any(p => p.Values.Any(t => t.Any(r => r.DifferenceType == DifferenceType.Update))))
+        {
+            errors.Add("Cannot update Portal Team Roles");
+        }
+
         return errors;
     }
 
@@ -74,6 +82,7 @@ internal class CompareResult
     public IReadOnlyDictionary<string, IReadOnlyCollection<Difference<ApiProductDocumentBody>>> ApiProductDocuments { get; }
 
     public IReadOnlyCollection<Difference<DevPortal>> Portals { get; }
+
     public IReadOnlyDictionary<string, Difference<ApiProductAssociation>> ApiProductAssociations { get; }
 
     public IReadOnlyDictionary<string, Difference<DevPortalAppearance>> PortalAppearances { get; }
@@ -81,4 +90,6 @@ internal class CompareResult
     public IReadOnlyDictionary<string, Difference<DevPortalAuthSettings>> PortalAuthSettings { get; }
 
     public IReadOnlyDictionary<string, IReadOnlyCollection<Difference<DevPortalTeam>>> PortalTeams { get; }
+
+    public Dictionary<string, Dictionary<string, List<Difference<DevPortalTeamRole>>>> PortalTeamRoles { get; }
 }

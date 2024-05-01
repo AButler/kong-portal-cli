@@ -27,7 +27,7 @@ public class SyncPortalApiProductsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
     }
@@ -61,7 +61,7 @@ public class SyncPortalApiProductsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", new Dictionary<string, string>(), true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
 
         testHost.Then.Api.ApiProductShouldNotHaveBeenUpdated(productId);
     }

@@ -289,6 +289,70 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
 
     public async Task ShouldHavePortalTeam(string outputDirectory, string portalName, string teamName, string teamDescription)
     {
+        var teamNode = await GetTeamNode(outputDirectory, portalName, teamName);
+        if (teamNode == null)
+        {
+            teamNode.Should().NotBeNull("Team not found");
+        }
+
+        teamNode.ShouldHaveStringProperty("description", teamDescription);
+    }
+
+    public async Task ShouldHavePortalTeamRole(
+        string outputDirectory,
+        string portalName,
+        string teamName,
+        string apiProduct,
+        IReadOnlyCollection<string> roleNames
+    )
+    {
+        var teamNode = await GetTeamNode(outputDirectory, portalName, teamName);
+        if (teamNode == null)
+        {
+            teamNode.Should().NotBeNull("Team not found");
+            return;
+        }
+
+        var productNode = GetRoleNode(teamNode, apiProduct);
+        if (productNode == null)
+        {
+            productNode.Should().NotBeNull("API Product not found");
+            return;
+        }
+
+        productNode.ShouldHaveArrayPropertyWithLength("roles", roleNames.Count);
+
+        var roles = ((JsonArray)productNode["roles"]!).GetValues<string>();
+        roles.Should().BeEquivalentTo(roleNames);
+    }
+
+    private static JsonNode? GetRoleNode(JsonNode json, string apiProduct)
+    {
+        json.ShouldHaveArrayProperty("api_products");
+
+        var products = (JsonArray)json["api_products"]!;
+
+        foreach (var node in products)
+        {
+            if (node == null || node.GetValueKind() != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var productNode = node["api_product"];
+            if (productNode == null || productNode.GetValueKind() != JsonValueKind.String || productNode.GetValue<string>() != apiProduct)
+            {
+                continue;
+            }
+
+            return node;
+        }
+
+        return null;
+    }
+
+    private async Task<JsonNode?> GetTeamNode(string outputDirectory, string portalName, string teamName)
+    {
         var portalDirectory = Path.Combine(outputDirectory, "portals", portalName);
         DirectoryShouldExist(portalDirectory);
 
@@ -314,11 +378,10 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
                 continue;
             }
 
-            node.ShouldHaveStringProperty("description", teamDescription);
-            return;
+            return node;
         }
 
-        Assert.Fail("Team not found");
+        return null;
     }
 
     private void DirectoryShouldExist(string path)
