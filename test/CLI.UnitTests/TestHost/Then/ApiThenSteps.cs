@@ -128,6 +128,11 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/teams/{teamId}/assigned-roles/{roleId}").WithVerb(HttpMethod.Delete);
     }
 
+    public void PortalTeamMappingsShouldHaveBeenUpdated(string portalId)
+    {
+        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/identity-provider/team-group-mappings").WithVerb(HttpMethod.Patch);
+    }
+
     private T? Deserialize<T>(string json)
     {
         return JsonSerializer.Deserialize<T>(json, MetadataSerializer.SerializerOptions);

@@ -94,4 +94,9 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
     {
         return await flurlClient.GetKongPagedResults<DevPortalTeamMapping>($"portals/{portalId}/identity-provider/team-group-mappings");
     }
+
+    public async Task UpdateTeamMappings(string portalId, DevPortalTeamMappingBody teamMappings)
+    {
+        await flurlClient.Request($"/portals/{portalId}/identity-provider/team-group-mappings").PatchJsonAsync(teamMappings);
+    }
 }

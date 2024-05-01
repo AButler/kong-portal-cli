@@ -26,7 +26,8 @@ internal class ComparerService
             context.PortalAppearances,
             context.PortalAuthSettings,
             context.PortalTeams,
-            context.PortalTeamRoles
+            context.PortalTeamRoles,
+            context.PortalTeamMappings
         );
 
         return result;
@@ -77,9 +78,9 @@ internal class ComparerService
 
                 await ComparePortalAppearance(sourceData, context, sourcePortal.Name, serverPortal.Id);
 
-                await ComparePortalAuthSettings(sourceData, context, sourcePortal.Name, serverPortal.Id);
-
                 await ComparePortalTeams(sourceData, context, sourcePortal.Name, serverPortal.Id);
+
+                await ComparePortalAuthSettings(sourceData, context, sourcePortal.Name, serverPortal.Id);
 
                 continue;
             }
@@ -94,8 +95,8 @@ internal class ComparerService
             context.PortalTeamRoles.Add(sourcePortal.Name, []);
 
             await ComparePortalAppearance(sourceData, context, sourcePortal.Name);
-            await ComparePortalAuthSettings(sourceData, context, sourcePortal.Name);
             await ComparePortalTeams(sourceData, context, sourcePortal.Name);
+            await ComparePortalAuthSettings(sourceData, context, sourcePortal.Name);
         }
     }
 
@@ -215,16 +216,32 @@ internal class ComparerService
 
     private static async Task ComparePortalAuthSettings(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
     {
-        var toMatch = sourceData.PortalAuthSettings[portalName];
+        var sourcePortalAuthSettings = sourceData.PortalAuthSettings[portalName];
+
+        var teamIdMap = context.PortalTeamIdMap[portalName];
 
         if (portalId == null)
         {
-            context.PortalAuthSettings[portalName] = Difference.Add(portalName, toMatch.ToApiModel());
+            context.PortalAuthSettings[portalName] = Difference.Add(portalName, sourcePortalAuthSettings.ToApiModel());
+            context.PortalTeamMappings[portalName] = Difference.Add(portalName, sourcePortalAuthSettings.ToTeamMappingsApiModel(teamIdMap));
             return;
         }
 
         var serverPortalAuthSettings = await context.ApiClient.DevPortals.GetAuthSettings(portalId);
-        context.PortalAuthSettings[portalName] = Difference.UpdateOrNoChange(portalName, portalId, serverPortalAuthSettings, toMatch.ToApiModel());
+        context.PortalAuthSettings[portalName] = Difference.UpdateOrNoChange(
+            portalName,
+            portalId,
+            serverPortalAuthSettings,
+            sourcePortalAuthSettings.ToApiModel()
+        );
+
+        var serverPortalTeamMappings = new DevPortalTeamMappingBody(await context.ApiClient.DevPortals.GetAuthTeamMappings(portalId));
+        context.PortalTeamMappings[portalName] = Difference.UpdateOrNoChange(
+            portalName,
+            portalId,
+            serverPortalTeamMappings,
+            sourcePortalAuthSettings.ToTeamMappingsApiModel(teamIdMap)
+        );
     }
 
     private static async Task ComparePortalAppearance(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
@@ -580,6 +597,7 @@ internal class ComparerService
         public Dictionary<string, Difference<DevPortalAuthSettings>> PortalAuthSettings { get; } = new();
         public Dictionary<string, List<Difference<DevPortalTeam>>> PortalTeams { get; } = new();
         public Dictionary<string, Dictionary<string, List<Difference<DevPortalTeamRole>>>> PortalTeamRoles { get; } = new();
+        public Dictionary<string, Difference<DevPortalTeamMappingBody>> PortalTeamMappings { get; } = new();
         public List<Difference<ApiProduct>> ApiProducts { get; } = new();
         public Dictionary<string, List<Difference<ApiProductVersion>>> ApiProductVersions { get; } = new();
         public Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> ApiProductVersionSpecifications { get; } = new();
@@ -590,5 +608,11 @@ internal class ComparerService
 
         public SyncIdMap ApiProductMap =>
             new(ApiProducts.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.SyncId!, kvp => kvp.Id!));
+
+        public Dictionary<string, SyncIdMap> PortalTeamIdMap =>
+            PortalTeams.ToDictionary(
+                kvp => kvp.Key,
+                kvp => new SyncIdMap(kvp.Value.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.SyncId!, kvp => kvp.Id!))
+            );
     }
 }
