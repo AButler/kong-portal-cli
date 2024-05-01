@@ -5,7 +5,7 @@ namespace Kong.Portal.CLI;
 
 internal static class ApiModelToMetadataExtensions
 {
-    public static ApiProductMetadata ToMetadata(this ApiProduct apiProduct, string syncId, IReadOnlyDictionary<string, string> portalMap)
+    public static ApiProductMetadata ToMetadata(this ApiProduct apiProduct, string syncId)
     {
         var labels = apiProduct.Labels.Clone();
         labels.Remove(Constants.SyncIdLabel);
@@ -97,7 +97,11 @@ internal static class ApiModelToMetadataExtensions
         );
     }
 
-    public static PortalAuthSettingsMetadata ToMetadata(this DevPortalAuthSettings authSettings)
+    public static PortalAuthSettingsMetadata ToMetadata(
+        this DevPortalAuthSettings authSettings,
+        IReadOnlyCollection<DevPortalTeamMapping> teamMappings,
+        SyncIdMap teamSyncIdMap
+    )
     {
         var oidcConfig =
             authSettings.OidcConfig == null
@@ -114,19 +118,25 @@ internal static class ApiModelToMetadataExtensions
                     )
                 );
 
+        var oidcTeamMappings =
+            teamMappings.Count > 0
+                ? teamMappings.Select(tm => new PortalAuthTeamMapping(teamSyncIdMap.GetSyncId(tm.TeamId), tm.Groups.ToList())).ToList()
+                : null;
+
         return new PortalAuthSettingsMetadata(
             authSettings.BasicAuthEnabled,
             authSettings.OidcAuthEnabled,
             authSettings.OidcTeamMappingEnabled,
             authSettings.KonnectMappingEnabled,
-            oidcConfig
+            oidcConfig,
+            oidcTeamMappings
         );
     }
 
     public static PortalTeamsMetadata ToMetadata(
         this IReadOnlyList<DevPortalTeam> teams,
         Dictionary<string, IReadOnlyCollection<DevPortalTeamRole>> teamRolesMap,
-        IReadOnlyDictionary<string, string> apiProductIdMap
+        SyncIdMap apiProductIdMap
     )
     {
         var teamsMetadata = new List<PortalTeamMetadata>();
@@ -136,7 +146,7 @@ internal static class ApiModelToMetadataExtensions
             var products = teamRolesMap[team.Id]
                 .Where(r => r.EntityTypeName == Constants.ServicesRoleEntityTypeName)
                 .GroupBy(r => r.EntityId)
-                .Select(r => new PortalTeamApiProduct(apiProductIdMap[r.Key], r.Select(v => v.RoleName).ToList()))
+                .Select(r => new PortalTeamApiProduct(apiProductIdMap.GetSyncId(r.Key), r.Select(v => v.RoleName).ToList()))
                 .ToList();
 
             var teamMetadata = new PortalTeamMetadata(team.Name, team.Description, products);

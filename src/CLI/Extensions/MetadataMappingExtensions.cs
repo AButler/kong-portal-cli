@@ -45,6 +45,23 @@ internal static class MetadataMappingExtensions
         );
     }
 
+    public static DevPortalTeamMappingBody ToTeamMappingsApiModel(this PortalAuthSettingsMetadata metadata, SyncIdMap teamIdMap)
+    {
+        if (metadata.OidcTeamMappings == null)
+        {
+            return new DevPortalTeamMappingBody(new List<DevPortalTeamMapping>());
+        }
+
+        var teamMappings = new List<DevPortalTeamMapping>();
+        foreach (var mapping in metadata.OidcTeamMappings)
+        {
+            var teamId = teamIdMap.GetIdOrDefault(mapping.Team, $"resolve://portal-team/{mapping.Team}");
+            teamMappings.Add(new DevPortalTeamMapping(teamId, mapping.OidcGroups.ToList()));
+        }
+
+        return new DevPortalTeamMappingBody(teamMappings);
+    }
+
     public static DevPortalAppearance ToApiModel(this PortalAppearanceMetadata metadata, ImageData imageData)
     {
         return new DevPortalAppearance(

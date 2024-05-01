@@ -79,4 +79,86 @@ public class SyncPortalTests
 
         testHost.Then.Api.PortalAuthSettingsShouldHaveBeenUpdated(portalId);
     }
+
+    [Fact]
+    public async Task PortalTeamMappingsAreSynced()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var portalId = Guid.NewGuid().ToString();
+
+        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
+
+        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
+
+        await testHost.Given.File.AnExistingDevPortalTeam(
+            inputDirectory: @"c:\temp\input",
+            portalName: "default",
+            name: "Team 1",
+            description: "Team One"
+        );
+
+        await testHost.Given.File.AnExistingDevPortalAuthSettings(
+            inputDirectory: @"c:\temp\input",
+            portalName: "default",
+            oidcAuthEnabled: true,
+            oidcTeamMappingEnabled: true,
+            oidcConfig: new OidcAuthSettings(
+                "MyIssuer",
+                "MyClientId",
+                "MyClientSecret",
+                ["openid", "profile", "email"],
+                new OidcClaimMappings("name", "email", "groups")
+            ),
+            oidcTeamMappings: new[] { new OidcTeamMapping("Team 1", ["Group 1"]) }
+        );
+
+        var syncService = testHost.GetRequiredService<SyncService>();
+
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+
+        testHost.Then.Api.PortalTeamMappingsShouldHaveBeenUpdated(portalId);
+    }
+
+    [Fact]
+    public async Task PortalTeamMappingsWithExistingTeamAreSynced()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var portalId = Guid.NewGuid().ToString();
+        var teamId = Guid.NewGuid().ToString();
+
+        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
+        testHost.Given.Api.AnExistingDevPortalTeam(portalId: portalId, name: "Team 1", description: "Team One", teamId: teamId);
+
+        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
+
+        await testHost.Given.File.AnExistingDevPortalTeam(
+            inputDirectory: @"c:\temp\input",
+            portalName: "default",
+            name: "Team 1",
+            description: "Team One"
+        );
+
+        await testHost.Given.File.AnExistingDevPortalAuthSettings(
+            inputDirectory: @"c:\temp\input",
+            portalName: "default",
+            oidcAuthEnabled: true,
+            oidcTeamMappingEnabled: true,
+            oidcConfig: new OidcAuthSettings(
+                "MyIssuer",
+                "MyClientId",
+                "MyClientSecret",
+                ["openid", "profile", "email"],
+                new OidcClaimMappings("name", "email", "groups")
+            ),
+            oidcTeamMappings: new[] { new OidcTeamMapping("Team 1", ["Group 1"]) }
+        );
+
+        var syncService = testHost.GetRequiredService<SyncService>();
+
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+
+        testHost.Then.Api.PortalTeamMappingsShouldHaveBeenUpdated(portalId);
+    }
 }

@@ -14,7 +14,8 @@ internal class CompareResult
         Dictionary<string, Difference<DevPortalAppearance>> portalAppearances,
         Dictionary<string, Difference<DevPortalAuthSettings>> portalAuthSettings,
         Dictionary<string, List<Difference<DevPortalTeam>>> portalTeams,
-        Dictionary<string, Dictionary<string, List<Difference<DevPortalTeamRole>>>> portalTeamRoles
+        Dictionary<string, Dictionary<string, List<Difference<DevPortalTeamRole>>>> portalTeamRoles,
+        Dictionary<string, Difference<DevPortalTeamMappingBody>> portalTeamMappings
     )
     {
         ApiProducts = apiProductDifferences.AsReadOnly();
@@ -48,7 +49,9 @@ internal class CompareResult
             .ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyCollection<Difference<DevPortalTeam>>)kvp.Value.ToList().AsReadOnly())
             .AsReadOnly();
 
-        PortalTeamRoles = portalTeamRoles;
+        PortalTeamRoles = portalTeamRoles.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        PortalTeamMappings = portalTeamMappings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
     }
 
     public IReadOnlyCollection<string> GetValidationErrors()
@@ -92,4 +95,6 @@ internal class CompareResult
     public IReadOnlyDictionary<string, IReadOnlyCollection<Difference<DevPortalTeam>>> PortalTeams { get; }
 
     public Dictionary<string, Dictionary<string, List<Difference<DevPortalTeamRole>>>> PortalTeamRoles { get; }
+
+    public Dictionary<string, Difference<DevPortalTeamMappingBody>> PortalTeamMappings { get; }
 }

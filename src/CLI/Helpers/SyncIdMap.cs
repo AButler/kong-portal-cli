@@ -1,5 +1,8 @@
-﻿namespace Kong.Portal.CLI;
+﻿using System.Diagnostics;
 
+namespace Kong.Portal.CLI;
+
+[DebuggerDisplay("Count = {_syncIdToIdMap.Count,nq}")]
 public class SyncIdMap
 {
     private readonly Dictionary<string, string> _syncIdToIdMap = new();
@@ -22,6 +25,11 @@ public class SyncIdMap
     public string GetId(string syncId)
     {
         return _syncIdToIdMap[syncId];
+    }
+
+    public string GetIdOrDefault(string syncId, string defaultValue)
+    {
+        return _syncIdToIdMap.GetValueOrDefault(syncId, defaultValue);
     }
 
     public string GetSyncId(string id)

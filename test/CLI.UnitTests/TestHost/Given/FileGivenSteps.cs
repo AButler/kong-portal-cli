@@ -202,7 +202,8 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         Discretionary<bool> oidcAuthEnabled = default,
         Discretionary<bool> oidcTeamMappingEnabled = default,
         Discretionary<bool> konnectMappingEnabled = default,
-        Discretionary<OidcAuthSettings?> oidcConfig = default
+        Discretionary<OidcAuthSettings?> oidcConfig = default,
+        Discretionary<IReadOnlyCollection<OidcTeamMapping>?> oidcTeamMappings = default
     )
     {
         var name = portalName.GetValueOrDefault("default");
@@ -223,12 +224,17 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
                     )
                 );
 
+        var oidcTeamMappingsValue = oidcTeamMappings.GetValueOrDefault(null);
+        var oidcTeamMappingsMetadata =
+            oidcTeamMappingsValue == null ? null : oidcTeamMappingsValue.Select(m => new PortalAuthTeamMapping(m.TeamName, m.GroupNames)).ToList();
+
         var metadata = new PortalAuthSettingsMetadata(
             basicAuthEnabled.GetValueOrDefault(false),
             oidcAuthEnabled.GetValueOrDefault(false),
             oidcTeamMappingEnabled.GetValueOrDefault(false),
             konnectMappingEnabled.GetValueOrDefault(false),
-            oidcConfigMetadata
+            oidcConfigMetadata,
+            oidcTeamMappingsMetadata
         );
 
         var portalDirectory = Path.Combine(inputDirectory, "portals", name);

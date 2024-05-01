@@ -107,13 +107,36 @@ internal class SyncService(
             var portalAppearance = compareResult.PortalAppearances[difference.SyncId];
             await SyncPortalAppearance(context, difference.SyncId, portalAppearance);
 
-            var portalAuthSettings = compareResult.PortalAuthSettings[difference.SyncId];
-            await SyncPortalAuthSettings(context, difference.SyncId, portalAuthSettings);
-
             var portalTeams = compareResult.PortalTeams[difference.SyncId];
             foreach (var portalTeam in portalTeams)
             {
                 await SyncPortalTeams(context, compareResult, difference.SyncId, portalTeam);
+            }
+
+            var portalAuthSettings = compareResult.PortalAuthSettings[difference.SyncId];
+            await SyncPortalAuthSettings(context, difference.SyncId, portalAuthSettings);
+
+            var portalTeamMappings = compareResult.PortalTeamMappings[difference.SyncId];
+            await SyncPortalTeamMappings(context, difference.SyncId, portalTeamMappings);
+        }
+    }
+
+    private async Task SyncPortalTeamMappings(SyncContext context, string portalName, Difference<DevPortalTeamMappingBody> difference)
+    {
+        consoleOutput.WriteDifference(difference, "Team Mappings", 1);
+
+        if (context.Apply)
+        {
+            switch (difference.DifferenceType)
+            {
+                case DifferenceType.Add:
+                    throw new InvalidOperationException("Cannot create Portals");
+                case DifferenceType.Update:
+                    var teamMappings = difference.Entity.Resolve(context.PortalTeamSyncIdMap[portalName]);
+                    await context.ApiClient.DevPortals.UpdateTeamMappings(difference.Id!, teamMappings);
+                    break;
+                case DifferenceType.Delete:
+                    throw new InvalidOperationException("Cannot delete Portals");
             }
         }
     }

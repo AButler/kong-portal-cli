@@ -144,6 +144,6 @@ The table below shows the list of Kong Konnect entities that are supported by th
 | Portal Appearance                 | ✅         |                                 |
 | Portal Auth Settings              | ✅         |                                 |
 | Portal Teams                      | ✅         |                                 |
-| Portal Team Group Mappings        | ❌         |                                 |
+| Portal Team Group Mappings        | ✅         |                                 |
 | Portal Team Roles                 | ✅         |                                 |
 

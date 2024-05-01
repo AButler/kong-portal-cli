@@ -54,14 +54,14 @@ internal class DumpService(
             apiProductSyncId = context.ApiProductSyncIdGenerator.Generate(apiProduct.Name);
         }
 
-        context.StoreApiProductId(apiProduct.Id, apiProductSyncId);
+        context.ApiProductIdMap.Add(apiProductSyncId, apiProduct.Id);
 
         consoleOutput.WriteLine($"  - {apiProductSyncId}");
 
         var apiProductDirectory = context.GetApiProductDirectory(apiProductSyncId);
         fileSystem.Directory.EnsureDirectory(apiProductDirectory);
 
-        var metadata = apiProduct.ToMetadata(apiProductSyncId, context.PortalIdMap);
+        var metadata = apiProduct.ToMetadata(apiProductSyncId);
 
         var metadataFilename = Path.Combine(apiProductDirectory, "api-product.json");
         await metadataSerializer.SerializeAsync(metadataFilename, metadata);
@@ -137,7 +137,7 @@ internal class DumpService(
     {
         consoleOutput.WriteLine($"  - {devPortal.Name}");
 
-        context.StorePortalId(devPortal.Id, devPortal.Name);
+        context.PortalTeamIdMap.Add(devPortal.Name, new SyncIdMap());
 
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         fileSystem.Directory.EnsureDirectory(portalDirectory);
@@ -149,9 +149,9 @@ internal class DumpService(
 
         await DumpPortalAppearance(context, devPortal);
 
-        await DumpPortalAuthSettings(context, devPortal);
-
         await DumpPortalTeams(context, devPortal);
+
+        await DumpPortalAuthSettings(context, devPortal);
 
         await DumpPortalProducts(context, devPortal);
     }
@@ -161,7 +161,7 @@ internal class DumpService(
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         var apiProducts = await context.ApiClient.DevPortals.GetApiProducts(devPortal.Id);
 
-        var apiProductVersionSyncIds = apiProducts.Select(p => context.ApiProductIdMap[p.Id]);
+        var apiProductVersionSyncIds = apiProducts.Select(p => context.ApiProductIdMap.GetSyncId(p.Id));
 
         var apiProductsMetadata = new PortalApiProductsMetadata(apiProductVersionSyncIds.ToList());
 
@@ -177,6 +177,8 @@ internal class DumpService(
         var teamRolesMap = new Dictionary<string, IReadOnlyCollection<DevPortalTeamRole>>();
         foreach (var team in teams)
         {
+            context.PortalTeamIdMap[devPortal.Name].Add(team.Name, team.Id);
+
             var teamRoles = await context.ApiClient.DevPortals.GetTeamRoles(devPortal.Id, team.Id);
             teamRolesMap[team.Id] = teamRoles;
         }
@@ -191,8 +193,9 @@ internal class DumpService(
     {
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         var portalAuthSettings = await context.ApiClient.DevPortals.GetAuthSettings(devPortal.Id);
+        var portalTeamMappings = await context.ApiClient.DevPortals.GetAuthTeamMappings(devPortal.Id);
 
-        var authSettingsMetadata = portalAuthSettings.ToMetadata();
+        var authSettingsMetadata = portalAuthSettings.ToMetadata(portalTeamMappings, context.PortalTeamIdMap[devPortal.Name]);
 
         var authSettingsMetadataFilename = Path.Combine(portalDirectory, "authentication-settings.json");
         await metadataSerializer.SerializeAsync(authSettingsMetadataFilename, authSettingsMetadata);
@@ -241,15 +244,12 @@ internal class DumpService(
 
     private class DumpContext(KongApiClient apiClient, string outputDirectory)
     {
-        private readonly Dictionary<string, string> _portalIdMap = new();
-        private readonly Dictionary<string, string> _apiProductIdMap = new();
-
         public KongApiClient ApiClient { get; } = apiClient;
         public string OutputDirectory { get; } = outputDirectory;
         public SyncIdGenerator ApiProductSyncIdGenerator { get; } = new();
         public SyncIdGenerator ApiProductVersionSyncIdGenerator { get; } = new();
-        public IReadOnlyDictionary<string, string> PortalIdMap => _portalIdMap;
-        public IReadOnlyDictionary<string, string> ApiProductIdMap => _apiProductIdMap;
+        public SyncIdMap ApiProductIdMap { get; } = new();
+        public Dictionary<string, SyncIdMap> PortalTeamIdMap { get; } = new();
 
         public string GetApiProductDirectory(string syncId) => Path.Combine(OutputDirectory, "api-products", syncId);
 
@@ -258,15 +258,5 @@ internal class DumpService(
         public string GetDocumentsDirectory(string syncId) => Path.Combine(GetApiProductDirectory(syncId), "documents");
 
         public string GetPortalDirectory(string portalName) => Path.Combine(OutputDirectory, "portals", portalName);
-
-        public void StorePortalId(string portalId, string portalName)
-        {
-            _portalIdMap[portalId] = portalName;
-        }
-
-        public void StoreApiProductId(string apiProductId, string apiProductSyncId)
-        {
-            _apiProductIdMap[apiProductId] = apiProductSyncId;
-        }
     }
 }
