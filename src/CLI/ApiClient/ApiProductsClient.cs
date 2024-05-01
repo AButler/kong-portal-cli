@@ -7,21 +7,7 @@ internal class ApiProductsClient(IFlurlClient flurlClient)
 {
     public async Task<IReadOnlyList<ApiProduct>> GetAll()
     {
-        var allProducts = new List<ApiProduct>();
-
-        PagedResponse<ApiProduct> productsResponse;
-        var pageNumber = 1;
-
-        do
-        {
-            var response = await flurlClient.Request("api-products").SetQueryParam("page[number]", pageNumber++).GetAsync();
-
-            productsResponse = await response.GetJsonAsync<PagedResponse<ApiProduct>>();
-
-            allProducts.AddRange(productsResponse.Data);
-        } while (productsResponse.Meta.Page.HasMore());
-
-        return allProducts;
+        return await flurlClient.GetKongPagedResults<ApiProduct>("api-products");
     }
 
     public async Task<ApiProduct> Create(ApiProduct apiProduct)

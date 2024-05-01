@@ -7,21 +7,7 @@ internal class ApiProductDocumentsClient(IFlurlClient flurlClient)
 {
     public async Task<IReadOnlyList<ApiProductDocument>> GetAll(string apiProductId)
     {
-        var allDocuments = new List<ApiProductDocument>();
-
-        PagedResponse<ApiProductDocument> documentsResponse;
-        var pageNumber = 1;
-
-        do
-        {
-            var response = await flurlClient.Request($"api-products/{apiProductId}/documents").SetQueryParam("page[number]", pageNumber++).GetAsync();
-
-            documentsResponse = await response.GetJsonAsync<PagedResponse<ApiProductDocument>>();
-
-            allDocuments.AddRange(documentsResponse.Data);
-        } while (documentsResponse.Meta.Page.HasMore());
-
-        return allDocuments;
+        return await flurlClient.GetKongPagedResults<ApiProductDocument>($"api-products/{apiProductId}/documents");
     }
 
     public async Task<ApiProductDocumentBody> GetBody(string apiProductId, string documentId)

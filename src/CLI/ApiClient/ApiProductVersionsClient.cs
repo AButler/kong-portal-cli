@@ -7,24 +7,7 @@ internal class ApiProductVersionsClient(IFlurlClient flurlClient)
 {
     public async Task<IReadOnlyList<ApiProductVersion>> GetAll(string apiProductId)
     {
-        var allVersions = new List<ApiProductVersion>();
-
-        PagedResponse<ApiProductVersion> versionsResponse;
-        var pageNumber = 1;
-
-        do
-        {
-            var response = await flurlClient
-                .Request($"api-products/{apiProductId}/product-versions")
-                .SetQueryParam("page[number]", pageNumber++)
-                .GetAsync();
-
-            versionsResponse = await response.GetJsonAsync<PagedResponse<ApiProductVersion>>();
-
-            allVersions.AddRange(versionsResponse.Data);
-        } while (versionsResponse.Meta.Page.HasMore());
-
-        return allVersions;
+        return await flurlClient.GetKongPagedResults<ApiProductVersion>($"api-products/{apiProductId}/product-versions");
     }
 
     public async Task<ApiProductVersion> Create(string apiProductId, ApiProductVersion apiProductVersion)
