@@ -56,7 +56,11 @@ internal class KongApiClient
         ApiProductVersions = new ApiProductVersionsClient(flurlClient);
         ApiProductDocuments = new ApiProductDocumentsClient(flurlClient);
         DevPortals = new DevPortalsClient(flurlClient);
+
+        Region = GetRegion(options.BaseUrl);
     }
+
+    public string Region { get; }
 
     public ApiProductsClient ApiProducts { get; }
 
@@ -65,4 +69,24 @@ internal class KongApiClient
     public ApiProductDocumentsClient ApiProductDocuments { get; }
 
     public DevPortalsClient DevPortals { get; }
+
+    private static string GetRegion(string baseUrl)
+    {
+        if (baseUrl.StartsWith(KongRegions.UsRegion))
+        {
+            return "us";
+        }
+
+        if (baseUrl.StartsWith(KongRegions.EuRegion))
+        {
+            return "eu";
+        }
+
+        if (baseUrl.StartsWith(KongRegions.AuRegion))
+        {
+            return "au";
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(baseUrl), $"Unknown region for: {baseUrl}");
+    }
 }

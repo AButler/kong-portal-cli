@@ -100,6 +100,29 @@ internal static class MetadataMappingExtensions
         return new DevPortalTeam(id ?? $"resolve://portal-team/{metadata.Name}", metadata.Name, metadata.Description);
     }
 
+    public static IReadOnlyCollection<DevPortalTeamRole> ToApiModel(
+        this PortalTeamApiProduct metadata,
+        SyncIdMap apiProductMap,
+        string region,
+        string? id = null
+    )
+    {
+        var apiProductId = apiProductMap.GetId(metadata.ApiProduct);
+
+        return metadata.Roles.Select(role => ToApiModel(metadata.ApiProduct, apiProductId, role, region, id)).ToList();
+    }
+
+    public static DevPortalTeamRole ToApiModel(string apiProduct, string apiProductId, string role, string region, string? id = null)
+    {
+        return new DevPortalTeamRole(
+            id ?? $"resolve://portal-team-role/{apiProduct}/{role}",
+            role,
+            apiProductId,
+            Constants.ServicesRoleEntityTypeName,
+            region
+        );
+    }
+
     private static DevPortalAppearanceImages ToApiModel(this PortalImagesMetadata metadata, ImageData imageData)
     {
         var favicon = imageData.Favicon == null ? null : new DevPortalAppearanceImage(imageData.Favicon, metadata.Favicon!);
@@ -171,6 +194,16 @@ internal static class MetadataMappingExtensions
         var newLabels = labels.Clone();
         newLabels[Constants.SyncIdLabel] = syncId;
         return newLabels;
+    }
+
+    private static string? GetRoleId(IDictionary<string, IDictionary<string, string>> roleIdMap, string apiProductId, string role)
+    {
+        if (!roleIdMap.TryGetValue(apiProductId, out var productRoleMap))
+        {
+            return null;
+        }
+
+        return productRoleMap.TryGetValue(role, out var roleId) ? roleId : null;
     }
 
     private static string? GetParentSlug(string slug)

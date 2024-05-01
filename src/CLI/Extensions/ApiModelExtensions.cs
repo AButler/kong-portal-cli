@@ -60,6 +60,11 @@ internal static class ApiModelExtensions
         return new DevPortalTeamUpdate(team.Name, team.Description);
     }
 
+    public static DevPortalTeamRoleCreate ToCreateModel(this DevPortalTeamRole role)
+    {
+        return new DevPortalTeamRoleCreate(role.RoleName, role.EntityId, role.EntityTypeName, role.EntityRegion);
+    }
+
     public static ApiProductDocumentBody ResolveDocumentId(this ApiProductDocumentBody document, IReadOnlyDictionary<string, string> map)
     {
         if (!document.TryResolveDocumentId(map, out var result))

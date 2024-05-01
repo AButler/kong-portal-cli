@@ -14,6 +14,8 @@ internal class ComparerService
 
         await CompareApiProducts(sourceData, context);
 
+        await ComparePortalsPhase2(sourceData, context);
+
         var result = new CompareResult(
             context.ApiProducts,
             context.ApiProductVersions,
@@ -23,13 +25,39 @@ internal class ComparerService
             context.ApiProductAssociations,
             context.PortalAppearances,
             context.PortalAuthSettings,
-            context.PortalTeams
+            context.PortalTeams,
+            context.PortalTeamRoles
         );
 
         return result;
     }
 
-    private async Task ComparePortals(SourceData sourceData, CompareContext context)
+    private static async Task ComparePortalsPhase2(SourceData sourceData, CompareContext context)
+    {
+        foreach (var portal in context.Portals)
+        {
+            if (portal.SyncId == null)
+            {
+                continue;
+            }
+
+            foreach (var team in context.PortalTeams[portal.SyncId])
+            {
+                if (team.SyncId == null)
+                {
+                    continue;
+                }
+
+                context.PortalTeamRoles[portal.SyncId!].Add(team.SyncId!, []);
+
+                var sourceTeam = sourceData.PortalTeams[portal.SyncId!].First(t => t.Name == team.SyncId);
+
+                await ComparePortalTeamRoles(context, portal.SyncId, sourceTeam, portal.Id, team.Id);
+            }
+        }
+    }
+
+    private static async Task ComparePortals(SourceData sourceData, CompareContext context)
     {
         var toMatch = sourceData.Portals.ToList();
 
@@ -45,6 +73,7 @@ internal class ComparerService
                 var portal = sourcePortal.ToApiModel(serverPortal.Id);
                 context.Portals.Add(Difference.UpdateOrNoChange(sourcePortal.Name, serverPortal.Id, serverPortal, portal));
                 context.PortalTeams.Add(sourcePortal.Name, []);
+                context.PortalTeamRoles.Add(sourcePortal.Name, []);
 
                 await ComparePortalAppearance(sourceData, context, sourcePortal.Name, serverPortal.Id);
 
@@ -62,6 +91,7 @@ internal class ComparerService
         {
             context.Portals.Add(Difference.Add(sourcePortal.Name, sourcePortal.ToApiModel()));
             context.PortalTeams.Add(sourcePortal.Name, []);
+            context.PortalTeamRoles.Add(sourcePortal.Name, []);
 
             await ComparePortalAppearance(sourceData, context, sourcePortal.Name);
             await ComparePortalAuthSettings(sourceData, context, sourcePortal.Name);
@@ -69,9 +99,9 @@ internal class ComparerService
         }
     }
 
-    private async Task ComparePortalTeams(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
+    private static async Task ComparePortalTeams(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
     {
-        var toMatch = sourceData.PortalTeams[portalName];
+        var toMatch = sourceData.PortalTeams[portalName].ToList();
         var differences = context.PortalTeams[portalName];
 
         if (portalId == null)
@@ -110,7 +140,80 @@ internal class ComparerService
         }
     }
 
-    private async Task ComparePortalAuthSettings(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
+    private static async Task ComparePortalTeamRoles(
+        CompareContext context,
+        string portalName,
+        PortalTeamMetadata sourcePortalTeam,
+        string? portalId = null,
+        string? teamId = null
+    )
+    {
+        var differences = context.PortalTeamRoles[portalName][sourcePortalTeam.Name];
+
+        if (portalId == null || teamId == null)
+        {
+            foreach (var apiProduct in sourcePortalTeam.ApiProducts)
+            {
+                var roles = apiProduct.ToApiModel(context.ApiProductMap, context.ApiClient.Region);
+                foreach (var role in roles)
+                {
+                    differences.Add(Difference.Add($"{apiProduct.ApiProduct} - {role.RoleName}", role));
+                }
+            }
+
+            return;
+        }
+
+        var processedRoles = new List<(string ApiProduct, string RoleName)>();
+        var serverTeamRoles = await context.ApiClient.DevPortals.GetTeamRoles(portalId, teamId);
+
+        foreach (var serverTeamRole in serverTeamRoles)
+        {
+            if (serverTeamRole.EntityTypeName != Constants.ServicesRoleEntityTypeName)
+            {
+                continue;
+            }
+
+            var sourceTeamRole = FindPortalTeamRole(context, sourcePortalTeam.ApiProducts, serverTeamRole.EntityId, serverTeamRole.RoleName);
+            if (sourceTeamRole != null)
+            {
+                processedRoles.Add((sourceTeamRole.ApiProduct, serverTeamRole.RoleName));
+
+                differences.Add(
+                    Difference.NoChange(
+                        $"{context.ApiProductMap.GetSyncId(serverTeamRole.EntityId)} - {serverTeamRole.RoleName}",
+                        serverTeamRole.Id,
+                        serverTeamRole
+                    )
+                );
+                continue;
+            }
+
+            differences.Add(Difference.Delete(serverTeamRole.Id, serverTeamRole));
+        }
+
+        foreach (var apiProduct in sourcePortalTeam.ApiProducts)
+        {
+            foreach (var roleName in apiProduct.Roles)
+            {
+                if (processedRoles.Contains((apiProduct.ApiProduct, roleName)))
+                {
+                    continue;
+                }
+
+                var role = MetadataMappingExtensions.ToApiModel(
+                    apiProduct.ApiProduct,
+                    context.ApiProductMap.GetId(apiProduct.ApiProduct),
+                    roleName,
+                    context.ApiClient.Region
+                );
+
+                differences.Add(Difference.Add($"{apiProduct.ApiProduct} - {roleName}", role));
+            }
+        }
+    }
+
+    private static async Task ComparePortalAuthSettings(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
     {
         var toMatch = sourceData.PortalAuthSettings[portalName];
 
@@ -124,7 +227,7 @@ internal class ComparerService
         context.PortalAuthSettings[portalName] = Difference.UpdateOrNoChange(portalName, portalId, serverPortalAuthSettings, toMatch.ToApiModel());
     }
 
-    private async Task ComparePortalAppearance(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
+    private static async Task ComparePortalAppearance(SourceData sourceData, CompareContext context, string portalName, string? portalId = null)
     {
         var toMatch = sourceData.PortalAppearances[portalName];
         var imageData = sourceData.PortalAppearanceImageData[portalName];
@@ -144,7 +247,7 @@ internal class ComparerService
         );
     }
 
-    private async Task CompareApiProducts(SourceData sourceData, CompareContext context)
+    private static async Task CompareApiProducts(SourceData sourceData, CompareContext context)
     {
         var toMatch = sourceData.ApiProducts.ToList();
 
@@ -161,7 +264,7 @@ internal class ComparerService
                 context.ApiProducts.Add(Difference.UpdateOrNoChange(sourceApiProduct.SyncId, serverApiProduct.Id, serverApiProduct, apiProduct));
 
                 var serverApiProductAssociation = new ApiProductAssociation(
-                    serverApiProduct.PortalIds.Select(id => context.PortalIdMap[id]).ToList()
+                    serverApiProduct.PortalIds.Select(id => context.PortalMap.GetSyncId(id)).ToList()
                 );
 
                 var sourceApiProductAssociation = new ApiProductAssociation(
@@ -210,7 +313,12 @@ internal class ComparerService
         }
     }
 
-    private async Task CompareApiProductDocuments(SourceData sourceData, CompareContext context, string apiProductSyncId, string? apiProductId = null)
+    private static async Task CompareApiProductDocuments(
+        SourceData sourceData,
+        CompareContext context,
+        string apiProductSyncId,
+        string? apiProductId = null
+    )
     {
         var toMatch = sourceData.ApiProductDocuments[apiProductSyncId].OrderBy(d => d.FullSlug).ToList();
 
@@ -268,7 +376,12 @@ internal class ComparerService
         }
     }
 
-    private async Task CompareApiProductVersions(SourceData sourceData, CompareContext context, string apiProductSyncId, string? apiProductId = null)
+    private static async Task CompareApiProductVersions(
+        SourceData sourceData,
+        CompareContext context,
+        string apiProductSyncId,
+        string? apiProductId = null
+    )
     {
         var toMatch = sourceData.ApiProductVersions[apiProductSyncId].ToList();
         var versionDifferences = context.ApiProductVersions[apiProductSyncId];
@@ -344,7 +457,7 @@ internal class ComparerService
         }
     }
 
-    private async Task CompareApiProductVersionSpecification(
+    private static async Task CompareApiProductVersionSpecification(
         SourceData sourceData,
         CompareContext context,
         string apiProductSyncId,
@@ -441,6 +554,23 @@ internal class ComparerService
         return matchedOnName;
     }
 
+    private static PortalTeamApiProduct? FindPortalTeamRole(
+        CompareContext context,
+        IReadOnlyCollection<PortalTeamApiProduct> apiProducts,
+        string apiProductId,
+        string roleName
+    )
+    {
+        var apiProductName = context.ApiProductMap.GetSyncId(apiProductId);
+        var apiProduct = apiProducts.SingleOrDefault(p => p.ApiProduct == apiProductName);
+        if (apiProduct == null)
+        {
+            return null;
+        }
+
+        return apiProduct.Roles.Contains(roleName) ? apiProduct : null;
+    }
+
     private class CompareContext(KongApiClient apiClient)
     {
         public KongApiClient ApiClient { get; } = apiClient;
@@ -449,15 +579,16 @@ internal class ComparerService
         public Dictionary<string, Difference<DevPortalAppearance>> PortalAppearances { get; } = new();
         public Dictionary<string, Difference<DevPortalAuthSettings>> PortalAuthSettings { get; } = new();
         public Dictionary<string, List<Difference<DevPortalTeam>>> PortalTeams { get; } = new();
+        public Dictionary<string, Dictionary<string, List<Difference<DevPortalTeamRole>>>> PortalTeamRoles { get; } = new();
         public List<Difference<ApiProduct>> ApiProducts { get; } = new();
         public Dictionary<string, List<Difference<ApiProductVersion>>> ApiProductVersions { get; } = new();
         public Dictionary<string, Dictionary<string, Difference<ApiProductSpecification>>> ApiProductVersionSpecifications { get; } = new();
         public Dictionary<string, List<Difference<ApiProductDocumentBody>>> ApiProductDocuments { get; } = new();
 
-        public IReadOnlyDictionary<string, string> PortalNameMap =>
-            Portals.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.SyncId!, kvp => kvp.Id!);
+        public SyncIdMap PortalMap =>
+            new(Portals.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.SyncId!, kvp => kvp.Id!));
 
-        public IReadOnlyDictionary<string, string> PortalIdMap =>
-            Portals.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.Id!, kvp => kvp.SyncId!);
+        public SyncIdMap ApiProductMap =>
+            new(ApiProducts.Where(p => p is { SyncId: not null, Id: not null }).ToDictionary(kvp => kvp.SyncId!, kvp => kvp.Id!));
     }
 }

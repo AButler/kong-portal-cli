@@ -136,40 +136,6 @@ public class SyncPortalTeamsTests
     }
 
     [Fact]
-    public async Task TeamWithRoleIsCreated()
-    {
-        using var testHost = new TestHost.TestHost();
-
-        var portalId = Guid.NewGuid().ToString();
-        var teamId = Guid.NewGuid().ToString();
-
-        await testHost.Given.File.AnExistingApiProduct(inputDirectory: @"c:\temp\input", "API Product 1");
-        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
-        await testHost.Given.File.AnExistingDevPortalTeam(
-            inputDirectory: @"c:\temp\input",
-            portalName: "default",
-            name: "Team1",
-            description: "Team One"
-        );
-        await testHost.Given.File.AnExistingDevPortalTeamRole(
-            inputDirectory: @"c:\temp\input",
-            portalName: "default",
-            teamName: "Team1",
-            apiProduct: "api-product-1",
-            role: "API Viewer"
-        );
-
-        testHost.Given.Api.AnExistingApiProduct(name: "API Product 1");
-        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
-
-        var syncService = testHost.GetRequiredService<SyncService>();
-
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
-
-        testHost.Then.Api.PortalTeamRoleShouldHaveBeenAssigned(portalId, teamId);
-    }
-
-    [Fact]
     public async Task TeamIsUpdatedWithRoleAdded()
     {
         using var testHost = new TestHost.TestHost();

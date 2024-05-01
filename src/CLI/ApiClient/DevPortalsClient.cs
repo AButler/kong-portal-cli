@@ -77,4 +77,16 @@ internal class DevPortalsClient(IFlurlClient flurlClient)
     {
         return await flurlClient.GetKongPagedResults<DevPortalTeamRole>($"portals/{portalId}/teams/{teamId}/assigned-roles");
     }
+
+    public async Task<DevPortalTeamRole> CreateTeamRole(string portalId, string teamId, DevPortalTeamRole role)
+    {
+        var response = await flurlClient.Request($"/portals/{portalId}/teams/{teamId}/assigned-roles").PostJsonAsync(role.ToCreateModel());
+
+        return await response.GetJsonAsync<DevPortalTeamRole>();
+    }
+
+    public async Task DeleteTeamRole(string portalId, string teamId, string roleId)
+    {
+        await flurlClient.Request($"/portals/{portalId}/teams/{teamId}/assigned-roles/{roleId}").DeleteAsync();
+    }
 }

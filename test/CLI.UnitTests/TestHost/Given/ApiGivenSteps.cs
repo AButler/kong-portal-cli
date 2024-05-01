@@ -207,6 +207,11 @@ internal class ApiGivenSteps
 
         SetupPagedApi($"{_kongBaseUrl}portals/{id}/products", () => _devPortalProducts[id]);
 
+        HttpTest
+            .Current.ForCallsTo($"{_kongBaseUrl}portals/{id}/teams")
+            .WithVerb("POST")
+            .RespondWithDynamicJson(() => new { id = Guid.NewGuid().ToString() }, 201);
+
         SetupPagedApi($"{_kongBaseUrl}portals/{id}/teams", () => _devPortalTeams[id]);
     }
 
