@@ -84,6 +84,16 @@ internal static class ApiModelExtensions
         return new DevPortalTeamMappingBody(teamMappings);
     }
 
+    public static DevPortalTeamRole Resolve(this DevPortalTeamRole role, SyncIdMap apiProductIdMap)
+    {
+        return role.EntityId.StartsWith("resolve://api-product/")
+            ? role with
+            {
+                EntityId = apiProductIdMap.GetId(role.EntityId.Substring("resolve://api-product/".Length))
+            }
+            : role;
+    }
+
     public static ApiProductDocumentBody ResolveDocumentId(this ApiProductDocumentBody document, IReadOnlyDictionary<string, string> map)
     {
         if (!document.TryResolveDocumentId(map, out var result))

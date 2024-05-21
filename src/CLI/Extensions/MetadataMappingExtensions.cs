@@ -124,7 +124,7 @@ internal static class MetadataMappingExtensions
         string? id = null
     )
     {
-        var apiProductId = apiProductMap.GetId(metadata.ApiProduct);
+        var apiProductId = apiProductMap.GetIdOrDefault(metadata.ApiProduct, $"resolve://api-product/{metadata.ApiProduct}");
 
         return metadata.Roles.Select(role => ToApiModel(metadata.ApiProduct, apiProductId, role, region, id)).ToList();
     }

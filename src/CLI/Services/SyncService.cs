@@ -179,10 +179,12 @@ internal class SyncService(
             var portalId = context.PortalSyncIdMap.GetId(portalName);
             var teamId = context.PortalTeamSyncIdMap[portalName].GetId(teamName);
 
+            var role = difference.Entity.Resolve(context.ApiProductSyncIdMap);
+
             switch (difference.DifferenceType)
             {
                 case DifferenceType.Add:
-                    await context.ApiClient.DevPortals.CreateTeamRole(portalId, teamId, difference.Entity);
+                    await context.ApiClient.DevPortals.CreateTeamRole(portalId, teamId, role);
                     break;
                 case DifferenceType.Update:
                     throw new InvalidOperationException("Cannot update Roles");

@@ -65,4 +65,34 @@ public class SyncPortalApiProductsTests
 
         testHost.Then.Api.ApiProductShouldNotHaveBeenUpdated(productId);
     }
+
+    [Fact]
+    public async Task PortalApiProductsAreCreatedAndSynced()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var portalId = Guid.NewGuid().ToString();
+
+        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
+
+        await testHost.Given.File.AnExistingApiProduct(inputDirectory: @"c:\temp\input", name: "API Product 1", description: "API Product 1");
+        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
+        await testHost.Given.File.AnExistingDevPortalApiProduct(
+            inputDirectory: @"c:\temp\input",
+            portalName: "default",
+            apiProductSyncId: "api-product-1"
+        );
+        await testHost.Given.File.AnExistingDevPortalTeam(@"c:\temp\input", "default", "Team 1", "Team One");
+        await testHost.Given.File.AnExistingDevPortalTeamRole(@"c:\temp\input", "default", "Team 1", "api-product-1", "API Viewer");
+
+        var syncService = testHost.GetRequiredService<SyncService>();
+
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+
+        var productId = await testHost.Then.Api.GetApiProductId("api-product-1");
+        var teamId = await testHost.Then.Api.GetPortalTeamId(portalId, "Team 1");
+
+        testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
+        testHost.Then.Api.PortalTeamRoleShouldHaveBeenAssigned(portalId, teamId);
+    }
 }

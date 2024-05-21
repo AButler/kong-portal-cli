@@ -85,6 +85,19 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/appearance").WithVerb(HttpMethod.Patch);
     }
 
+    public async Task<string> GetPortalTeamId(string portalId, string teamName)
+    {
+        var call = HttpTest.Current.CallLog.FirstOrDefault(c =>
+            c.Request.Url.ToString() == $"{_kongBaseUri}portals/{portalId}/teams"
+            && c.Request.Verb == HttpMethod.Post
+            && Deserialize<DevPortalTeamUpdate>(c.RequestBody)?.Name == teamName
+        );
+
+        var entity = await call!.Response.GetJsonAsync<EntityWithId>();
+
+        return entity.Id;
+    }
+
     public void PortalAuthSettingsShouldHaveBeenUpdated(string portalId)
     {
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}portals/{portalId}/authentication-settings").WithVerb(HttpMethod.Patch);
