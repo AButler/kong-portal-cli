@@ -2,7 +2,7 @@
 
 namespace Kong.Portal.CLI.Services;
 
-internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFileSystem fileSystem)
+internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, VariableHelper variableHelper, IFileSystem fileSystem)
 {
     public async Task<SourceData> Read(string inputDirectory, IReadOnlyDictionary<string, string> variables)
     {
@@ -190,6 +190,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
 
         var documentContentsFilename = Path.ChangeExtension(documentFile, ".md");
         var documentContents = await fileSystem.File.ReadAllTextAsync(documentContentsFilename);
+        documentContents = variableHelper.Replace(documentContents, sourceData.Variables);
 
         sourceData.ApiProductDocumentContents[apiProductMetadata.SyncId].Add(metadata.FullSlug, documentContents);
     }
@@ -209,6 +210,7 @@ internal class SourceDirectoryReader(MetadataSerializer metadataSerializer, IFil
         {
             var specificationFilename = Path.Combine(Path.GetDirectoryName(versionFile)!, metadata.SpecificationFilename.TrimStart('/'));
             var specificationContents = await fileSystem.File.ReadAllTextAsync(specificationFilename);
+            specificationContents = variableHelper.Replace(specificationContents, sourceData.Variables);
 
             sourceData.ApiProductVersionSpecifications[apiProductMetadata.SyncId].Add(metadata.SyncId, specificationContents);
         }
