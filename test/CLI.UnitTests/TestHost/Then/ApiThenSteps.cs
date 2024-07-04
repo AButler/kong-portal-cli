@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using Flurl.Http.Testing;
 using Kong.Portal.CLI;
 using Kong.Portal.CLI.ApiClient;
@@ -70,9 +71,22 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
         HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}api-products/{apiProductId}/product-versions").WithVerb(HttpMethod.Post);
     }
 
-    public void ApiProductDocumentShouldHaveBeenCreated(string apiProductId)
+    public void ApiProductDocumentShouldHaveBeenCreated(string apiProductId, string? documentContentsContaining = null)
     {
-        HttpTest.Current.ShouldHaveCalled($"{_kongBaseUri}api-products/{apiProductId}/documents").WithVerb(HttpMethod.Post);
+        var call = HttpTest.Current.CallLog.FirstOrDefault(c =>
+            c.Request.Url.ToString() == $"{_kongBaseUri}api-products/{apiProductId}/documents" && c.Request.Verb == HttpMethod.Post
+        );
+
+        call.Should().NotBeNull();
+
+        if (documentContentsContaining != null)
+        {
+            var request = Deserialize<ApiProductDocumentUpdate>(call!.RequestBody);
+            request.Should().NotBeNull();
+
+            var content = Encoding.UTF8.GetString(Convert.FromBase64String(request!.Content));
+            content.Should().Contain(documentContentsContaining);
+        }
     }
 
     public void PortalShouldHaveBeenUpdated(string portalId)
