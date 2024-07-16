@@ -204,7 +204,7 @@ internal class ComparerService
 
                 var role = MetadataMappingExtensions.ToApiModel(
                     apiProduct.ApiProduct,
-                    context.ApiProductMap.GetId(apiProduct.ApiProduct),
+                    context.ApiProductMap.GetIdOrDefault(apiProduct.ApiProduct, $"resolve://api-product/{apiProduct.ApiProduct}"),
                     roleName,
                     context.ApiClient.Region
                 );

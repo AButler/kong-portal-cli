@@ -70,6 +70,39 @@ public class SyncPortalTeamsTests
     }
 
     [Fact]
+    public async Task TeamIsUpdatedWithNewApiProduct()
+    {
+        using var testHost = new TestHost.TestHost();
+
+        var portalId = Guid.NewGuid().ToString();
+
+        await testHost.Given.File.AnExistingDevPortal(inputDirectory: @"c:\temp\input", portalName: "default");
+        await testHost.Given.File.AnExistingDevPortalTeam(
+            inputDirectory: @"c:\temp\input",
+            portalName: "default",
+            name: "Team1",
+            description: "Team 1"
+        );
+        await testHost.Given.File.AnExistingApiProduct(inputDirectory: @"c:\temp\input", name: "API Product 1", syncId: "api-1");
+        await testHost.Given.File.AnExistingDevPortalTeamRole(
+            inputDirectory: @"c:\temp\input",
+            portalName: "default",
+            teamName: "Team1",
+            apiProduct: "api-1",
+            role: "API Viewer"
+        );
+
+        testHost.Given.Api.AnExistingDevPortal(portalId: portalId, name: "default");
+        testHost.Given.Api.AnExistingDevPortalTeam(portalId: portalId, name: "Team1", description: "Team One");
+
+        var syncService = testHost.GetRequiredService<SyncService>();
+
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+
+        testHost.Then.Api.PortalTeamShouldHaveBeenUpdated(portalId);
+    }
+
+    [Fact]
     public async Task TeamsAreInSync()
     {
         using var testHost = new TestHost.TestHost();
