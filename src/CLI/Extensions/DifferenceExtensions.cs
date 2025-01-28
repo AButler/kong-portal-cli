@@ -13,7 +13,7 @@ internal static class DifferenceExtensions
             DifferenceType.Add => "+".Pastel(ConsoleColor.Green),
             DifferenceType.Update => "~".Pastel(ConsoleColor.Yellow),
             DifferenceType.Delete => "-".Pastel(ConsoleColor.Red),
-            _ => throw new ArgumentOutOfRangeException(nameof(differenceType), differenceType, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(differenceType), differenceType, null),
         };
     }
 }

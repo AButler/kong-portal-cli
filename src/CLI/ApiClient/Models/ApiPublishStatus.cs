@@ -3,5 +3,5 @@
 internal enum ApiPublishStatus
 {
     Published,
-    Unpublished
+    Unpublished,
 }

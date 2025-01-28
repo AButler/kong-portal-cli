@@ -89,7 +89,7 @@ internal static class ApiModelExtensions
         return role.EntityId.StartsWith("resolve://api-product/")
             ? role with
             {
-                EntityId = apiProductIdMap.GetId(role.EntityId.Substring("resolve://api-product/".Length))
+                EntityId = apiProductIdMap.GetId(role.EntityId.Substring("resolve://api-product/".Length)),
             }
             : role;
     }

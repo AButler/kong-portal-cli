@@ -359,7 +359,7 @@ internal class ComparerService
         {
             var serverApiDocumentBody = await context.ApiClient.ApiProductDocuments.GetBody(apiProductId, serverApiDocument.Id) with
             {
-                FullSlug = serverApiDocument.Slug
+                FullSlug = serverApiDocument.Slug,
             };
 
             var sourceApiProductDocument = toMatch.FirstOrDefault(v => v.FullSlug == serverApiDocument.Slug);

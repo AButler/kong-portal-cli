@@ -7,14 +7,13 @@ internal static class DataUriHelpers
 {
     private static readonly Regex DataUriRegex = new(@"^data:image\/(png|jpeg|x-icon|ico|icon|vnd.microsoft.icon|gif);base64,(?<Data>.*)$");
 
-    private static readonly Dictionary<string, string> SupportedFormats =
-        new()
-        {
-            [".jpg"] = "jpeg",
-            [".jpeg"] = "jpeg",
-            [".png"] = "png",
-            [".gif"] = "gif"
-        };
+    private static readonly Dictionary<string, string> SupportedFormats = new()
+    {
+        [".jpg"] = "jpeg",
+        [".jpeg"] = "jpeg",
+        [".png"] = "png",
+        [".gif"] = "gif",
+    };
 
     public static byte[] GetData(string dataUri)
     {

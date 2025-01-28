@@ -167,7 +167,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
             {
                 ["base"] = customFontBase,
                 ["code"] = customFontCode,
-                ["headings"] = customFontHeadings
+                ["headings"] = customFontHeadings,
             }
         );
 
@@ -182,7 +182,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
             {
                 ["favicon"] = faviconImageName,
                 ["logo"] = logoImageName,
-                ["catalog_cover"] = catalogCoverImageName
+                ["catalog_cover"] = catalogCoverImageName,
             }
         );
 
@@ -250,7 +250,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
                 {
                     ["name"] = oidcConfig.ClaimMappings.Name,
                     ["email"] = oidcConfig.ClaimMappings.Email,
-                    ["groups"] = oidcConfig.ClaimMappings.Groups
+                    ["groups"] = oidcConfig.ClaimMappings.Groups,
                 }
             );
         }

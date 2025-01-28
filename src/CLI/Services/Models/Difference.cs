@@ -26,5 +26,5 @@ internal enum DifferenceType
     NoChange,
     Add,
     Update,
-    Delete
+    Delete,
 }

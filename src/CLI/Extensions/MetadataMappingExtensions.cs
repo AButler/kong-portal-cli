@@ -203,7 +203,7 @@ internal static class MetadataMappingExtensions
         {
             MetadataPublishStatus.Published => ApiPublishStatus.Published,
             MetadataPublishStatus.Unpublished => ApiPublishStatus.Unpublished,
-            _ => throw new ArgumentOutOfRangeException(nameof(publishStatus))
+            _ => throw new ArgumentOutOfRangeException(nameof(publishStatus)),
         };
 
     private static LabelDictionary WithSyncId(this LabelDictionary labels, string syncId)

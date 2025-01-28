@@ -75,7 +75,7 @@ public class DumpApiProductsTests
             {
                 ["Author"] = "Bob Bobertson",
                 ["Tag"] = "eCommerce",
-                [Constants.SyncIdLabel] = "different-sync-id"
+                [Constants.SyncIdLabel] = "different-sync-id",
             }
         );
 

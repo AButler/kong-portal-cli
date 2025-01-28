@@ -3,5 +3,5 @@
 internal enum MetadataPublishStatus
 {
     Published,
-    Unpublished
+    Unpublished,
 }
