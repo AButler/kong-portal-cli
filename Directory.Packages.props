@@ -13,8 +13,8 @@
     <PackageVersion Include="Pastel" Version="6.0.1" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageVersion Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.2.8" />
-    <PackageVersion Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="21.2.8" />
+    <PackageVersion Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.2.12" />
+    <PackageVersion Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="21.2.12" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
