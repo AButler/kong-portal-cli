@@ -275,12 +275,12 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
                     && j["team"]!.GetValue<string>() == oidcTeamMapping.TeamName
                 );
 
-                jsonTeamMapping.Should().NotBeNull();
+                jsonTeamMapping.ShouldNotBeNull();
 
                 jsonTeamMapping.ShouldHaveArrayPropertyWithLength("oidc_groups", oidcTeamMapping.GroupNames.Count);
-                var groupNames = ((JsonArray)jsonTeamMapping!["oidc_groups"]!).GetValues<string>();
+                var groupNames = ((JsonArray)jsonTeamMapping["oidc_groups"]!).GetValues<string>().ToList();
 
-                groupNames.Should().BeEquivalentTo(oidcTeamMapping.GroupNames);
+                groupNames.ShouldBe(oidcTeamMapping.GroupNames.ToList(), ignoreOrder: true);
             }
         }
     }
@@ -301,7 +301,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
 
         var apiProducts = apiProductsJson.GetValues<string>();
 
-        apiProducts.Should().Contain(apiProductSyncId);
+        apiProducts.ShouldContain(apiProductSyncId);
     }
 
     public async Task ShouldHaveNoPortalTeams(string outputDirectory, string portalName)
@@ -322,7 +322,7 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         var teamNode = await GetTeamNode(outputDirectory, portalName, teamName);
         if (teamNode == null)
         {
-            teamNode.Should().NotBeNull("Team not found");
+            teamNode.ShouldNotBeNull("Team not found");
         }
 
         teamNode.ShouldHaveStringProperty("description", teamDescription);
@@ -339,21 +339,21 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         var teamNode = await GetTeamNode(outputDirectory, portalName, teamName);
         if (teamNode == null)
         {
-            teamNode.Should().NotBeNull("Team not found");
+            teamNode.ShouldNotBeNull("Team not found");
             return;
         }
 
         var productNode = GetRoleNode(teamNode, apiProduct);
         if (productNode == null)
         {
-            productNode.Should().NotBeNull("API Product not found");
+            productNode.ShouldNotBeNull("API Product not found");
             return;
         }
 
         productNode.ShouldHaveArrayPropertyWithLength("roles", roleNames.Count);
 
-        var roles = ((JsonArray)productNode["roles"]!).GetValues<string>();
-        roles.Should().BeEquivalentTo(roleNames);
+        var roles = ((JsonArray)productNode["roles"]!).GetValues<string>().ToList();
+        roles.ShouldBe(roleNames.ToList(), ignoreOrder: true);
     }
 
     private static JsonNode? GetRoleNode(JsonNode json, string apiProduct)
@@ -416,18 +416,18 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
 
     private void DirectoryShouldExist(string path)
     {
-        fileSystem.Directory.Exists(path).Should().BeTrue($"directory does not exist: {path}");
+        fileSystem.Directory.Exists(path).ShouldBeTrue($"directory does not exist: {path}");
     }
 
     private void FileShouldExist(string path)
     {
-        fileSystem.File.Exists(path).Should().BeTrue($"file does not exist: {path}");
+        fileSystem.File.Exists(path).ShouldBeTrue($"file does not exist: {path}");
     }
 
     private void FileShouldHaveContents(string path, string contents)
     {
         FileShouldExist(path);
-        fileSystem.File.ReadAllText(path).Should().Be(contents);
+        fileSystem.File.ReadAllText(path).ShouldBe(contents);
     }
 
     private void FileShouldHaveContents(string path, byte[] contents)
@@ -437,6 +437,6 @@ internal class DumpedFileThenSteps(IFileSystem fileSystem)
         var actualContents = Convert.ToBase64String(fileSystem.File.ReadAllBytes(path));
         var expectedContents = Convert.ToBase64String(contents);
 
-        actualContents.Should().Be(expectedContents);
+        actualContents.ShouldBe(expectedContents);
     }
 }

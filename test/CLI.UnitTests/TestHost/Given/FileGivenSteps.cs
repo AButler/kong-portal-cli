@@ -282,10 +282,10 @@ internal class FileGivenSteps(IFileSystem fileSystem, MetadataSerializer metadat
         }
 
         var team = teams.SingleOrDefault(t => t.Name == teamName);
-        team.Should().NotBeNull("Team not found");
-        teams.Remove(team!);
+        team.ShouldNotBeNull("Team not found");
+        teams.Remove(team);
 
-        var apiProducts = team!.ApiProducts.ToList();
+        var apiProducts = team.ApiProducts.ToList();
         var existingApiProduct = apiProducts.SingleOrDefault(p => p.ApiProduct == apiProduct);
         if (existingApiProduct == null)
         {
