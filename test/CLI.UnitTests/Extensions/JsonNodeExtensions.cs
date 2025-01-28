@@ -7,64 +7,64 @@ public static class JsonNodeExtensions
 {
     public static void ShouldHaveStringProperty(this JsonNode? json, string propertyName, string value)
     {
-        json.Should().NotBeNull();
-        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+        json.ShouldNotBeNull();
+        json.GetValueKind().ShouldBe(JsonValueKind.Object);
 
         var jObject = json.AsObject();
 
         var propertyNode = jObject[propertyName];
-        propertyNode.Should().NotBeNull($"{propertyName} should be present");
-        propertyNode!.GetValueKind().Should().Be(JsonValueKind.String);
-        propertyNode.GetValue<string>().Should().Be(value);
+        propertyNode.ShouldNotBeNull($"{propertyName} should be present");
+        propertyNode.GetValueKind().ShouldBe(JsonValueKind.String);
+        propertyNode.GetValue<string>().ShouldBe(value);
     }
 
     public static void ShouldHaveBooleanProperty(this JsonNode? json, string propertyName, bool value)
     {
-        json.Should().NotBeNull();
-        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+        json.ShouldNotBeNull();
+        json.GetValueKind().ShouldBe(JsonValueKind.Object);
 
         var jObject = json.AsObject();
 
         var propertyNode = jObject[propertyName];
-        propertyNode.Should().NotBeNull($"{propertyName} should be present");
-        propertyNode!.GetValueKind().Should().BeOneOf(JsonValueKind.True, JsonValueKind.False);
-        propertyNode.GetValue<bool>().Should().Be(value);
+        propertyNode.ShouldNotBeNull($"{propertyName} should be present");
+        propertyNode.GetValueKind().ShouldBeOneOf(JsonValueKind.True, JsonValueKind.False);
+        propertyNode.GetValue<bool>().ShouldBe(value);
     }
 
     public static void ShouldHaveNullProperty(this JsonNode? json, string propertyName)
     {
-        json.Should().NotBeNull();
-        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+        json.ShouldNotBeNull();
+        json.GetValueKind().ShouldBe(JsonValueKind.Object);
 
         var jObject = json.AsObject();
 
-        jObject.ContainsKey(propertyName).Should().BeTrue($"{propertyName} should be present");
+        jObject.ContainsKey(propertyName).ShouldBeTrue($"{propertyName} should be present");
 
         var propertyNode = jObject[propertyName];
-        propertyNode.Should().BeNull($"{propertyName} should be null");
+        propertyNode.ShouldBeNull($"{propertyName} should be null");
     }
 
     public static void ShouldNotHaveProperty(this JsonNode? json, string propertyName)
     {
-        json.Should().NotBeNull();
-        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+        json.ShouldNotBeNull();
+        json.GetValueKind().ShouldBe(JsonValueKind.Object);
 
         var jObject = json.AsObject();
 
-        jObject.ContainsKey(propertyName).Should().BeFalse($"{propertyName} should not be present");
-        jObject[propertyName].Should().BeNull($"{propertyName} should not be present");
+        jObject.ContainsKey(propertyName).ShouldBeFalse($"{propertyName} should not be present");
+        jObject[propertyName].ShouldBeNull($"{propertyName} should not be present");
     }
 
     public static void ShouldHaveObjectProperty(this JsonNode? json, string propertyName)
     {
-        json.Should().NotBeNull();
-        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+        json.ShouldNotBeNull();
+        json.GetValueKind().ShouldBe(JsonValueKind.Object);
 
         var jObject = json.AsObject();
 
         var propertyNode = jObject[propertyName];
-        propertyNode.Should().NotBeNull($"{propertyName} should be present");
-        propertyNode!.GetValueKind().Should().Be(JsonValueKind.Object);
+        propertyNode.ShouldNotBeNull($"{propertyName} should be present");
+        propertyNode.GetValueKind().ShouldBe(JsonValueKind.Object);
     }
 
     public static void ShouldHaveMapProperty(this JsonNode? json, string propertyName, IDictionary<string, string?> values)
@@ -79,30 +79,30 @@ public static class JsonNodeExtensions
 
             if (value.Value != null)
             {
-                valueNode.Should().NotBeNull();
-                valueNode!.GetValueKind().Should().Be(JsonValueKind.String);
-                valueNode.GetValue<string>().Should().Be(value.Value);
+                valueNode.ShouldNotBeNull();
+                valueNode.GetValueKind().ShouldBe(JsonValueKind.String);
+                valueNode.GetValue<string>().ShouldBe(value.Value);
             }
             else
             {
-                propertyObject.ContainsKey(value.Key).Should().BeTrue($"{value.Key} should be present");
-                valueNode.Should().BeNull();
+                propertyObject.ContainsKey(value.Key).ShouldBeTrue($"{value.Key} should be present");
+                valueNode.ShouldBeNull();
             }
         }
 
-        propertyObject.Count.Should().Be(values.Count);
+        propertyObject.Count.ShouldBe(values.Count);
     }
 
     public static void ShouldHaveStringArrayProperty(this JsonNode? json, string propertyName, IReadOnlyCollection<string> expected)
     {
-        json.Should().NotBeNull();
-        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+        json.ShouldNotBeNull();
+        json.GetValueKind().ShouldBe(JsonValueKind.Object);
 
         var jObject = json.AsObject();
 
         var propertyNode = jObject[propertyName];
-        propertyNode.Should().NotBeNull($"{propertyName} should be present");
-        propertyNode!.GetValueKind().Should().Be(JsonValueKind.Array);
+        propertyNode.ShouldNotBeNull($"{propertyName} should be present");
+        propertyNode.GetValueKind().ShouldBe(JsonValueKind.Array);
 
         var arrayNode = propertyNode.AsArray();
 
@@ -110,40 +110,40 @@ public static class JsonNodeExtensions
 
         foreach (var item in arrayNode)
         {
-            item.Should().NotBeNull();
-            item!.GetValueKind().Should().Be(JsonValueKind.String);
+            item.ShouldNotBeNull();
+            item.GetValueKind().ShouldBe(JsonValueKind.String);
 
             actual.Add(item.GetValue<string>());
         }
 
-        actual.Should().BeEquivalentTo(expected);
+        actual.ShouldBe(expected.ToList(), ignoreOrder: true);
     }
 
     public static void ShouldHaveArrayProperty(this JsonNode? json, string propertyName)
     {
-        json.Should().NotBeNull();
-        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+        json.ShouldNotBeNull();
+        json.GetValueKind().ShouldBe(JsonValueKind.Object);
 
         var jObject = json.AsObject();
 
         var propertyNode = jObject[propertyName];
-        propertyNode.Should().NotBeNull($"{propertyName} should be present");
-        propertyNode!.GetValueKind().Should().Be(JsonValueKind.Array);
+        propertyNode.ShouldNotBeNull($"{propertyName} should be present");
+        propertyNode.GetValueKind().ShouldBe(JsonValueKind.Array);
     }
 
     public static void ShouldHaveArrayPropertyWithLength(this JsonNode? json, string propertyName, int expectedLength)
     {
-        json.Should().NotBeNull();
-        json!.GetValueKind().Should().Be(JsonValueKind.Object);
+        json.ShouldNotBeNull();
+        json.GetValueKind().ShouldBe(JsonValueKind.Object);
 
         var jObject = json.AsObject();
 
         var propertyNode = jObject[propertyName];
-        propertyNode.Should().NotBeNull($"{propertyName} should be present");
-        propertyNode!.GetValueKind().Should().Be(JsonValueKind.Array);
+        propertyNode.ShouldNotBeNull($"{propertyName} should be present");
+        propertyNode.GetValueKind().ShouldBe(JsonValueKind.Array);
 
         var arrayNode = propertyNode.AsArray();
 
-        arrayNode.Count.Should().Be(expectedLength);
+        arrayNode.Count.ShouldBe(expectedLength);
     }
 }

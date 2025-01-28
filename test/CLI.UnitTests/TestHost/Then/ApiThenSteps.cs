@@ -19,7 +19,7 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
 
         if (anyUpdates != null)
         {
-            anyUpdates.Should().BeNull("at least one call to update Kong API");
+            anyUpdates.ShouldBeNull("at least one call to update Kong API");
         }
     }
 
@@ -34,7 +34,7 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
             l.Request.Url == $"{_kongBaseUri}api-products/{productId}" && l.Request.Verb == HttpMethod.Patch
         );
 
-        log.Should().BeNull();
+        log.ShouldBeNull();
     }
 
     public void ApiProductShouldHaveBeenDeleted(string productId)
@@ -50,7 +50,7 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
             && Deserialize<ApiProductUpdate>(c.RequestBody)?.Labels[Constants.SyncIdLabel] == syncId
         );
 
-        call.Should().NotBeNull("expected /api-products to be called with a POST");
+        call.ShouldNotBeNull("expected /api-products to be called with a POST");
     }
 
     public async Task<string> GetApiProductId(string syncId)
@@ -77,15 +77,15 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
             c.Request.Url.ToString() == $"{_kongBaseUri}api-products/{apiProductId}/documents" && c.Request.Verb == HttpMethod.Post
         );
 
-        call.Should().NotBeNull();
+        call.ShouldNotBeNull();
 
         if (documentContentsContaining != null)
         {
-            var request = Deserialize<ApiProductDocumentUpdate>(call!.RequestBody);
-            request.Should().NotBeNull();
+            var request = Deserialize<ApiProductDocumentUpdate>(call.RequestBody);
+            request.ShouldNotBeNull();
 
-            var content = Encoding.UTF8.GetString(Convert.FromBase64String(request!.Content));
-            content.Should().Contain(documentContentsContaining);
+            var content = Encoding.UTF8.GetString(Convert.FromBase64String(request.Content));
+            content.ShouldContain(documentContentsContaining);
         }
     }
 
@@ -133,7 +133,7 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
             c.Request.Url.ToString() == $"{_kongBaseUri}portals/{portalId}/teams" && c.Request.Verb == HttpMethod.Post
         );
 
-        call.Should().BeNull();
+        call.ShouldBeNull();
     }
 
     public void NoPortalTeamsShouldHaveBeenUpdated(string portalId)
@@ -142,7 +142,7 @@ internal class ApiThenSteps(KongApiClientOptions apiClientOptions)
             c.Request.Url.ToString() == $"{_kongBaseUri}portals/{portalId}/teams" && c.Request.Verb == HttpMethod.Patch
         );
 
-        call.Should().BeNull();
+        call.ShouldBeNull();
     }
 
     public void PortalTeamRoleShouldHaveBeenAssigned(string portalId, string teamId)
