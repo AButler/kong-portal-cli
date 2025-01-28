@@ -22,7 +22,7 @@ internal class SyncCommand : Command
         var applyOption = new Option<bool>("--apply", "Applies changes to Konnect (do not set to perform a dry-run)");
         var variablesOptions = new Option<string[]>("--var", "Variables to replace within the data (e.g. URL=http://example.com)")
         {
-            Arity = ArgumentArity.ZeroOrMore
+            Arity = ArgumentArity.ZeroOrMore,
         };
         var konnectRegion = new Option<string>("--konnect-region", "Overrides the region when assigning Roles. Defaults based on --konnect-addr");
 

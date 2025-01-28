@@ -52,7 +52,7 @@ internal class ApiGivenSteps
             labels = labels ?? new Dictionary<string, string>(),
             name = name.GetValueOrDefault($"API Product {id}"),
             portal_ids = portalIds.GetValueOrDefault([]),
-            description = description.GetValueOrDefault($"Description for API Product {id}")
+            description = description.GetValueOrDefault($"Description for API Product {id}"),
         };
 
         _apiProducts.Add(apiProduct);
@@ -84,7 +84,7 @@ internal class ApiGivenSteps
                     id,
                     title,
                     slug,
-                    status = "published"
+                    status = "published",
                 }
             );
 
@@ -98,7 +98,7 @@ internal class ApiGivenSteps
                     title,
                     slug = Path.GetFileName(slug),
                     status = "published",
-                    str_md_content = content
+                    str_md_content = content,
                 }
             );
     }
@@ -123,7 +123,7 @@ internal class ApiGivenSteps
                     id,
                     name,
                     publish_status = publishStatus.GetValueOrDefault("published"),
-                    deprecated = deprecated.GetValueOrDefault(false)
+                    deprecated = deprecated.GetValueOrDefault(false),
                 }
             );
 
@@ -136,7 +136,7 @@ internal class ApiGivenSteps
                     id,
                     name,
                     publish_status = publishStatus,
-                    deprecated
+                    deprecated,
                 }
             );
 
@@ -148,8 +148,8 @@ internal class ApiGivenSteps
                     {
                         id = specificationId,
                         name = $"/{specificationFilename.Value}",
-                        content = specificationContents.Value
-                    }
+                        content = specificationContents.Value,
+                    },
                 ]
                 : Array.Empty<object>();
 
@@ -184,7 +184,7 @@ internal class ApiGivenSteps
                 is_public = isPublic.GetValueOrDefault(false),
                 auto_approve_developers = autoApproveDevelopers.GetValueOrDefault(false),
                 auto_approve_applications = autoApproveApplications.GetValueOrDefault(false),
-                rbac_enabled = rbacEnabled.GetValueOrDefault(false)
+                rbac_enabled = rbacEnabled.GetValueOrDefault(false),
             }
         );
 
@@ -228,7 +228,7 @@ internal class ApiGivenSteps
         {
             id = id,
             name = name,
-            description = description
+            description = description,
         };
 
         _devPortalTeams[portalId].Add(team);
@@ -248,7 +248,7 @@ internal class ApiGivenSteps
             role_name = roleName,
             entity_id = entityId,
             entity_type_name = "Services",
-            entity_region = "eu"
+            entity_region = "eu",
         };
 
         _devPortalTeamRoles[portalId][teamId].Add(teamRole);
@@ -277,8 +277,8 @@ internal class ApiGivenSteps
                     {
                         name = oidcConfig.ClaimMappings.Name,
                         email = oidcConfig.ClaimMappings.Email,
-                        groups = oidcConfig.ClaimMappings.Groups
-                    }
+                        groups = oidcConfig.ClaimMappings.Groups,
+                    },
                 };
 
         _devPortalAuthSettings.Add(
@@ -289,7 +289,7 @@ internal class ApiGivenSteps
                 oidc_auth_enabled = authSettings.OidcAuthEnabled.GetValueOrDefault(false),
                 oidc_team_mapping_enabled = authSettings.OidcTeamMappingEnabled.GetValueOrDefault(false),
                 konnect_mapping_enabled = authSettings.KonnectMappingEnabled.GetValueOrDefault(false),
-                oidc_config = oidcConfigObject
+                oidc_config = oidcConfigObject,
             }
         );
     }
@@ -303,7 +303,7 @@ internal class ApiGivenSteps
                 {
                     @base = appearance.CustomFontBase.GetValueOrDefault(null),
                     code = appearance.CustomFontCode.GetValueOrDefault(null),
-                    headings = appearance.CustomFontHeadings.GetValueOrDefault(null)
+                    headings = appearance.CustomFontHeadings.GetValueOrDefault(null),
                 };
 
         var textObject =
@@ -314,8 +314,8 @@ internal class ApiGivenSteps
                     catalog = new
                     {
                         welcome_message = appearance.WelcomeMessage.GetValueOrDefault(null),
-                        primary_header = appearance.PrimaryHeader.GetValueOrDefault(null)
-                    }
+                        primary_header = appearance.PrimaryHeader.GetValueOrDefault(null),
+                    },
                 };
 
         var faviconObject =
@@ -334,7 +334,7 @@ internal class ApiGivenSteps
                 : new
                 {
                     data = appearance.CatalogCoverImage.GetValueOrDefault(null),
-                    filename = appearance.CatalogCoverImageName.GetValueOrDefault(null)
+                    filename = appearance.CatalogCoverImageName.GetValueOrDefault(null),
                 };
 
         _devPortalAppearances.Add(
@@ -350,8 +350,8 @@ internal class ApiGivenSteps
                 {
                     favicon = faviconObject,
                     logo = logoObject,
-                    catalog_cover = catalogCoverObject
-                }
+                    catalog_cover = catalogCoverObject,
+                },
             }
         );
     }
@@ -406,7 +406,7 @@ internal class ApiGivenSteps
                         id = Guid.NewGuid().ToString(),
                         name = "DUMMY NAME",
                         publish_status = "unpublished",
-                        deprecated = false
+                        deprecated = false,
                     },
                 201
             );
@@ -429,9 +429,9 @@ internal class ApiGivenSteps
                             {
                                 total = results().Count,
                                 size = _pageSize,
-                                number = 1
-                            }
-                        }
+                                number = 1,
+                            },
+                        },
                     }
             );
 
@@ -453,9 +453,9 @@ internal class ApiGivenSteps
                                 {
                                     total = results().Count,
                                     size = _pageSize,
-                                    number = pageNumber
-                                }
-                            }
+                                    number = pageNumber,
+                                },
+                            },
                         }
                 );
         }

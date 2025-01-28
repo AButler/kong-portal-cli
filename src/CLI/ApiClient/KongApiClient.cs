@@ -16,7 +16,7 @@ internal class KongApiClient
                 var serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) }
+                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) },
                 };
 
                 c.JsonSerializer = new DefaultJsonSerializer(serializerOptions);

@@ -196,7 +196,7 @@ public class DumpPortalAuthSettings
             oidcTeamMappings:
             [
                 new OidcTeamMapping(TeamName: "Team 1", GroupNames: ["Group 2", "Group 1"]),
-                new OidcTeamMapping(TeamName: "Team 2", GroupNames: ["Group 3"])
+                new OidcTeamMapping(TeamName: "Team 2", GroupNames: ["Group 3"]),
             ]
         );
     }

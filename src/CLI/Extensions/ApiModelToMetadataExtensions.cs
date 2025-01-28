@@ -161,6 +161,6 @@ internal static class ApiModelToMetadataExtensions
         {
             ApiPublishStatus.Published => MetadataPublishStatus.Published,
             ApiPublishStatus.Unpublished => MetadataPublishStatus.Unpublished,
-            _ => throw new ArgumentOutOfRangeException(nameof(publishStatus))
+            _ => throw new ArgumentOutOfRangeException(nameof(publishStatus)),
         };
 }
