@@ -1,0 +1,4 @@
+﻿<Solution>
+  <Project Path="src\CLI\CLI.csproj" Type="Classic C#" />
+  <Project Path="test\CLI.UnitTests\CLI.UnitTests.csproj" Type="Classic C#" />
+</Solution>
