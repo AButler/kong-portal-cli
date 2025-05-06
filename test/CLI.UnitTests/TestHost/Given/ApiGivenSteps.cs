@@ -418,21 +418,20 @@ internal class ApiGivenSteps
             .Current.ForCallsTo(url)
             .WithVerb("GET")
             .WithoutQueryParam("page[number]")
-            .RespondWithDynamicJson(
-                () =>
-                    new
+            .RespondWithDynamicJson(() =>
+                new
+                {
+                    data = results().Take(_pageSize),
+                    meta = new
                     {
-                        data = results().Take(_pageSize),
-                        meta = new
+                        page = new
                         {
-                            page = new
-                            {
-                                total = results().Count,
-                                size = _pageSize,
-                                number = 1,
-                            },
+                            total = results().Count,
+                            size = _pageSize,
+                            number = 1,
                         },
-                    }
+                    },
+                }
             );
 
         for (var page = 1; page < MaximumPageSize; page++)
@@ -442,21 +441,20 @@ internal class ApiGivenSteps
                 .Current.ForCallsTo(url)
                 .WithVerb("GET")
                 .WithQueryParam("page[number]", page)
-                .RespondWithDynamicJson(
-                    () =>
-                        new
+                .RespondWithDynamicJson(() =>
+                    new
+                    {
+                        data = results().Skip((pageNumber - 1) * _pageSize).Take(_pageSize),
+                        meta = new
                         {
-                            data = results().Skip((pageNumber - 1) * _pageSize).Take(_pageSize),
-                            meta = new
+                            page = new
                             {
-                                page = new
-                                {
-                                    total = results().Count,
-                                    size = _pageSize,
-                                    number = pageNumber,
-                                },
+                                total = results().Count,
+                                size = _pageSize,
+                                number = pageNumber,
                             },
-                        }
+                        },
+                    }
                 );
         }
     }
