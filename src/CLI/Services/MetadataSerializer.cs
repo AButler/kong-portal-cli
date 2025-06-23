@@ -14,15 +14,19 @@ internal class MetadataSerializer(IFileSystem fileSystem, VariableHelper variabl
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) },
     };
 
-    public async Task SerializeAsync<T>(string filename, T value)
+    public async Task SerializeAsync<T>(string filename, T value, CancellationToken cancellationToken = default)
     {
         await using var file = fileSystem.File.Create(filename);
-        await JsonSerializer.SerializeAsync(file, value, SerializerOptions);
+        await JsonSerializer.SerializeAsync(file, value, SerializerOptions, cancellationToken);
     }
 
-    public async Task<T?> DeserializeAsync<T>(string filename, IReadOnlyDictionary<string, string> variables)
+    public async Task<T?> DeserializeAsync<T>(
+        string filename,
+        IReadOnlyDictionary<string, string> variables,
+        CancellationToken cancellationToken = default
+    )
     {
-        var json = await fileSystem.File.ReadAllTextAsync(filename);
+        var json = await fileSystem.File.ReadAllTextAsync(filename, cancellationToken);
         var replacedJson = variableHelper.Replace(json, variables);
         return JsonSerializer.Deserialize<T>(replacedJson, SerializerOptions);
     }

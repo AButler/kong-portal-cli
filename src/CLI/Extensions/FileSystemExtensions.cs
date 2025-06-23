@@ -14,10 +14,10 @@ internal static class FileSystemExtensions
         directory.CreateDirectory(path);
     }
 
-    public static async Task WriteDataUriImage(this IFile file, string path, string imageData)
+    public static async Task WriteDataUriImage(this IFile file, string path, string imageData, CancellationToken cancellationToken = default)
     {
         var bytes = DataUriHelpers.GetData(imageData);
 
-        await file.WriteAllBytesAsync(path, bytes);
+        await file.WriteAllBytesAsync(path, bytes, cancellationToken);
     }
 }

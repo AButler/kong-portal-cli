@@ -26,7 +26,7 @@ public class SyncPortalTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalShouldHaveBeenUpdated(portalId);
     }
@@ -45,7 +45,7 @@ public class SyncPortalTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalAppearanceShouldHaveBeenUpdated(portalId);
     }
@@ -75,7 +75,7 @@ public class SyncPortalTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalAuthSettingsShouldHaveBeenUpdated(portalId);
     }
@@ -115,7 +115,7 @@ public class SyncPortalTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalTeamMappingsShouldHaveBeenUpdated(portalId);
     }
@@ -157,7 +157,7 @@ public class SyncPortalTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalTeamMappingsShouldHaveBeenUpdated(portalId);
     }

@@ -66,7 +66,6 @@ internal class SyncCommand : Command
         CancellationToken cancellationToken
     )
     {
-        //TODO: Cancellation token support
         try
         {
             var resolvedToken = TokenResolutionHelper.ResolveToken(token, tokenFile);
@@ -79,7 +78,8 @@ internal class SyncCommand : Command
                 Path.GetFullPath(inputDirectory),
                 variablesDictionary,
                 apply,
-                new KongApiClientOptions(resolvedToken, konnectAddress, region, debug)
+                new KongApiClientOptions(resolvedToken, konnectAddress, region, debug),
+                cancellationToken
             );
 
             return 0;

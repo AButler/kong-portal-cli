@@ -12,7 +12,13 @@ internal class SyncService(
     IConsoleOutput consoleOutput
 )
 {
-    public async Task Sync(string inputDirectory, IReadOnlyDictionary<string, string> variables, bool apply, KongApiClientOptions apiClientOptions)
+    public async Task Sync(
+        string inputDirectory,
+        IReadOnlyDictionary<string, string> variables,
+        bool apply,
+        KongApiClientOptions apiClientOptions,
+        CancellationToken cancellationToken = default
+    )
     {
         var apiClient = apiClientFactory.CreateClient(apiClientOptions);
 
@@ -22,8 +28,10 @@ internal class SyncService(
             consoleOutput.WriteLine(" ** Dry run only - no changes will be made **".Pastel(ConsoleColor.Yellow));
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         consoleOutput.WriteLine("Reading input directory...");
-        var sourceData = await sourceDirectoryReader.Read(inputDirectory, variables);
+        var sourceData = await sourceDirectoryReader.Read(inputDirectory, variables, cancellationToken);
 
         consoleOutput.WriteLine("Comparing...");
         var compareResult = await comparerService.Compare(sourceData, apiClient);

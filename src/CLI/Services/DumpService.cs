@@ -29,8 +29,7 @@ internal class DumpService(
         var apiProducts = await apiClient.ApiProducts.GetAll();
         foreach (var apiProduct in apiProducts)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            await DumpApiProduct(context, apiProduct);
+            await DumpApiProduct(context, apiProduct, cancellationToken);
         }
 
         consoleOutput.WriteLine("- Portals");
@@ -39,16 +38,16 @@ internal class DumpService(
         var portals = await apiClient.DevPortals.GetAll();
         foreach (var portal in portals)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            await DumpPortal(context, portal);
+            await DumpPortal(context, portal, cancellationToken);
         }
 
         consoleOutput.WriteLine("Done!");
     }
 
-    private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct)
+    private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct, CancellationToken cancellationToken)
     {
-        //TODO: Cancellation token support
+        cancellationToken.ThrowIfCancellationRequested();
+
         var syncIdFromLabel = apiProduct.GetSyncIdFromLabel();
         string apiProductSyncId;
 
@@ -72,27 +71,42 @@ internal class DumpService(
         var metadata = apiProduct.ToMetadata(apiProductSyncId);
 
         var metadataFilename = Path.Combine(apiProductDirectory, "api-product.json");
-        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata, cancellationToken);
 
-        await DumpApiProductVersions(context, apiProductSyncId, apiProduct);
+        await DumpApiProductVersions(context, apiProductSyncId, apiProduct, cancellationToken);
 
-        await DumpApiProductDocuments(context, apiProductSyncId, apiProduct);
+        await DumpApiProductDocuments(context, apiProductSyncId, apiProduct, cancellationToken);
     }
 
-    private async Task DumpApiProductVersions(DumpContext context, string apiProductSyncId, ApiProduct apiProduct)
+    private async Task DumpApiProductVersions(
+        DumpContext context,
+        string apiProductSyncId,
+        ApiProduct apiProduct,
+        CancellationToken cancellationToken
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var versions = await context.ApiClient.ApiProductVersions.GetAll(apiProduct.Id);
 
         foreach (var apiProductVersion in versions)
         {
             consoleOutput.WriteLine($"    - Version: {apiProductVersion.Name}");
 
-            await DumpApiProductVersion(context, apiProductSyncId, apiProduct, apiProductVersion);
+            await DumpApiProductVersion(context, apiProductSyncId, apiProduct, apiProductVersion, cancellationToken);
         }
     }
 
-    private async Task DumpApiProductVersion(DumpContext context, string apiProductSyncId, ApiProduct apiProduct, ApiProductVersion apiProductVersion)
+    private async Task DumpApiProductVersion(
+        DumpContext context,
+        string apiProductSyncId,
+        ApiProduct apiProduct,
+        ApiProductVersion apiProductVersion,
+        CancellationToken cancellationToken
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var versionsDirectory = context.GetVersionDirectory(apiProductSyncId);
         var specification = await context.ApiClient.ApiProductVersions.GetSpecification(apiProduct.Id, apiProductVersion.Id);
 
@@ -104,7 +118,7 @@ internal class DumpService(
         fileSystem.Directory.EnsureDirectory(versionDirectory);
 
         var metadataFilename = Path.Combine(versionDirectory, "version.json");
-        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata, cancellationToken);
 
         if (specification == null)
         {
@@ -112,37 +126,55 @@ internal class DumpService(
         }
 
         var specificationFilename = Path.Combine(versionDirectory, specification.Name.TrimStart('/'));
-        await fileSystem.File.WriteAllTextAsync(specificationFilename, specification.Content);
+        await fileSystem.File.WriteAllTextAsync(specificationFilename, specification.Content, cancellationToken);
     }
 
-    private async Task DumpApiProductDocuments(DumpContext context, string apiProductSyncId, ApiProduct apiProduct)
+    private async Task DumpApiProductDocuments(
+        DumpContext context,
+        string apiProductSyncId,
+        ApiProduct apiProduct,
+        CancellationToken cancellationToken
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var documents = await context.ApiClient.ApiProductDocuments.GetAll(apiProduct.Id);
 
         foreach (var document in documents)
         {
             consoleOutput.WriteLine($"    - Document: {document.Slug}");
 
-            await DumpApiProductDocument(context, apiProductSyncId, apiProduct, document.Id, document.Slug);
+            await DumpApiProductDocument(context, apiProductSyncId, apiProduct, document.Id, document.Slug, cancellationToken);
         }
     }
 
-    private async Task DumpApiProductDocument(DumpContext context, string apiProductSyncId, ApiProduct apiProduct, string documentId, string fullSlug)
+    private async Task DumpApiProductDocument(
+        DumpContext context,
+        string apiProductSyncId,
+        ApiProduct apiProduct,
+        string documentId,
+        string fullSlug,
+        CancellationToken cancellationToken
+    )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var documentsDirectory = context.GetDocumentsDirectory(apiProductSyncId);
         var apiProductDocument = await context.ApiClient.ApiProductDocuments.GetBody(apiProduct.Id, documentId);
 
         var metadata = apiProductDocument.ToMetadata(fullSlug);
         var metadataFilename = Path.Combine(documentsDirectory, $"{fullSlug}.json");
         fileSystem.Directory.EnsureDirectory(Path.GetDirectoryName(metadataFilename)!);
-        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata, cancellationToken);
 
         var contentFilename = Path.Combine(documentsDirectory, $"{fullSlug}.md");
-        await fileSystem.File.WriteAllTextAsync(contentFilename, apiProductDocument.MarkdownContent);
+        await fileSystem.File.WriteAllTextAsync(contentFilename, apiProductDocument.MarkdownContent, cancellationToken);
     }
 
-    private async Task DumpPortal(DumpContext context, DevPortal devPortal)
+    private async Task DumpPortal(DumpContext context, DevPortal devPortal, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         consoleOutput.WriteLine($"  - {devPortal.Name}");
 
         context.PortalTeamIdMap.Add(devPortal.Name, new SyncIdMap());
@@ -153,19 +185,21 @@ internal class DumpService(
         var metadata = devPortal.ToMetadata();
 
         var metadataFilename = Path.Combine(portalDirectory, "portal.json");
-        await metadataSerializer.SerializeAsync(metadataFilename, metadata);
+        await metadataSerializer.SerializeAsync(metadataFilename, metadata, cancellationToken);
 
-        await DumpPortalAppearance(context, devPortal);
+        await DumpPortalAppearance(context, devPortal, cancellationToken);
 
-        await DumpPortalTeams(context, devPortal);
+        await DumpPortalTeams(context, devPortal, cancellationToken);
 
-        await DumpPortalAuthSettings(context, devPortal);
+        await DumpPortalAuthSettings(context, devPortal, cancellationToken);
 
-        await DumpPortalProducts(context, devPortal);
+        await DumpPortalProducts(context, devPortal, cancellationToken);
     }
 
-    private async Task DumpPortalProducts(DumpContext context, DevPortal devPortal)
+    private async Task DumpPortalProducts(DumpContext context, DevPortal devPortal, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         var apiProducts = await context.ApiClient.DevPortals.GetApiProducts(devPortal.Id);
 
@@ -174,17 +208,21 @@ internal class DumpService(
         var apiProductsMetadata = new PortalApiProductsMetadata(apiProductVersionSyncIds.ToList());
 
         var apiProductsMetadataFilename = Path.Combine(portalDirectory, "api-products.json");
-        await metadataSerializer.SerializeAsync(apiProductsMetadataFilename, apiProductsMetadata);
+        await metadataSerializer.SerializeAsync(apiProductsMetadataFilename, apiProductsMetadata, cancellationToken);
     }
 
-    private async Task DumpPortalTeams(DumpContext context, DevPortal devPortal)
+    private async Task DumpPortalTeams(DumpContext context, DevPortal devPortal, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         var teams = await context.ApiClient.DevPortals.GetTeams(devPortal.Id);
 
         var teamRolesMap = new Dictionary<string, IReadOnlyCollection<DevPortalTeamRole>>();
         foreach (var team in teams)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             context.PortalTeamIdMap[devPortal.Name].Add(team.Name, team.Id);
 
             var teamRoles = await context.ApiClient.DevPortals.GetTeamRoles(devPortal.Id, team.Id);
@@ -194,11 +232,13 @@ internal class DumpService(
         var teamsMetadata = teams.ToMetadata(teamRolesMap, context.ApiProductIdMap);
 
         var teamsMetadataFilename = Path.Combine(portalDirectory, "teams.json");
-        await metadataSerializer.SerializeAsync(teamsMetadataFilename, teamsMetadata);
+        await metadataSerializer.SerializeAsync(teamsMetadataFilename, teamsMetadata, cancellationToken);
     }
 
-    private async Task DumpPortalAuthSettings(DumpContext context, DevPortal devPortal)
+    private async Task DumpPortalAuthSettings(DumpContext context, DevPortal devPortal, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         var portalAuthSettings = await context.ApiClient.DevPortals.GetAuthSettings(devPortal.Id);
         var portalTeamMappings = await context.ApiClient.DevPortals.GetAuthTeamMappings(devPortal.Id);
@@ -206,35 +246,37 @@ internal class DumpService(
         var authSettingsMetadata = portalAuthSettings.ToMetadata(portalTeamMappings, context.PortalTeamIdMap[devPortal.Name]);
 
         var authSettingsMetadataFilename = Path.Combine(portalDirectory, "authentication-settings.json");
-        await metadataSerializer.SerializeAsync(authSettingsMetadataFilename, authSettingsMetadata);
+        await metadataSerializer.SerializeAsync(authSettingsMetadataFilename, authSettingsMetadata, cancellationToken);
     }
 
-    private async Task DumpPortalAppearance(DumpContext context, DevPortal devPortal)
+    private async Task DumpPortalAppearance(DumpContext context, DevPortal devPortal, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var portalDirectory = context.GetPortalDirectory(devPortal.Name);
         var portalAppearance = await context.ApiClient.DevPortals.GetAppearance(devPortal.Id);
 
         var appearanceMetadata = portalAppearance.ToMetadata();
 
         var appearanceMetadataFilename = Path.Combine(portalDirectory, "appearance.json");
-        await metadataSerializer.SerializeAsync(appearanceMetadataFilename, appearanceMetadata);
+        await metadataSerializer.SerializeAsync(appearanceMetadataFilename, appearanceMetadata, cancellationToken);
 
         if (portalAppearance.Images?.Favicon != null)
         {
             var imageFilename = Path.Combine(portalDirectory, portalAppearance.Images.Favicon.Filename);
-            await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.Favicon.Data);
+            await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.Favicon.Data, cancellationToken);
         }
 
         if (portalAppearance.Images?.Logo != null)
         {
             var imageFilename = Path.Combine(portalDirectory, portalAppearance.Images.Logo.Filename);
-            await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.Logo.Data);
+            await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.Logo.Data, cancellationToken);
         }
 
         if (portalAppearance.Images?.CatalogCover != null)
         {
             var imageFilename = Path.Combine(portalDirectory, portalAppearance.Images.CatalogCover.Filename);
-            await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.CatalogCover.Data);
+            await fileSystem.File.WriteDataUriImage(imageFilename, portalAppearance.Images.CatalogCover.Data, cancellationToken);
         }
     }
 
