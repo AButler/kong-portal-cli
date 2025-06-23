@@ -22,7 +22,7 @@ public class DumpApiVersionTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(
             outputDirectory: outputDirectory,
@@ -49,7 +49,7 @@ public class DumpApiVersionTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProductVersion(
             outputDirectory: outputDirectory,

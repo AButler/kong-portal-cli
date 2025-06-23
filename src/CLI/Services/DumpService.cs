@@ -11,28 +11,35 @@ internal class DumpService(
     IConsoleOutput consoleOutput
 )
 {
-    public async Task Dump(string outputDirectory, KongApiClientOptions apiClientOptions)
+    public async Task Dump(string outputDirectory, KongApiClientOptions apiClientOptions, CancellationToken cancellationToken = default)
     {
         Cleanup(outputDirectory);
 
         consoleOutput.WriteLine($"Output Directory: {outputDirectory}");
         consoleOutput.WriteLine("Dumping...");
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         var apiClient = apiClientFactory.CreateClient(apiClientOptions);
         var context = new DumpContext(apiClient, outputDirectory);
 
         consoleOutput.WriteLine("- API Products");
+        cancellationToken.ThrowIfCancellationRequested();
 
         var apiProducts = await apiClient.ApiProducts.GetAll();
         foreach (var apiProduct in apiProducts)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             await DumpApiProduct(context, apiProduct);
         }
 
         consoleOutput.WriteLine("- Portals");
+        cancellationToken.ThrowIfCancellationRequested();
+
         var portals = await apiClient.DevPortals.GetAll();
         foreach (var portal in portals)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             await DumpPortal(context, portal);
         }
 
@@ -41,6 +48,7 @@ internal class DumpService(
 
     private async Task DumpApiProduct(DumpContext context, ApiProduct apiProduct)
     {
+        //TODO: Cancellation token support
         var syncIdFromLabel = apiProduct.GetSyncIdFromLabel();
         string apiProductSyncId;
 

@@ -10,7 +10,7 @@ internal class SyncCommand : Command
     private readonly SyncService _syncService;
 
     public SyncCommand(SyncService syncService)
-        : base("sync", "Syncs the filesystem to Kong")
+        : base("sync")
     {
         _syncService = syncService;
         SetupCommand();
@@ -18,29 +18,39 @@ internal class SyncCommand : Command
 
     private void SetupCommand()
     {
-        var inputDirectoryOption = new Option<string>("--input", "Input directory containing data to sync from") { IsRequired = true };
-        var applyOption = new Option<bool>("--apply", "Applies changes to Konnect (do not set to perform a dry-run)");
-        var variablesOptions = new Option<string[]>("--var", "Variables to replace within the data (e.g. URL=http://example.com)")
+        Description = "Syncs the filesystem to Kong";
+
+        var inputDirectoryOption = new Option<string>("--input") { Description = "Input directory containing data to sync from", Required = true };
+        var applyOption = new Option<bool>("--apply") { Description = "Applies changes to Konnect (do not set to perform a dry-run)" };
+        var variablesOptions = new Option<string[]>("--var")
         {
+            Description = "Variables to replace within the data (e.g. URL=http://example.com)",
             Arity = ArgumentArity.ZeroOrMore,
         };
-        var konnectRegion = new Option<string>("--konnect-region", "Overrides the region when assigning Roles. Defaults based on --konnect-addr");
 
-        AddOption(inputDirectoryOption);
-        AddOption(applyOption);
-        AddOption(variablesOptions);
-        AddOption(konnectRegion);
+        var konnectRegionOption = new Option<string>("--konnect-region")
+        {
+            Description = "Overrides the region when assigning Roles. Defaults based on --konnect-addr",
+        };
 
-        this.SetHandler(
-            Handle,
-            inputDirectoryOption,
-            applyOption,
-            variablesOptions,
-            GlobalOptions.TokenOption,
-            GlobalOptions.TokenFileOption,
-            GlobalOptions.KonnectAddressOption,
-            konnectRegion,
-            GlobalOptions.Debug
+        Options.Add(inputDirectoryOption);
+        Options.Add(applyOption);
+        Options.Add(variablesOptions);
+        Options.Add(konnectRegionOption);
+
+        SetAction(
+            async (parseResult, cancellationToken) =>
+            {
+                var inputDirectory = parseResult.GetValue(inputDirectoryOption)!;
+                var apply = parseResult.GetValue(applyOption);
+                var variables = parseResult.GetValue(variablesOptions) ?? [];
+                var token = parseResult.GetValue(GlobalOptions.TokenOption);
+                var tokenFile = parseResult.GetValue(GlobalOptions.TokenFileOption);
+                var konnectAddress = parseResult.GetValue(GlobalOptions.KonnectAddressOption)!;
+                var konnectRegion = parseResult.GetValue(konnectRegionOption);
+                var debug = parseResult.GetValue(GlobalOptions.Debug);
+                return await Handle(inputDirectory, apply, variables, token, tokenFile, konnectAddress, konnectRegion, debug, cancellationToken);
+            }
         );
     }
 
@@ -52,9 +62,11 @@ internal class SyncCommand : Command
         FileInfo? tokenFile,
         string konnectAddress,
         string? konnectRegion,
-        bool debug
+        bool debug,
+        CancellationToken cancellationToken
     )
     {
+        //TODO: Cancellation token support
         try
         {
             var resolvedToken = TokenResolutionHelper.ResolveToken(token, tokenFile);

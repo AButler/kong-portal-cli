@@ -23,7 +23,7 @@ public class DumpPortalSettingsTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
             outputDirectory: outputDirectory,
@@ -63,7 +63,7 @@ public class DumpPortalSettingsTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
             outputDirectory: outputDirectory,
@@ -105,7 +105,7 @@ public class DumpPortalSettingsTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortal(
             outputDirectory: outputDirectory,

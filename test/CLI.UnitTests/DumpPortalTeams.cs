@@ -15,7 +15,7 @@ public class DumpPortalTeams
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHaveNoPortalTeams(outputDirectory: outputDirectory, portalName: "default");
     }
@@ -34,7 +34,7 @@ public class DumpPortalTeams
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortalTeam(
             outputDirectory: outputDirectory,
@@ -59,7 +59,7 @@ public class DumpPortalTeams
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortalTeam(
             outputDirectory: outputDirectory,
@@ -96,7 +96,7 @@ public class DumpPortalTeams
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         for (var i = 1; i < 10; i++)
         {
@@ -127,7 +127,7 @@ public class DumpPortalTeams
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortalTeam(
             outputDirectory: outputDirectory,
@@ -164,7 +164,7 @@ public class DumpPortalTeams
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortalTeam(
             outputDirectory: outputDirectory,
