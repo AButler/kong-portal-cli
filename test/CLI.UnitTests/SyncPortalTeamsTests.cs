@@ -15,7 +15,7 @@ public class SyncPortalTeamsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.NoPortalTeamsShouldHaveBeenCreated(portalId);
     }
@@ -39,7 +39,7 @@ public class SyncPortalTeamsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalTeamShouldHaveBeenCreated(portalId);
     }
@@ -64,7 +64,7 @@ public class SyncPortalTeamsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalTeamShouldHaveBeenUpdated(portalId);
     }
@@ -97,7 +97,7 @@ public class SyncPortalTeamsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalTeamShouldHaveBeenUpdated(portalId);
     }
@@ -129,7 +129,7 @@ public class SyncPortalTeamsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.NoPortalTeamsShouldHaveBeenCreated(portalId);
         testHost.Then.Api.NoPortalTeamsShouldHaveBeenUpdated(portalId);
@@ -162,7 +162,7 @@ public class SyncPortalTeamsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.NoPortalTeamsShouldHaveBeenCreated(portalId);
         testHost.Then.Api.NoPortalTeamsShouldHaveBeenUpdated(portalId);
@@ -198,7 +198,7 @@ public class SyncPortalTeamsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalTeamRoleShouldHaveBeenAssigned(portalId, teamId);
     }
@@ -235,7 +235,7 @@ public class SyncPortalTeamsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.PortalTeamRoleShouldHaveBeenRemoved(portalId, teamId, roleId);
     }

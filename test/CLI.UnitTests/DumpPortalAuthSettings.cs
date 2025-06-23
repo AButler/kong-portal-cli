@@ -27,7 +27,7 @@ public class DumpPortalAuthSettings
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortalAuthSettings(
             outputDirectory: outputDirectory,
@@ -69,7 +69,7 @@ public class DumpPortalAuthSettings
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortalAuthSettings(
             outputDirectory: outputDirectory,
@@ -121,7 +121,7 @@ public class DumpPortalAuthSettings
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortalAuthSettings(
             outputDirectory: outputDirectory,
@@ -177,7 +177,7 @@ public class DumpPortalAuthSettings
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHavePortalAuthSettings(
             outputDirectory: outputDirectory,

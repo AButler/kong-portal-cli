@@ -19,7 +19,7 @@ public class DumpApiProductsTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
             outputDirectory: outputDirectory,
@@ -50,7 +50,7 @@ public class DumpApiProductsTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
             outputDirectory: outputDirectory,
@@ -81,7 +81,7 @@ public class DumpApiProductsTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
             outputDirectory: outputDirectory,
@@ -113,7 +113,7 @@ public class DumpApiProductsTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         await testHost.Then.DumpedFile.ShouldHaveApiProduct(
             outputDirectory,
@@ -148,7 +148,7 @@ public class DumpApiProductsTests
 
         var outputDirectory = @"c:\temp\output";
 
-        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions);
+        await dumpService.Dump(outputDirectory, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         for (var i = 1; i < 10; i++)
         {

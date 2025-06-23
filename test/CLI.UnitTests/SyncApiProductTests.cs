@@ -11,7 +11,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.ShouldNotHaveReceivedAnyUpdates();
     }
@@ -39,7 +39,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
     }
@@ -58,7 +58,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
     }
@@ -80,7 +80,7 @@ public class SyncApiProductTests
 
         var variables = new Dictionary<string, string> { ["PRODUCT_NUMBER"] = "1" };
 
-        await syncService.Sync(@"c:\temp\input", variables, true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", variables, true, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
     }
@@ -109,7 +109,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
     }
@@ -132,7 +132,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.ApiProductShouldHaveBeenCreated("api-product-1");
 
@@ -157,7 +157,7 @@ public class SyncApiProductTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         var apiProductId = await testHost.Then.Api.GetApiProductId("api-product-1");
         testHost.Then.Api.ApiProductDocumentShouldHaveBeenCreated(apiProductId);
@@ -183,7 +183,7 @@ public class SyncApiProductTests
 
         var variables = new Dictionary<string, string> { ["BASE_URL"] = "http://foo.com" };
 
-        await syncService.Sync(@"c:\temp\input", variables, true, testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", variables, true, testHost.ApiClientOptions, TestContext.Current.CancellationToken);
 
         var apiProductId = await testHost.Then.Api.GetApiProductId("api-product-1");
         testHost.Then.Api.ApiProductDocumentShouldHaveBeenCreated(apiProductId, "http://foo.com/assets/images/sample.jpg");

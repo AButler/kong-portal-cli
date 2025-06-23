@@ -1,5 +1,4 @@
-﻿using System.CommandLine;
-using Kong.Portal.CLI;
+﻿using Kong.Portal.CLI;
 using Kong.Portal.CLI.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Pastel;
@@ -9,15 +8,15 @@ var services = new ServiceCollection().AddApplication().BuildServiceProvider();
 try
 {
     var rootCommand = new CliRootCommand();
-    rootCommand.AddGlobalOption(GlobalOptions.TokenOption);
-    rootCommand.AddGlobalOption(GlobalOptions.TokenFileOption);
-    rootCommand.AddGlobalOption(GlobalOptions.KonnectAddressOption);
-    rootCommand.AddGlobalOption(GlobalOptions.Debug);
+    rootCommand.Options.Add(GlobalOptions.TokenOption);
+    rootCommand.Options.Add(GlobalOptions.TokenFileOption);
+    rootCommand.Options.Add(GlobalOptions.KonnectAddressOption);
+    rootCommand.Options.Add(GlobalOptions.Debug);
 
-    rootCommand.AddCommand(services.GetRequiredService<DumpCommand>());
-    rootCommand.AddCommand(services.GetRequiredService<SyncCommand>());
+    rootCommand.Subcommands.Add(services.GetRequiredService<DumpCommand>());
+    rootCommand.Subcommands.Add(services.GetRequiredService<SyncCommand>());
 
-    return await rootCommand.InvokeAsync(args);
+    return await rootCommand.Parse(args).InvokeAsync();
 }
 catch (OutputErrorException ex)
 {

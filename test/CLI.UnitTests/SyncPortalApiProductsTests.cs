@@ -27,7 +27,7 @@ public class SyncPortalApiProductsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.ApiProductShouldHaveBeenUpdated(productId);
     }
@@ -61,7 +61,7 @@ public class SyncPortalApiProductsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         testHost.Then.Api.ApiProductShouldNotHaveBeenUpdated(productId);
     }
@@ -87,7 +87,7 @@ public class SyncPortalApiProductsTests
 
         var syncService = testHost.GetRequiredService<SyncService>();
 
-        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions);
+        await syncService.Sync(@"c:\temp\input", testHost.ApiClientOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         var productId = await testHost.Then.Api.GetApiProductId("api-product-1");
         var teamId = await testHost.Then.Api.GetPortalTeamId(portalId, "Team 1");
