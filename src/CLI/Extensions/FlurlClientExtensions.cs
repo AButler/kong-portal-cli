@@ -5,22 +5,25 @@ namespace Kong.Portal.CLI;
 
 internal static class FlurlClientExtensions
 {
-    public static async Task<List<T>> GetKongPagedResults<T>(this IFlurlClient client, string url)
+    extension(IFlurlClient client)
     {
-        var allItems = new List<T>();
-
-        PagedResponse<T> responsePage;
-        var pageNumber = 1;
-
-        do
+        public async Task<List<T>> GetKongPagedResults<T>(string url)
         {
-            var response = await client.Request(url).SetQueryParam("page[number]", pageNumber++).GetAsync();
+            var allItems = new List<T>();
 
-            responsePage = await response.GetJsonAsync<PagedResponse<T>>();
+            PagedResponse<T> responsePage;
+            var pageNumber = 1;
 
-            allItems.AddRange(responsePage.Data);
-        } while (responsePage.Meta.Page.HasMore());
+            do
+            {
+                var response = await client.Request(url).SetQueryParam("page[number]", pageNumber++).GetAsync();
 
-        return allItems;
+                responsePage = await response.GetJsonAsync<PagedResponse<T>>();
+
+                allItems.AddRange(responsePage.Data);
+            } while (responsePage.Meta.Page.HasMore());
+
+            return allItems;
+        }
     }
 }

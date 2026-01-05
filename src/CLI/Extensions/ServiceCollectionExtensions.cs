@@ -8,23 +8,26 @@ namespace Kong.Portal.CLI;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        return services.AddCoreApplication().AddSingleton<DumpCommand>().AddSingleton<SyncCommand>();
-    }
+        public IServiceCollection AddApplication()
+        {
+            return services.AddCoreApplication().AddSingleton<DumpCommand>().AddSingleton<SyncCommand>();
+        }
 
-    internal static IServiceCollection AddCoreApplication(this IServiceCollection services)
-    {
-        return services
-            .AddSingleton<KongApiClientFactory>()
-            .AddSingleton<IFileSystem, FileSystem>()
-            .AddSingleton<IConsoleOutput, ConsoleOutput>()
-            .AddSingleton<MetadataSerializer>()
-            .AddSingleton<DumpService>()
-            .AddSingleton<SyncService>()
-            .AddSingleton<ComparerService>()
-            .AddSingleton<SourceDirectoryReader>()
-            .AddSingleton<IEnvironmentVariableReader, EnvironmentVariableReader>()
-            .AddTransient<VariableHelper>();
+        internal IServiceCollection AddCoreApplication()
+        {
+            return services
+                .AddSingleton<KongApiClientFactory>()
+                .AddSingleton<IFileSystem, FileSystem>()
+                .AddSingleton<IConsoleOutput, ConsoleOutput>()
+                .AddSingleton<MetadataSerializer>()
+                .AddSingleton<DumpService>()
+                .AddSingleton<SyncService>()
+                .AddSingleton<ComparerService>()
+                .AddSingleton<SourceDirectoryReader>()
+                .AddSingleton<IEnvironmentVariableReader, EnvironmentVariableReader>()
+                .AddTransient<VariableHelper>();
+        }
     }
 }

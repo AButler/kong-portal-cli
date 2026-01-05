@@ -5,21 +5,18 @@ namespace Kong.Portal.CLI;
 
 internal static class ConsoleOutputExtensions
 {
-    public static void WriteDifference<T>(this IConsoleOutput consoleOutput, Difference<T> difference, string entityName, int indentLevel = 0)
+    extension(IConsoleOutput consoleOutput)
     {
-        var spaces = new string(' ', indentLevel * 2);
+        public void WriteDifference<T>(Difference<T> difference, string entityName, int indentLevel = 0)
+        {
+            var spaces = new string(' ', indentLevel * 2);
 
-        consoleOutput.WriteLine($"{spaces}{difference.DifferenceType.ToSymbol()} {entityName}");
-    }
+            consoleOutput.WriteLine($"{spaces}{difference.DifferenceType.ToSymbol()} {entityName}");
+        }
 
-    public static void WriteDifference<T>(
-        this IConsoleOutput consoleOutput,
-        Difference<T> difference,
-        string entityType,
-        string entityName,
-        int indentLevel = 0
-    )
-    {
-        WriteDifference(consoleOutput, difference, $"{entityType}: {entityName}", indentLevel);
+        public void WriteDifference<T>(Difference<T> difference, string entityType, string entityName, int indentLevel = 0)
+        {
+            consoleOutput.WriteDifference(difference, $"{entityType}: {entityName}", indentLevel);
+        }
     }
 }

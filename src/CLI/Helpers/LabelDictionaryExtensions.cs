@@ -2,8 +2,11 @@
 
 internal static class LabelDictionaryExtensions
 {
-    public static LabelDictionary ToLabelDictionary(this IDictionary<string, string>? labels)
+    extension(IDictionary<string, string>? labels)
     {
-        return labels == null ? new LabelDictionary() : new LabelDictionary(labels);
+        public LabelDictionary ToLabelDictionary()
+        {
+            return labels == null ? new LabelDictionary() : new LabelDictionary(labels);
+        }
     }
 }

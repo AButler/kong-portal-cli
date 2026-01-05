@@ -5,15 +5,18 @@ namespace Kong.Portal.CLI;
 
 internal static class DifferenceExtensions
 {
-    public static string ToSymbol(this DifferenceType differenceType)
+    extension(DifferenceType differenceType)
     {
-        return differenceType switch
+        public string ToSymbol()
         {
-            DifferenceType.NoChange => "o".Pastel(ConsoleColor.Gray),
-            DifferenceType.Add => "+".Pastel(ConsoleColor.Green),
-            DifferenceType.Update => "~".Pastel(ConsoleColor.Yellow),
-            DifferenceType.Delete => "-".Pastel(ConsoleColor.Red),
-            _ => throw new ArgumentOutOfRangeException(nameof(differenceType), differenceType, null),
-        };
+            return differenceType switch
+            {
+                DifferenceType.NoChange => "o".Pastel(ConsoleColor.Gray),
+                DifferenceType.Add => "+".Pastel(ConsoleColor.Green),
+                DifferenceType.Update => "~".Pastel(ConsoleColor.Yellow),
+                DifferenceType.Delete => "-".Pastel(ConsoleColor.Red),
+                _ => throw new ArgumentOutOfRangeException(nameof(differenceType), differenceType, null),
+            };
+        }
     }
 }
