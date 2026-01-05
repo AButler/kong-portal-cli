@@ -4,20 +4,26 @@ namespace Kong.Portal.CLI;
 
 internal static class FileSystemExtensions
 {
-    public static void EnsureDirectory(this IDirectory directory, string path)
+    extension(IDirectory directory)
     {
-        if (directory.Exists(path))
+        public void EnsureDirectory(string path)
         {
-            return;
-        }
+            if (directory.Exists(path))
+            {
+                return;
+            }
 
-        directory.CreateDirectory(path);
+            directory.CreateDirectory(path);
+        }
     }
 
-    public static async Task WriteDataUriImage(this IFile file, string path, string imageData, CancellationToken cancellationToken = default)
+    extension(IFile file)
     {
-        var bytes = DataUriHelpers.GetData(imageData);
+        public async Task WriteDataUriImage(string path, string imageData, CancellationToken cancellationToken = default)
+        {
+            var bytes = DataUriHelpers.GetData(imageData);
 
-        await file.WriteAllBytesAsync(path, bytes, cancellationToken);
+            await file.WriteAllBytesAsync(path, bytes, cancellationToken);
+        }
     }
 }
