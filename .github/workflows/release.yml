@@ -69,6 +69,20 @@ jobs:
         run: ./build/Build-Release.ps1 -Runtime linux-musl-x64 -Version "${{ needs.version.outputs.version_3 }}" -VersionSuffix "${{ needs.version.outputs.version_suffix }}"
         shell: pwsh
 
+      - name: Create tag
+        uses: actions/github-script@v8
+        env:
+          TAG: v${{ needs.version.outputs.version_full }}
+        with:
+          script: |
+            const tag = process.env.TAG;
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/${tag}`,
+              sha: context.sha
+            })
+
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
         with:
