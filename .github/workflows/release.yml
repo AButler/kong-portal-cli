@@ -70,7 +70,7 @@ jobs:
         shell: pwsh
 
       - name: Create tag
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           TAG: v${{ needs.version.outputs.version_full }}
         with:
